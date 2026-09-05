@@ -5,8 +5,9 @@
 ## Abstract — read this first
 
 This is ComplexGitSync's filled-in instance of the project-agnostic
-multi-agent role template — see the `AGENT.md` template in `.agentSpec/`
-(`flipoyo/.agentSpec`, mounted alongside this repository) for the full
+multi-agent role template — see the `AGENT.md` template in
+`.agentSpec/DevSpec/` (`flipoyo/DevSpec`, mounted one level inside the
+`.agentSpec` repository alongside this one) for the full
 six-role roster, scope definitions, and generic handoff rules. What follows
 is only what differs from, or narrows, that template for this project
 specifically: which roles this project actually exercises, and the one
@@ -30,7 +31,7 @@ graph TD
 
 | Agent | This project's scope |
 |---|---|
-| **Orchestration** | `.agentSpec/DevSpecs.md`, `AdditionalSpecs.md`, `audit.md`, and the planning tickets under `AgentSpec/` — named and filed per `.agentSpec/TICKETLIFECYCLE.md`. |
+| **Orchestration** | `.agentSpec/DevSpec/DevSpecs.md`, `AdditionalSpecs.md`, `audit.md`, and the planning tickets under `AgentSpec/` — named and filed per `.agentSpec/TICKETLIFECYCLE.md`. |
 | **Dev** | Python only — `src/ComplexGitSync/` and `tests/`. The template's other listed languages (C, Rust, Flex/Bison, Fortran, C++, Make) are not part of this codebase. |
 | **CI/CD** | `pixi run lint` (ruff), `pixi run test` (pytest: `tests/unit` + `tests/integration`), and the Pixi environment itself. |
 | **Editing** | LaTeX under `docs/`, Markdown under `AgentSpec/` and the README, and Mermaid diagrams. This project has no Slidev decks, so that part of the template's scope is unused here. |
