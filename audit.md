@@ -40,6 +40,18 @@ The authoritative execution results are reported with the Phase 6 change set.
   (backing `cgitsync verify`) is not yet wired to them — tracked here until
   that wiring lands, rather than left implicit in the module table it used
   to live next to.
+- **Tree-wide branch propagation defeats per-repository branch pinning.**
+  `operations.restart_tree` (behind `pull`/`pull-force`) reads the root
+  repository's current branch and propagates it to every repository in the
+  tree before pulling. The AgenticMounts layout pins `.localSpec` and
+  `.claude` to a branch named after the project (`default_branch` per
+  repository entry, honoured correctly by `initialise`/`bootstrap`), so a
+  `pull` on such a tree would move those two mounts off their pinned branch
+  onto the root's. Not yet decided: whether `restart_tree` should respect a
+  repository's declared `default_branch` instead of the global one, or
+  whether the global-branch model is the intended contract and the pinning
+  is what should give. Surfaced while implementing
+  `AgentSpec/archive/20260905_agenticMountStep2-DevPlanTicket.md`.
 - No other open finding is outstanding as of this rewrite. This section is
   a live log, not a fixed list — add a bullet here as soon as a real
   decision or risk surfaces, and remove it once resolved.
