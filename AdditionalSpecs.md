@@ -352,6 +352,15 @@ ring, never a higher one.
 `scripts/check_module_ceilings.py` (`pixi run check-ceilings`) enforces a
 **ratchet, not a fixed number**: a module may never grow past its recorded
 baseline in `scripts/ceiling_baseline.json`; it may always shrink one.
+
+**Raising a baseline is the owner's call, never the implementer's.** When a
+change genuinely needs room, report that and ask — do not contort code to
+fit, and do not raise the number quietly. The owner granted such a raise on
+2026-09-06, with a standing allowance of roughly 1000 LOC per module where a
+change needs it, on the grounds that the project is already held by many
+other invariants. That allowance is a ceiling to ask against, not a target
+to fill: the ratchet still tightens automatically every time a module
+shrinks, and `--write-baseline` records both directions at once.
 Directional targets, for context: ≤500 LOC hard / ≤350 target per module,
 ≤7 public symbols, ≤6 internal imports. Cyclomatic complexity is enforced
 separately and absolutely via `ruff`'s `C90` selector (`pyproject.toml`,

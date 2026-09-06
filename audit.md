@@ -57,6 +57,18 @@ The authoritative execution results are reported with the Phase 6 change set.
   with other projects, and the following `pull` failed outright. Nothing was
   pushed and the repair was one `git branch -d` per mount. Now tracked as its
   own priority ticket, `AgentSpec/BranchPinning_DevPlanTicket.md`.
+- **An attached tree root never records its resolved branch.** When
+  `initialise` attaches the existing checkout as the root rather than cloning
+  it, nothing sets `resolved_ref_name`, so any code falling back through
+  `resolved_ref_name or target_ref_name` reaches the branch the `.cgs`
+  *declares* rather than the one actually resolved. The two differ whenever a
+  clone fell back — the runtime log records exactly that for `docs`:
+  `target_ref_name: autoTest, resolved_ref_name: main`. This was defect B in
+  `AgentSpec/DetachedHeadPreflight_DevPlanTicket.md`; the ticket fixed the
+  symptom (the preflight no longer guesses a branch for a detached HEAD) and
+  deferred this cause by decision D3. Not yet decided: whether attaching a
+  root should record its checked-out branch, or whether the fallback chain
+  should prefer `fallback_branch` over the declared name.
 - No other open finding is outstanding as of this rewrite. This section is
   a live log, not a fixed list — add a bullet here as soon as a real
   decision or risk surfaces, and remove it once resolved.
