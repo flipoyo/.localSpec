@@ -259,7 +259,8 @@ human-readable summary.
 | Module | Ring | Responsibility |
 |---|---|---|
 | `errors.py` | 0 | The package's public exception hierarchy. |
-| `git_repo.py` | 0 | Per-repository identity types, state enumerations, provider registry, remote-URL construction. |
+| `git_repo.py` | 0 | Per-repository identity types, state enumerations, provider registry, remote-URL construction. Also `RepoScope`, the one definition of which repositories a tree-wide command may touch: `pinned` marks a configuration repo shared with other projects, read-only unless the `.cgs` entry adds `writable = true`. |
+| `git_branch.py` | 0 | The single owner of the `.cgs` branch fallback chain (`fallback_branch` → `default_branch` → `project.default_branch` → `DEFAULT_BRANCH`) and of the pinning rule that decides what a repository targets under a tree-wide branch move. A pure resolver: declared fields in, a `BranchResolution` (branch, `RefKind`, and the `BranchSource` that answered) out. Holds no tree, no root and no pinning *state* — `git_tree.py` owns those. |
 | `ledger_entry.py` | 0 | Hash-chained register-entry construction and canonicalisation (pure chain math). |
 | `integrity.py` | 0 | `Finding` taxonomy and `verify_chain` — pure arithmetic checks over a register-entry sequence. |
 | `status_render.py` | 0 | Pure text rendering for `cgitsync status`'s repository table. |
@@ -294,7 +295,8 @@ CLI values --------> ComplexGitSyncClient.configure() <-------- Python caller
                \-----------> master.py
                                   |
 .cgs TOML ----------------> cgs_format.py <----> config_document.py / config_document_io.py
-                                  |
+                                  |          \---> git_branch.py (Ring 0: which branch,
+                                  |                 and why -- the only fallback chain)
                               CgsDocument
                                   |
                                 GitTree
@@ -303,6 +305,8 @@ CLI values --------> ComplexGitSyncClient.configure() <-------- Python caller
                                   |            \---> operations.py (Ring 2: Tier 2 actions)
                                   |            \---> discovery.py, paths.py, state_store.py,
                                   |                  status_render.py (Ring 1/0: delegated concerns)
+                                  |            \---> git_branch.py (Ring 0: the same resolver
+                                  |                  registry/operations/discovery/git_tree call)
                                   |
                         GitRepo / git_runner.py (Ring 2: the sole subprocess boundary)
 ```
@@ -335,7 +339,7 @@ ring, never a higher one.
 | 3 — ORCHESTRATION | `orchestre.py` (`Orchestre`, `ComplexGitSyncClient`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `operations.py`, `registry.py` |
 | 1 — FILESYSTEM | `paths.py`, `ledger_store.py`, `state_store.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
-| 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `ledger_entry.py`, `integrity.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
+| 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `ledger_entry.py`, `integrity.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The four import rules (machine-checked)
 
@@ -413,6 +417,21 @@ flow through `CgsDocument` normalization. The public
 `ComplexGitSyncClient.configure()` facade delegates to that boundary without
 parsing identifiers itself. No parser exists in `cli/`, `git_tree.py`,
 `git_repo.py`, or `orchestre.py`.
+
+**The same rule applies to branches.** `git_branch.py` contains the only
+implementation of the `.cgs` branch fallback chain
+(`fallback_branch` → `default_branch` → `project.default_branch` →
+`DEFAULT_BRANCH`) and of the pinning rule. Before it, that chain was written
+out by hand in six places across five modules, none of which read
+`DEFAULT_BRANCH` — each was a private copy stopping at a different link, so
+changing the constant moved only one of them. Do not add a second one:
+`cgs_format.py`, `discovery.py`, `registry.py`, `operations.py`,
+`git_tree.py` and `orchestre.py` all call the resolver. Four sites in the
+source still spell the literal `"main"`; each is a *different* decision
+(Git's own `.gitmodules` default, a bare-path last resort, a frozen
+snapshot-hash input), each carries a comment saying so, and
+`tests/unit/test_git_branch.py` counts them and fails when a new one
+appears.
 
 The supported authoring grammar is:
 
