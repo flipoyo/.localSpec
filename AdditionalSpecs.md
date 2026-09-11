@@ -883,7 +883,42 @@ defined in `DevSpecs.md`.
 For a manual bump (e.g. after finishing a feature branch, before CI runs),
 use `pixi run bump-version` (`scripts/bump_version.py`). It reads the
 current version from `pyproject.toml`, computes the next `YYYY.XX` value,
-and writes that same value into every other manifest that mirrors it:
-`pixi.toml`'s `[workspace].version`, `src/ComplexGitSync/__init__.py`'s
-`__version__`, and the version heading in `README.md`. Pass `--dry-run` to
-preview the `old -> new` transition without writing anything.
+and writes that same value into every other file that mirrors it —
+**six in total**:
+
+| File | Field |
+|---|---|
+| `pyproject.toml` | `[project].version` — the authoritative one |
+| `pixi.toml` | `[workspace].version` |
+| `src/ComplexGitSync/__init__.py` | `__version__` |
+| `README.md` | the version in the title heading |
+| `docs/Setup/Shortcuts.tex` | `\newcommand{\cgsversion}{...}` |
+| `docs/preamble.tex` | `\newcommand{\cgsversion}{...}` |
+
+Pass `--dry-run` to preview the `old -> new` transition without writing
+anything.
+
+**The bump is all six files or none of them.** The version is one fact; a
+run that wrote four manifests and then failed on the docs would leave the
+package claiming a release its documentation has never heard of, and would
+do it quietly enough that the release still looked finished. So
+`apply_version()` reads and rewrites every target in memory first, and only
+a complete set of new texts reaches the disk. A missing file, an unwritable
+one, or a version field the patterns cannot find stops the whole bump with
+nothing changed.
+
+The last two live in `docs/`, a separate repository (`DocComplexGitSync`).
+When they are absent — a checkout of `ComplexGitSync` alone — the script
+dogfoods `cgitsync initialise examples/complexgitsync4dev.cgs` to clone them
+into place, *before* the first write rather than after four of them.
+Working on this repository from a standalone checkout is legitimate;
+releasing from one is not, which is why `tests/unit/test_bump_version.py`
+skips its two docs checks there instead of failing. Those checks assert both
+that each `\cgsversion` macro is still reachable by the script's pattern and
+that its value equals `pyproject.toml`'s — matchability alone let 2.49 ship
+with its documentation left on 2.48.
+
+`bump-version` rewrites `.tex` sources only. The tracked PDFs in `docs/`
+embed the version on their title pages, so rebuild them (`cd docs &&
+latexmk -pdf MASTER.tex`, plus each `c_*.tex`) and commit the result in the
+same change.
