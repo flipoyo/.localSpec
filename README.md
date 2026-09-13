@@ -14,3 +14,8 @@ the project, holding:
   `AGENT.md` template.
 - `audit.md` — that project's audit findings, legacy references, and open
   decisions/risks.
+- `DevTickets/` — that project's whole planning surface: the owner's short
+  tickets, the ranked open planning tickets, and the archive of closed
+  ones. It is here rather than in the project's own repository because how
+  the work is decided is private; `DevTickets/README.md` explains the loop,
+  and `.agentSpec/TICKETLIFECYCLE.md` the naming.

@@ -3,8 +3,16 @@
 *Created: 2026-05-13*
 
 This file documents project-specific constraints and refinements that apply
-**on top of** the general [DevSpecs](DevSpec/DevSpecs.md). Every rule in `DevSpecs.md`
+**on top of** the general [DevSpecs](../.agentSpec/DevSpec/DevSpecs.md). Every rule in `DevSpecs.md`
 applies here; this file only adds or tightens rules for `ComplexGitSync`.
+
+**Planning lives next door.** `.localSpec/DevTickets/` holds every planning
+ticket for this project — the owner's short tickets, the ranked open plans,
+and the archive — and [its README](DevTickets/README.md) explains the loop
+they move through. It is in this private repository, not in the public
+`ComplexGitSync` one, so that installing the tool never ships the workshop:
+the same PROJECT/private separation the tool itself implements. This file
+stays the authoritative *specification*; a ticket only plans a change to it.
 
 ---
 
@@ -249,10 +257,10 @@ Tier and a Ring needs spelling out precisely.
 ## Responsibility boundaries
 
 Rewritten 2026-08-30 against the post-isolation-Wave-2 module set
-(`AgentSpec/20260828_Isolation_DevPlanTicket.md`) — `orchestre.py` used to
+(`.localSpec/DevTickets/archive/20260828_Isolation_DevPlanTicket.md`) — `orchestre.py` used to
 carry most of this table's Tier 2/3 responsibility directly; it now
 delegates each to its own module. See each module's own docstring header
-(`Ring:`/`Contract:`/`Imports:`, `AgentSpec/IsolationPlan.md` §3.2) for the
+(`Ring:`/`Contract:`/`Imports:`, `.localSpec/DevTickets/IsolationPlan.md` §3.2) for the
 authoritative, machine-cross-checked version of this table — this is the
 human-readable summary.
 
@@ -322,9 +330,9 @@ implicit in an otherwise "pure" module.)
 
 ## Ring model and import rules
 
-Added by `AgentSpec/20260828_Isolation_DevPlanTicket.md` (P6) once the
+Added by `.localSpec/DevTickets/archive/20260828_Isolation_DevPlanTicket.md` (P6) once the
 isolation work gave the package enough real modules for these rules to be
-checkable rather than aspirational. See `AgentSpec/IsolationPlan.md` for
+checkable rather than aspirational. See `.localSpec/DevTickets/IsolationPlan.md` for
 the full design rationale; this section is the enforced-in-practice
 summary, and the authoritative source the rest of the docs (`CLAUDE.md`,
 `docs/DevGuide/architecture.md`) point back to.
@@ -394,8 +402,8 @@ are non-trivial — keep them in sync rather than let the header rot.
 
 One concern per commit — `DELETE`/`MOVE`/`CHANGE` never mixed in the same
 commit. This is the same discipline
-`AgentSpec/archive/20260826_Deletion_DevPlanTicket.md` and
-`AgentSpec/CleanupPass2_DevPlanTicket.md` used successfully; the isolation
+`.localSpec/DevTickets/archive/20260826_Deletion_DevPlanTicket.md` and
+`.localSpec/DevTickets/archive/20260828_CleanupPass2_DevPlanTicket.md` used successfully; the isolation
 work continues it. A commit that both deletes duplicated code from
 `orchestre.py`/`cli/` and authors a brand-new module is two concerns —
 split it.
@@ -885,7 +893,7 @@ CLI display requirements:
 
 **Every change to a project's memory is developed on `memory-dev`.** The
 memory work is seven dependent milestones — see the MemoryArchitecture
-ticket in `AgentSpec/openTickets/` — that between them rename the state
+ticket in [DevTickets/openTickets/](DevTickets/openTickets/) — that between them rename the state
 area, rewrite the register, move code into a new `memory/` package and add
 a network protocol. Interleaving those with releases on `main` would put a
 half-migrated memory format in front of users, and the one thing this
@@ -895,7 +903,7 @@ and `pixi run lint` and `pixi run test` both pass.
 
 `memDev-` is this project's only ticket topic prefix. An open memory
 ticket is named
-`AgentSpec/openTickets/<priority>-<rank>_memDev-<Name>_DevPlanTicket.md`
+`.localSpec/DevTickets/openTickets/<priority>-<rank>_memDev-<Name>_DevPlanTicket.md`
 and carries `*Branch: memory-dev*` under its `*Created:*` line; every
 other open ticket carries `*Branch: main*` and no topic prefix. Both
 conventions are defined in
