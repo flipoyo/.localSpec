@@ -874,6 +874,43 @@ CLI display requirements:
 
 ---
 
+## Branches and ticket topics
+
+`main` is where ComplexGitSync's work lands, with one exception.
+
+| Workstream | Branch | Ticket topic prefix |
+|---|---|---|
+| Everything else | `main` | none |
+| Memory — `.cgitsync/`, the state area, the register/ledger, `memory/` and the distant reference ledger | `memory-dev` | `memDev-` |
+
+**Every change to a project's memory is developed on `memory-dev`.** The
+memory work is seven dependent milestones — see the MemoryArchitecture
+ticket in `AgentSpec/openTickets/` — that between them rename the state
+area, rewrite the register, move code into a new `memory/` package and add
+a network protocol. Interleaving those with releases on `main` would put a
+half-migrated memory format in front of users, and the one thing this
+project cannot afford to corrupt by accident is the record of what it
+synchronised. `memory-dev` merges into `main` when a milestone is finished
+and `pixi run lint` and `pixi run test` both pass.
+
+`memDev-` is this project's only ticket topic prefix. An open memory
+ticket is named
+`AgentSpec/openTickets/<priority>-<rank>_memDev-<Name>_DevPlanTicket.md`
+and carries `*Branch: memory-dev*` under its `*Created:*` line; every
+other open ticket carries `*Branch: main*` and no topic prefix. Both
+conventions are defined in
+[.agentSpec/TICKETLIFECYCLE.md](../.agentSpec/TICKETLIFECYCLE.md) §2.3 and
+§3 — this section only says which topics exist here.
+
+The private configuration repositories mounted in the developer tree keep
+their own branches (`.localSpec` and `.claude` on `ComplexGitSync`,
+`.agentSpec` on `main`), and this rule does not change them: a memory
+ticket edited in `.localSpec` is still committed on the `ComplexGitSync`
+branch of `.localSpec`. The branch line names the branch of the project's
+own repository.
+
+---
+
 ## Versioning
 
 The authoritative version is kept in `pyproject.toml`. CI auto-increments it
