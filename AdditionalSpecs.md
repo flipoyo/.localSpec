@@ -806,6 +806,88 @@ client.replay_ledger("project/demo.lgr")
 
 ---
 
+## The hash-chained register: schema, storage and threat model
+
+The `.lgr` register above is the format written today. Beside it lives a
+second, hash-chained one — `.cgitsync/lgr/`, one file per entry — which
+`cgitsync verify` reads and which the memory workstream is migrating the
+write path to. Its rules were written in `IsolationPlan.md` §2, a planning
+document that no longer exists; they are **binding**, so they live here.
+`src/` cites this section, not a ticket: an archived ticket is a historical
+record and is never edited, and a live schema must not sit inside one.
+
+### Entry schema
+
+One entry is these nine fields, and adding or renaming one is a change to
+this section first:
+
+| Field | Meaning |
+|---|---|
+| `seq` | Position in the chain, from 1, no gaps and no duplicates |
+| `prev` | The previous entry's `entry_hash`; the genesis entry carries `sha256:` + 64 zeros |
+| `recorded_at` | When the entry was written |
+| `command` | The command that produced it |
+| `argv` | Its arguments, secrets scrubbed |
+| `state_id` | The State the entry records |
+| `state_dir` | Where that State was written |
+| `outcome` | How the command ended |
+| `entry_hash` | `sha256:` over every field above, in canonical form |
+
+**The canonical form is an explicit field list**, serialised with sorted
+keys and no whitespace — never "whatever the record happens to hold" — so
+an unrelated addition to the entry object cannot silently change a hash.
+`entry_hash` covers every other field and never itself.
+
+### Storage
+
+One file per entry, written with `O_EXCL` so two writers cannot silently
+share a sequence number. The `HEAD` pointer beside them is a **cache and is
+always treated as untrusted**: it is compared against the chain recomputed
+from the entries, never believed. Permission bits are best-effort — a
+filesystem that cannot honour them is not a reason to refuse to record
+history.
+
+### What is scrubbed
+
+Command arguments and URLs are scrubbed of credentials **before** hashing
+and writing, so a secret never enters the chain at all and no later pass
+has to rewrite an entry to remove one.
+
+### Threat model, and the rule that follows from it
+
+The register is **tamper-evident, not tamper-proof**. Anyone who can write
+the files can edit them; the chain's job is to make that visible.
+
+Two consequences, both load-bearing:
+
+- **A break contaminates everything downstream.** Once a link fails,
+  `verify` reports every later entry as unverifiable rather than
+  resynchronising on a later entry's own hash. Bytes that are
+  self-consistent among themselves still describe a history nobody can
+  vouch for.
+- **`verify` never heals.** `--repair` corrects the untrusted `HEAD` cache
+  and nothing else. Entries are never rewritten or deleted: a register that
+  can be edited back into looking clean is evidence of nothing.
+
+### The four answers `verify` owes
+
+A verification pass ends in exactly one of these, never a blur of two:
+
+| Answer | When | Exit |
+|---|---|---|
+| **verified** | A non-empty chain was read and every link checked out | `0` |
+| **no history** | Nothing has been recorded here yet. A new workspace is not a broken one | `0` |
+| **legacy** | History exists only in the single-file `.lgr` format, which carries no chain: readable, not verifiable | `1` |
+| **corrupt** | A chain was read and it does not hold | `1` |
+
+`Finding` enumerates what "does not hold" can mean: `BROKEN_LINK`,
+`BAD_ENTRY_HASH`, `SEQ_GAP`, `SEQ_DUPLICATE` and `HEAD_STALE` for the chain
+and its cache, plus `MISSING_STATE`, `ORPHAN_STATE` and
+`STATE_DIGEST_MISMATCH`, reserved for the store-level pass that becomes
+possible once a State is named by its content.
+
+---
+
 ## Per-Repo Identity Keys
 
 Every repository entry is identified by three fields: provider, namespace, and

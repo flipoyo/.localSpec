@@ -30,7 +30,7 @@ decision actually was. §2 the gates, which are the real content of this
 ticket. §3 what graduation changes. §4 the work. §5 acceptance.
 
 **Who it is for.** Whoever takes M5, after
-[MemoryModule](memory-dev_1-5_MemoryModule_DevPlanTicket.md). The owner signs off §2
+[MemoryModule](memory-dev_1-4_MemoryModule_DevPlanTicket.md). The owner signs off §2
 before anything is pushed.
 
 **What you need to do with it.** Check every gate in §2 honestly. A gate
@@ -93,7 +93,7 @@ deliberate, documented, opt-in field — before anything leaves the machine,
 not after someone notices.
 
 G5 also governs the toolchain each entry now carries
-([OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) §3.1). A version
+([OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md) §3.1). A version
 string may leave the machine; the path the tool was found at and the user
 it ran as may not. `"git 2.39.5"` is fine and useful.
 `"/home/someone/.pixi/envs/default/bin/git"` is the same leak as

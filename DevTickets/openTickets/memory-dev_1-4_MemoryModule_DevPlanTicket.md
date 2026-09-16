@@ -29,7 +29,7 @@ outgrew one file. Memory is a larger subject than the CLI.
 structure. §3 the command surface. §4 the work. §5 acceptance.
 
 **Who it is for.** Whoever takes M4, after
-[OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md). Doing it earlier means
+[OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md). Doing it earlier means
 moving code that is about to change shape.
 
 **What you need to do with it.** §1 is a move, not a rewrite. Resist
@@ -103,13 +103,13 @@ Read-only to start with, because M4 ships before there is anywhere to push:
 
 | Command | Answers |
 |---|---|
-| `cgitsync memory status` | How many States, how long the chain is, when it was last written, and which of [VerifyHonesty](memory-dev_1-2_VerifyHonesty_DevPlanTicket.md)'s four answers this memory is in |
+| `cgitsync memory status` | How many States, how long the chain is, when it was last written, and which of [VerifyHonesty](../archive/20260916_VerifyHonesty_DevPlanTicket.md)'s four answers this memory is in |
 | `cgitsync memory list` | The States this workspace holds, by name, with the ledger's timestamp for each |
 | `cgitsync memory show <hash>` | One State: what it recorded, and every ledger entry that names it |
 
 `memory status` and `memory show` also print the **toolchain** the entries
 record — cgitsync, git, pixi, and dvc or git-lfs where they were used —
-which [OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) §3.1 puts
+which [OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md) §3.1 puts
 in every entry at the owner's request. `status` shows the genesis entry's
 and the latest one's, because the interesting question is whether they
 differ; `show` shows the entry's own. A tool that was not installed prints

@@ -10,7 +10,7 @@
 > things the memory work changes here:
 >
 > - **D1's version scheme now has a second reader.**
->   [MemoryRepoLocal](memory-dev_1-6_MemoryRepoLocal_DevPlanTicket.md)'s gate G6 says
+>   [MemoryRepoLocal](memory-dev_1-5_MemoryRepoLocal_DevPlanTicket.md)'s gate G6 says
 >   a memory declares a schema version and a memory written by version *X*
 >   is read by *X+1*. That is a compatibility promise about stored data,
 >   not about a package number, and the two must not be conflated: decide
@@ -20,7 +20,7 @@
 >   clean-environment acceptance check in §5 should adopt a memory and get
 >   a working tree, not only print `--help` — that is the path a user on a
 >   new machine actually takes, and it is the one thing this ticket and
->   [MemorySyncDistant](memory-dev_1-7_MemorySyncDistant_DevPlanTicket.md) both
+>   [MemorySyncDistant](memory-dev_1-6_MemorySyncDistant_DevPlanTicket.md) both
 >   depend on.
 
 > **Release review — 2026-09-11. Priority 1-5.** Promoted from 2-6 for a tested installation outside the source checkout and a repeatable public release. Support only validated platforms; broader coverage is deferred.

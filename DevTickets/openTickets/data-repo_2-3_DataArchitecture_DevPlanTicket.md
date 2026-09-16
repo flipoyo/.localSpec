@@ -104,7 +104,7 @@ git-lfs where they were used — so `DataBackend` grows a `version()` that
 answers cheaply and says `none` when the tool is not installed.
 [DataBackendContract](data-repo_2-5_DataBackendContract_DevPlanTicket.md) D6
 owns the mechanism;
-[OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) §3.1 owns what is
+[OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md) §3.1 owns what is
 recorded.
 
 ## 3. The six milestones

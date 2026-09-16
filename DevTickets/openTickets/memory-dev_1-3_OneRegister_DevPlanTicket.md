@@ -30,7 +30,7 @@ size one. §3 the checks that become possible here. §3.1 the toolchain an
 entry must carry. §4 the work. §5 acceptance.
 
 **Who it is for.** Whoever takes M3, after
-[StateIdentity](memory-dev_1-3_StateIdentity_DevPlanTicket.md) has landed. Not
+[StateIdentity](memory-dev_1-2_StateIdentity_DevPlanTicket.md) has landed. Not
 before: a chain whose entries name timestamp-derived directories records
 nothing a second machine can use.
 
@@ -108,7 +108,7 @@ implemented nowhere, because until M2 none of them was checkable:
 | `MISSING_STATE` | Entries name States, so an entry pointing at a State that is not on disk is detectable |
 | `ORPHAN_STATE` | A State on disk that no entry ever recorded is detectable |
 
-[VerifyHonesty](memory-dev_1-2_VerifyHonesty_DevPlanTicket.md) made `verify` honest
+[VerifyHonesty](../archive/20260916_VerifyHonesty_DevPlanTicket.md) made `verify` honest
 about what it could see. This milestone gives it something to see, and
 these three are how you prove it.
 
