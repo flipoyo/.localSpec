@@ -282,7 +282,7 @@ human-readable summary.
 | `state_store.py` | 1 | The one place that composes a State's path: `.cgitsync/state/<hash>.gts`, where the hash is the document's own content digest (`state_path`). Still reads the older `state(<hash>)_n/` directories, so a workspace written before the flat layout resolves without being rewritten — and `snapshot_resolver.py` imports that grammar from here rather than carrying the copy it used to. Formerly content-addressed directory allocation — the general mechanism every lifecycle command uses (not related to the deleted Memory transport, despite the class name). |
 | `settings.py` | 1 | Where ComplexGitSync keeps its own workspaces, answered before any workspace is open — which is what separates it from `master.py`, whose `.cgitsync/master.toml` cannot be read until one has been found. Owns the root (`$CGSPATH`, else `$HOME/.cgs`), the **default workspace** that `snapshot_resolver.py` falls back to when none of its three inputs finds one, the `$HOME/.cgs/default` pointer that makes that workspace minted-once-then-reused, the empty but valid `.gts` written into it (`UNLOADED`, `is_ready = false` — an empty tree must never claim to be ready), the list of other workspaces under the root that the CLI prints as a hint and never selects from, and the `UseCase` (`STANDALONE`/`NESTED`) derived from whether the running installation sits inside the resolved CGSHOME. Derived, never stored: two callers in one process cannot disagree. See `.localSpec/DevTickets/archive/20260916_CgshomeDefault_DevPlanTicket.md`. |
 | `snapshot_resolver.py` | 1 | Resolves which `.gts` snapshot the CLI defaults to when a command omits one explicitly — and, when none of its three inputs finds a workspace at all, falls back to `settings.py`'s default workspace rather than raising (`CGSHOME_ORIGIN_DEFAULT`), except under an explicit `--search-dir`, where a directory the user named is never silently replaced, and — through its `describe_*` functions — reports *which input decided it*: `--search-dir`, `$CGSHOME`, or the current directory, in that order of precedence. The precedence is deliberate (the documented bootstrap tells users to export `$CGSHOME`), which is exactly why the reason has to travel with the answer: a stale export silently retargets every command at another workspace that holds the same repositories. This module never prints — `cli/_shared.py` turns a `CgshomeResolution`/`SnapshotResolution` into the `cgshome=`/`source=` lines and the mismatch warning. |
-| `memory/` | 1 | **Everything a workspace remembers, in one package.** `repository.py` says what it takes for a memory to *be* a repository — the `.cgs` entry that mounts it, which branch of the shared `.memory` repository this project uses, and the message its own commit carries — while running no Git itself: `orchestre.py` asks `git_runner.py`, as it does for every other repository. `states.py` (where a State is written and how its path is spelled), `ledger_entry.py` (one chain entry and the hash over it), `ledger_store.py` (one file per entry, atomically, with an untrusted `HEAD`), `integrity.py` (whether a chain holds, and the four answers `verify` owes), `store.py` (the State writer, plus the single-file register that predates the chain — read-only, and written by nothing). `__init__.py` is the surface everything outside imports. **No Git, ever**: the next milestone makes a memory a repository that is committed and pushed, and that work belongs to `operations.py`/`git_runner.py` driven *by* this package, never done inside it. `snapshot_resolver.py` stays outside — it answers which workspace and snapshot a command line meant, not what is remembered. |
+| `memory/` | 1 | **Everything a workspace remembers, in one package.** `repository.py` says what it takes for a memory to *be* a repository — the `.cgs` entry that mounts it, which branch of the shared `.memory` repository this project uses, and the message its own commit carries — while running no Git itself: `orchestre.py` asks `git_runner.py`, as it does for every other repository. `states.py` (where a State is written and how its path is spelled), `ledger_entry.py` (one chain entry and the hash over it), `ledger_store.py` (one file per entry, atomically, with an untrusted `HEAD`), `commit_log.py` (what each `commit` wrote and what each `push` published, one file per State), `integrity.py` (whether a chain holds, and the four answers `verify` owes), `store.py` (the State writer, plus the single-file register that predates the chain — read-only, and written by nothing). `__init__.py` is the surface everything outside imports. **No Git, ever**: the next milestone makes a memory a repository that is committed and pushed, and that work belongs to `operations.py`/`git_runner.py` driven *by* this package, never done inside it. `snapshot_resolver.py` stays outside — it answers which workspace and snapshot a command line meant, not what is remembered. |
 | `discovery.py` | 1 | Nested `.cgs` auto-discovery and `.gitmodules` parsing. |
 | `git_tree.py` | 1 | `GitTree`/`WorkingGitTree` structures, traversal, lifecycle state; `to_cgs()` delegates to `cgs_format.py`; `.gitignore` maintenance across the tree (`sync_gitignore`) — the reason this is Ring 1, not 0. Also the single rule for "which repo sits inside which": `resolve_repo_for_path` for a live tree, `innermost_containing_path` for plain paths before one exists. Owns privacy *state* as well: `propagate_privacy` pushes each parent's `private`/`writable` onto everything nested inside it (a parent defines its leaves; a leaf may restrict itself further, never open itself wider) and records the answer in `WorkingRepo.propagated_private`/`propagated_writable`. Every build path calls it beside `normalize_node_types`. |
 | `git_tree_branch.py` | 2 | The tree's branch *state*, and the counterpart to `git_branch.py`'s *rule*: which branch the tree is on (the root's — what `status` prints as `cgitsync_branch`), which branch each repository targets when the tree moves (`target`, a pass to `git_branch.resolve_propagated_ref` with the project's name filled in), which branch Git says each is on (`observed`, read once per repository and cached so one `status` costs one call per repository instead of two), and where the two disagree (`deviations`). Also holds `tree_project_name`, moved here from `operations.py` because the project's name exists in that code path only to name a private/local branch. Restates no rule: every answer it gives comes from `git_branch.py`. Four call sites computed all of this separately before it existed — `validate_branch_topology`, `_collect_branch_alignment_diagnostics`, `_branch_incoherence`, and the root read in `_restart_tree_common` — and the three that asked the same question disagreed about a detached root. `deviations(ignore_unreadable=...)` keeps the one difference that is real: a report skips a repository Git cannot answer for, a preflight gate must not. An instance is a snapshot — build a new one after a checkout or a pull. See `.localSpec/DevTickets/archive/20260916_StatusCurrentBranch_DevPlanTicket.md`. |
@@ -355,7 +355,7 @@ ring, never a higher one.
 | 4 — ADAPTER | `cli/` package (`_shared.py`, `minimalist.py`, `expert.py`, `configuration.py`, `suggest.py`, `__init__.py` assembling them) |
 | 3 — ORCHESTRATION | `orchestre.py` (`Orchestre`, `ComplexGitSyncClient`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operations.py`, `registry.py`, `toolchain.py` |
-| 1 — FILESYSTEM | `paths.py`, `memory/` (`states`, `ledger_entry`, `ledger_store`, `integrity`, `store`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
+| 1 — FILESYSTEM | `paths.py`, `memory/` (`states`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
 | 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `ledger_entry.py`, `integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The four import rules (machine-checked)
@@ -879,8 +879,8 @@ never edited, and a live schema must not sit inside one.
 
 ### Entry schema
 
-One entry is these nine fields, and adding or renaming one is a change to
-this section first:
+One entry is these ten fields and the hash over them, and adding or
+renaming one is a change to this section first:
 
 | Field | Meaning |
 |---|---|
@@ -893,12 +893,14 @@ this section first:
 | `state_dir` | Where that State was written |
 | `outcome` | How the command ended |
 | `toolchain` | The versions that produced it: cgitsync, git, pixi, dvc, git-lfs |
+| `commit_log` | The digest of the commit-log rows this entry wrote; absent when it wrote none |
 | `entry_hash` | `sha256:` over every field above, in canonical form |
 
 The toolchain is inside the hash like every other field, so an edited
 version string is as detectable as an edited command. An entry written
 before the field existed carries none, and hashes exactly as it did then —
 the key is absent from the payload rather than present and empty.
+`commit_log` was added the same way and follows the same rule.
 
 **The canonical form is an explicit field list**, serialised with sorted
 keys and no whitespace — never "whatever the record happens to hold" — so
@@ -947,6 +949,44 @@ its content:
   (`MISSING_STATE`), a stored snapshot whose content no longer hashes to the
   name it is filed under (`STATE_DIGEST_MISMATCH`), and a State on disk that
   no entry records (`ORPHAN_STATE`).
+- **The commit logs**: rows that no longer digest to what the entry that
+  wrote them recorded — edited, added or removed (`COMMIT_LOG_MISMATCH`) —
+  and commit messages kept under a State that is gone
+  (`ORPHAN_COMMIT_LOG`). The second is reported and never deleted: removing
+  a record because the thing beside it went missing is how a record stops
+  being one.
+
+### The commit log: what was written, and whether anyone else has seen it
+
+**One file per State**, at `.cgitsync/commit-logs/<state hash>.toml`, so
+"given this State, what was committed?" is answered by swapping one
+directory name. Two tables, both **append-only**:
+
+| Table | One row per | Fields |
+|---|---|---|
+| `[[commit]]` | Repository a `commit` wrote to | `entry`, `repository`, `repo_id`, `scope`, `branch`, `sha`, `message`, `authored_at` |
+| `[[published]]` | Commit a `push` made public | `entry`, `repository`, `sha`, `remote`, `ref`, `at` |
+
+`entry` is the ledger `seq` that wrote the row. `repo_id` is the
+repository's position in the tree, which is what tells two repositories of
+the same name apart; `scope` is `project` or `private`, the two halves of
+one change. `remote` is the canonical `provider:owner/repository`, the form
+`parse_repo_id` reads — never a URL, which can carry a user name.
+
+**Publication is a row of its own, not a field inside the commit's row.**
+An entry carries the digest of the rows it wrote, so a later `push` editing
+a commit's row would break a digest recorded before that push existed. Rows
+are therefore only ever appended, and every digest stays true for ever —
+the same rule the ledger follows, for the same reason.
+
+**The digest covers the rows one entry wrote, in a fixed order**: the
+commits first, then the publications, each ordered by State name and then
+by the order the file lists them. A `push` writes into the logs of the
+States whose commits it publishes, which is why the order has to be stated
+rather than assumed — an entry can write into more than one file.
+
+Nothing here records a path or a user name. A commit made outside
+`cgitsync` gets no row at all: the memory speaks for what it watched.
 
 ### What a State records about the machine that wrote it
 

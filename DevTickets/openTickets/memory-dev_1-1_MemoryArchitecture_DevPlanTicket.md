@@ -203,8 +203,9 @@ that published them and reachable from a State's hash.
 That is one file per State beside the ledger, not a field in an entry — a
 message has no length limit and an entry must stay small and fixed. The
 entry carries a digest of it, so the file cannot be edited without trace.
-[CommitMemory](memory-dev_1-8_CommitMemory_DevPlanTicket.md) is the
-milestone; §3's D5 is where "what may a memory contain" settles it.
+[CommitMemory](../archive/20260917_CommitMemory_DevPlanTicket.md) was the
+milestone and it has landed; §3's D5 is where "what may a memory contain"
+settles it.
 
 **Versions are provenance, never identity.** They describe the machine
 that observed the tree, not the tree. Folding them into the content hash
@@ -341,7 +342,7 @@ one lands.
 | **M4** | MemoryModule | `memory/` exists with a CLI to match: a local memory can be inspected |
 | **M5** | MemoryRepoLocal | A project's memory is a repository, pushed, and survives the machine |
 | **M6** | Omniscience — **stand-by** | The project's own register, appended to by everyone and quietly rewritable by nobody. Architecture written; §5's D1 decides whether it is built |
-| **M7** | CommitMemory | A memory says what was committed, and whether it was ever pushed |
+| **M7** | CommitMemory — **landed 2026-09-17** | A memory says what was committed, and whether it was ever pushed |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing
@@ -359,11 +360,12 @@ clone disagreeing on the next fetch. It stays stand-by until its D1 is
 answered — whether "append-only even by the owner" must be *prevented*, or
 whether *impossible to hide* is the promise.
 
-M7 is the one that is not in the chain. Recording what a commit said needs
-nothing from M5 or M6 — only the ledger M3 built — so it is placed after
+M7 was the one that is not in the chain. Recording what a commit said needed
+nothing from M5 or M6 — only the ledger M3 built — so it was placed after
 M5 by preference, not by need: a memory that is already a repository
 carries its commit logs from its first push rather than gaining them in a
-later one.
+later one. That is what happened, and it leaves M6 as the only milestone
+this workstream still owes.
 
 **`memory/` is a new top-level area of `src/ComplexGitSync/`**, the
 owner's own suggestion and the right one: `cli/` earned its own package
