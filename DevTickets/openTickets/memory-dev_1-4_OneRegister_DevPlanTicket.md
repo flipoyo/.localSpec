@@ -157,7 +157,7 @@ Four rules, from
    so a Git-only workspace never pays to record that it has no DVC.
    `dvc --version` starts a Python interpreter and takes about a second;
    asking it on every `cgitsync status` would be felt immediately.
-   [DataBackendContract](data-repo_2-7_DataBackendContract_DevPlanTicket.md)
+   [DataBackendContract](data-repo_2-5_DataBackendContract_DevPlanTicket.md)
    owns the discovery.
 
 **A schema note this milestone must settle anyway.** `ledger_entry.py`'s
@@ -183,7 +183,7 @@ when the chain becomes the live format.
 | **WP-R8** | all | tests, docs, this ticket | Checklist, then archive under [TICKETLIFECYCLE.md](../../../.agentSpec/TICKETLIFECYCLE.md) |
 
 **Explicitly not here.** Locking — two processes in one workspace still
-race, and that is [StateLocking](memory-dev_2-4_StateLocking_DevPlanTicket.md).
+race, and that is [StateLocking](memory-dev_2-2_StateLocking_DevPlanTicket.md).
 Pushing a ledger anywhere — that is M5. Changing any CLI flag or public
 client signature: `--gts`, `--search-dir` and friends resolve exactly what
 they resolve today, whatever happens underneath.

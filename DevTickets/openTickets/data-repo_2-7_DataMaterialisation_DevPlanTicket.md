@@ -4,9 +4,9 @@
 
 *Branch: data-repo*
 
-> **Milestone M4** of [DataArchitecture](data-repo_2-5_DataArchitecture_DevPlanTicket.md).
-> Needs [DataBackendContract](data-repo_2-7_DataBackendContract_DevPlanTicket.md);
-> independent of [DataAuthoring](data-repo_2-8_DataAuthoring_DevPlanTicket.md).
+> **Milestone M4** of [DataArchitecture](data-repo_2-3_DataArchitecture_DevPlanTicket.md).
+> Needs [DataBackendContract](data-repo_2-5_DataBackendContract_DevPlanTicket.md);
+> independent of [DataAuthoring](data-repo_2-6_DataAuthoring_DevPlanTicket.md).
 > Analysed from §5, §7 and §9/P4 of the owner's short ticket,
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260916_DevPlanTicket_DataManager_DVC.md`.
 

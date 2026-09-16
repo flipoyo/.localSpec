@@ -4,7 +4,7 @@
 
 *Branch: data-repo*
 
-> **Milestone M1** of [DataArchitecture](data-repo_2-5_DataArchitecture_DevPlanTicket.md).
+> **Milestone M1** of [DataArchitecture](data-repo_2-3_DataArchitecture_DevPlanTicket.md).
 > Analysed from §2 and §9/P1 of the owner's short ticket,
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260916_DevPlanTicket_DataManager_DVC.md`.
 
@@ -33,7 +33,7 @@ refuse. §3 the `.gts` half, which is the one that must not be got wrong.
 
 **What you need to do with it.** Answer §4's D1 with the owner before
 writing the key name into anything. Read
-[DataArchitecture](data-repo_2-5_DataArchitecture_DevPlanTicket.md) §4 D5
+[DataArchitecture](data-repo_2-3_DataArchitecture_DevPlanTicket.md) §4 D5
 first — the memory workstream is changing `.gts` too.
 
 ```mermaid

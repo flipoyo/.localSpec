@@ -102,7 +102,7 @@ say which version of itself it is.** The memory system records the
 toolchain of every entry it writes — cgitsync, git, pixi, and dvc or
 git-lfs where they were used — so `DataBackend` grows a `version()` that
 answers cheaply and says `none` when the tool is not installed.
-[DataBackendContract](data-repo_2-7_DataBackendContract_DevPlanTicket.md) D6
+[DataBackendContract](data-repo_2-5_DataBackendContract_DevPlanTicket.md) D6
 owns the mechanism;
 [OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) §3.1 owns what is
 recorded.
@@ -113,12 +113,12 @@ They land in this order. Each is a ticket of its own on `data-repo`.
 
 | # | Ticket | What lands | Needs |
 |---|---|---|---|
-| **M1** | [DataSchema](data-repo_2-6_DataSchema_DevPlanTicket.md) | `data_backend` and `data_paths` in `.cgs`, the normalised `DataSpec`, and `.gts` carrying the capability so a snapshot restores without a `.cgs` | — |
-| **M2** | [DataBackendContract](data-repo_2-7_DataBackendContract_DevPlanTicket.md) | `DataManager`, the `DataBackend` protocol, `DvcBackend`, the fake backend the tests use, and the optional `dvc` Pixi feature | M1 |
-| **M3** | [DataAuthoring](data-repo_2-8_DataAuthoring_DevPlanTicket.md) | Backend-aware `add`, `rm`, `commit`, `status`, `view-tree` | M2 |
-| **M4** | [DataMaterialisation](data-repo_2-9_DataMaterialisation_DevPlanTicket.md) | `clone`/`bootstrap`/`initialise`, `pull`, offline `checkout`, `merge`, `launch-release`, and the destructive-command preflight | M2 |
-| **M5** | [DataPublication](data-repo_2-10_DataPublication_DevPlanTicket.md) | `push`, `tag`, `freeze`, `freeze-release`: data published before the Git refs that advertise it | M3, M4 |
-| **M6** | [DataAcceptance](data-repo_2-11_DataAcceptance_DevPlanTicket.md) | One real local-only DVC integration test over the whole round trip, plus the user documentation | M5 |
+| **M1** | [DataSchema](data-repo_2-4_DataSchema_DevPlanTicket.md) | `data_backend` and `data_paths` in `.cgs`, the normalised `DataSpec`, and `.gts` carrying the capability so a snapshot restores without a `.cgs` | — |
+| **M2** | [DataBackendContract](data-repo_2-5_DataBackendContract_DevPlanTicket.md) | `DataManager`, the `DataBackend` protocol, `DvcBackend`, the fake backend the tests use, and the optional `dvc` Pixi feature | M1 |
+| **M3** | [DataAuthoring](data-repo_2-6_DataAuthoring_DevPlanTicket.md) | Backend-aware `add`, `rm`, `commit`, `status`, `view-tree` | M2 |
+| **M4** | [DataMaterialisation](data-repo_2-7_DataMaterialisation_DevPlanTicket.md) | `clone`/`bootstrap`/`initialise`, `pull`, offline `checkout`, `merge`, `launch-release`, and the destructive-command preflight | M2 |
+| **M5** | [DataPublication](data-repo_2-8_DataPublication_DevPlanTicket.md) | `push`, `tag`, `freeze`, `freeze-release`: data published before the Git refs that advertise it | M3, M4 |
+| **M6** | [DataAcceptance](data-repo_2-9_DataAcceptance_DevPlanTicket.md) | One real local-only DVC integration test over the whole round trip, plus the user documentation | M5 |
 
 M3 and M4 both depend on M2 and not on each other, so they can be taken in
 either order or in parallel. Nothing else in this list can move.

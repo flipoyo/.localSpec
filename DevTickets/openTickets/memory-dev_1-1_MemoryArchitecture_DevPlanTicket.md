@@ -229,7 +229,7 @@ Two sub-questions remain open, and M3 needs them:
   per command and the answer reused, and a data backend is asked only when
   the command actually touched a repository that uses it. A Git-only
   workspace never pays to record that it has no DVC. The data workstream's
-  [DataBackendContract](data-repo_2-7_DataBackendContract_DevPlanTicket.md)
+  [DataBackendContract](data-repo_2-5_DataBackendContract_DevPlanTicket.md)
   owns the discovery itself.
 
 With those two settled, D6 is closed.
@@ -276,7 +276,7 @@ Their filenames say so: an open memory ticket is
 carries a `*Branch: memory-dev*` line under its `*Created:*` line. A ticket
 whose filename opens with `main_` is `main` work — including
 [CliContract](../archive/20260916_CliContract_DevPlanTicket.md),
-[UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
+[UserInstallPath](main_2-1_UserInstallPath_DevPlanTicket.md) and
 [CgshomeDefault](../archive/20260916_CgshomeDefault_DevPlanTicket.md), which the
 milestones ask questions of without being memory work themselves. The
 convention is stated in

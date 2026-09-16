@@ -4,7 +4,7 @@
 
 *Branch: data-repo*
 
-> **Milestone M2** of [DataArchitecture](data-repo_2-5_DataArchitecture_DevPlanTicket.md),
+> **Milestone M2** of [DataArchitecture](data-repo_2-3_DataArchitecture_DevPlanTicket.md),
 > and the milestone every later one depends on. Analysed from §3, §3.1, §8
 > and §9/P2 of the owner's short ticket,
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260916_DevPlanTicket_DataManager_DVC.md`.
