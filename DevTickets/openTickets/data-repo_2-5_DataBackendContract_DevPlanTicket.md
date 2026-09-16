@@ -189,7 +189,7 @@ interpreter and takes about a second, so it must be read **once per
 process** and never per entry or per repository. And a backend that is
 configured but not installed has no version: the answer is `none`, the
 owner's word, settled on 2026-09-16 — which is what
-[OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md) §3.1 records.
+[OneRegister](../archive/20260916_OneRegister_DevPlanTicket.md) §3.1 records.
 
 Settled by the owner on 2026-09-16: a `version()` on the protocol, asked
 at most once per command and the answer reused, returning `none` when the

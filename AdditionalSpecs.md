@@ -282,10 +282,11 @@ human-readable summary.
 | `state_store.py` | 1 | The one place that composes a State's path: `.cgitsync/state/<hash>.gts`, where the hash is the document's own content digest (`state_path`). Still reads the older `state(<hash>)_n/` directories, so a workspace written before the flat layout resolves without being rewritten — and `snapshot_resolver.py` imports that grammar from here rather than carrying the copy it used to. Formerly content-addressed directory allocation — the general mechanism every lifecycle command uses (not related to the deleted Memory transport, despite the class name). |
 | `settings.py` | 1 | Where ComplexGitSync keeps its own workspaces, answered before any workspace is open — which is what separates it from `master.py`, whose `.cgitsync/master.toml` cannot be read until one has been found. Owns the root (`$CGSPATH`, else `$HOME/.cgs`), the **default workspace** that `snapshot_resolver.py` falls back to when none of its three inputs finds one, the `$HOME/.cgs/default` pointer that makes that workspace minted-once-then-reused, the empty but valid `.gts` written into it (`UNLOADED`, `is_ready = false` — an empty tree must never claim to be ready), the list of other workspaces under the root that the CLI prints as a hint and never selects from, and the `UseCase` (`STANDALONE`/`NESTED`) derived from whether the running installation sits inside the resolved CGSHOME. Derived, never stored: two callers in one process cannot disagree. See `.localSpec/DevTickets/archive/20260916_CgshomeDefault_DevPlanTicket.md`. |
 | `snapshot_resolver.py` | 1 | Resolves which `.gts` snapshot the CLI defaults to when a command omits one explicitly — and, when none of its three inputs finds a workspace at all, falls back to `settings.py`'s default workspace rather than raising (`CGSHOME_ORIGIN_DEFAULT`), except under an explicit `--search-dir`, where a directory the user named is never silently replaced, and — through its `describe_*` functions — reports *which input decided it*: `--search-dir`, `$CGSHOME`, or the current directory, in that order of precedence. The precedence is deliberate (the documented bootstrap tells users to export `$CGSHOME`), which is exactly why the reason has to travel with the answer: a stale export silently retargets every command at another workspace that holds the same repositories. This module never prints — `cli/_shared.py` turns a `CgshomeResolution`/`SnapshotResolution` into the `cgshome=`/`source=` lines and the mismatch warning. |
-| `ledger_store.py` | 1 | Atomic, one-file-per-entry persistence for the hash-chained register (`O_EXCL`-style writes, secret scrubbing, the untrusted-`HEAD`-cache pattern) — authored, not yet wired into `SyncLedger`'s actual write path. |
+| `ledger_store.py` | 1 | Atomic, one-file-per-entry persistence for the hash-chained register (`O_EXCL`-style writes, secret scrubbing, the untrusted-`HEAD`-cache pattern). **Wired**: `orchestre.write_gts_snapshot` appends one entry per State written, and `snapshot_resolver` reads the newest entry to decide which snapshot is current. |
 | `discovery.py` | 1 | Nested `.cgs` auto-discovery and `.gitmodules` parsing. |
 | `git_tree.py` | 1 | `GitTree`/`WorkingGitTree` structures, traversal, lifecycle state; `to_cgs()` delegates to `cgs_format.py`; `.gitignore` maintenance across the tree (`sync_gitignore`) — the reason this is Ring 1, not 0. Also the single rule for "which repo sits inside which": `resolve_repo_for_path` for a live tree, `innermost_containing_path` for plain paths before one exists. Owns privacy *state* as well: `propagate_privacy` pushes each parent's `private`/`writable` onto everything nested inside it (a parent defines its leaves; a leaf may restrict itself further, never open itself wider) and records the answer in `WorkingRepo.propagated_private`/`propagated_writable`. Every build path calls it beside `normalize_node_types`. |
 | `git_tree_branch.py` | 2 | The tree's branch *state*, and the counterpart to `git_branch.py`'s *rule*: which branch the tree is on (the root's — what `status` prints as `cgitsync_branch`), which branch each repository targets when the tree moves (`target`, a pass to `git_branch.resolve_propagated_ref` with the project's name filled in), which branch Git says each is on (`observed`, read once per repository and cached so one `status` costs one call per repository instead of two), and where the two disagree (`deviations`). Also holds `tree_project_name`, moved here from `operations.py` because the project's name exists in that code path only to name a private/local branch. Restates no rule: every answer it gives comes from `git_branch.py`. Four call sites computed all of this separately before it existed — `validate_branch_topology`, `_collect_branch_alignment_diagnostics`, `_branch_incoherence`, and the root read in `_restart_tree_common` — and the three that asked the same question disagreed about a detached root. `deviations(ignore_unreadable=...)` keeps the one difference that is real: a report skips a repository Git cannot answer for, a preflight gate must not. An instance is a snapshot — build a new one after a checkout or a pull. See `.localSpec/DevTickets/archive/20260916_StatusCurrentBranch_DevPlanTicket.md`. |
+| `toolchain.py` | 2 | The five version strings every ledger entry records — cgitsync, git, pixi, dvc, git-lfs — read at most once per process and reported as `none` when a tool is not installed. Asks `git_runner.tool_version` rather than importing `subprocess`, so the single-importer rule holds. A data backend is asked only when the operation being recorded used one: `dvc --version` starts a Python interpreter and would be felt on every `status`. |
 | `git_runner.py` | 2 | Git subprocess wrapper — the *only* module that imports `subprocess`, and therefore the one place the **decoding policy** for Git output lives. Git writes bytes, not text: `merge-tree`'s legacy form prints the content of the files it could not merge, and paths need not be UTF-8 either. Both wrappers (`_run`, `_query`) decode with `errors="replace"`, and `_query_bytes` hands back the raw bytes for the one caller that searches output it does not control. Strict decoding used to raise before the caller could read the exit code — see `AgentSpec/archive/20260910_MergeOutputDecoding_DevPlanTicket.md`. Owning the subprocess boundary also means owning the **environment** those subprocesses run in: `_non_interactive_git_env()` both stops Git blocking on a credential prompt and pins the language Git writes its messages in. ComplexGitSync reads Git's prose — no exit code says whether a fetch failed for want of credentials — so a translated message silently cost non-English users the `--force-protocol` recovery hint. `_english_message_locale()` is the only place that decision lives; it removes an inherited `LC_ALL` after copying its value into every other category, so only the language changes and encoding and collation are left alone. `LC_ALL=C.UTF-8` is the obvious fix and does not work: gettext still consults `$LANGUAGE`. See `AgentSpec/archive/20260911_GitLocaleIndependence_DevPlanTicket.md`. Every method that asks Git a question goes through `_query`/`_query_bytes`; none calls `subprocess.run` directly, which is what makes both the decoding policy and the environment policy inescapable rather than merely conventional. `can_merge_cleanly` returns the conflicting paths rather than a verdict, and reads both Git forms into the same answer: the modern form stops at the blank line before Git's notes, and the legacy form keeps a path only when its own block carries a conflict marker, since "changed in both" alone is not a conflict. A binary conflict prints no marker at all and is detected from Git's stderr warning — it used to be reported as clean, which let a tree-wide merge pass the preflight and then break halfway. See `AgentSpec/archive/20260910_MergeConflictReporting_DevPlanTicket.md`. |
 | `clone_guard.py` | 2 | Answers one question about a directory `initialise` is about to delete and re-clone: **would clearing this lose work that exists nowhere else?** Two read-only checks per destination — a dirty worktree, and commits reachable from `HEAD` that no remote-tracking ref holds. The second is deliberately *not* "is the branch ahead of its upstream": that form both misses a branch with no upstream carrying local commits, and wrongly blocks a detached `HEAD` parked on a commit the remote already has — which is exactly what a submodule checkout is, and what `init-from-submodules` depends on. Touches no worktree, which is what lets `orchestre.py` ask about every pending repository before deleting any of them, so a refusal anywhere leaves everything on disk. Decides nothing about whether a mount point is owned outright — that is `AppendCloneMode`'s question about the same `shutil.rmtree`. See `AgentSpec/archive/20260910_InitialiseDestroysExistingClones_DevPlanTicket.md`. |
 | `operations.py` | 2 | Leaf/parent-first Git operations over a `WorkingGitTree` + `GitRunner`. Asks `git_tree_branch.py` which branch the tree is on and which branch each repository should follow, rather than working it out per call site — `checkout_tree`, `branch_tree`, `add_tree`, `commit_tree`, `push_tree`, `tag_tree`, `freeze_release_tree`, branch-topology validation. Requires a `READY` tree; raises `TreeNotReadyError` otherwise. `add_tree`/`commit_tree`/`push_tree` each return one `RepoOutcome` per repository they visited — what changed there, or why nothing did — so a sweep that wrote nowhere is distinguishable from one that wrote everywhere. The client stores the tuple on `ComplexGitSyncClient.last_write_outcomes` and `cli/` prints it; deciding what happened stays here. `remove_paths` reports the same way, and is the one scoped operation handed its paths rather than sweeping for them: its scope is checked against the repository each path resolves to — a filter — and one path outside it refuses the whole call before any removal. Bare `rm` keeps its original reach (`RepoScope.ALL`); `cli/_shared.py` warns when that reach lands in a configuration repository. |
@@ -353,7 +354,7 @@ ring, never a higher one.
 |---|---|
 | 4 — ADAPTER | `cli/` package (`_shared.py`, `minimalist.py`, `expert.py`, `configuration.py`, `suggest.py`, `__init__.py` assembling them) |
 | 3 — ORCHESTRATION | `orchestre.py` (`Orchestre`, `ComplexGitSyncClient`) |
-| 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operations.py`, `registry.py` |
+| 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operations.py`, `registry.py`, `toolchain.py` |
 | 1 — FILESYSTEM | `paths.py`, `ledger_store.py`, `settings.py`, `state_store.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
 | 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `ledger_entry.py`, `integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
@@ -865,13 +866,16 @@ rename, so a reader never sees a half-written snapshot.
 
 ## The hash-chained register: schema, storage and threat model
 
-The `.lgr` register above is the format written today. Beside it lives a
-second, hash-chained one — `.cgitsync/lgr/`, one file per entry — which
-`cgitsync verify` reads and which the memory workstream is migrating the
-write path to. Its rules were written in `IsolationPlan.md` §2, a planning
-document that no longer exists; they are **binding**, so they live here.
-`src/` cites this section, not a ticket: an archived ticket is a historical
-record and is never edited, and a live schema must not sit inside one.
+**This is the register ComplexGitSync writes.** One file per entry under
+`.cgitsync/lgr/`, hash-chained, appended to by every command that writes a
+State. The single-file `.lgr` described in the section above is the older
+format: still read — every workspace created before this holds one — and no
+longer written by anything.
+
+Its rules were written in `IsolationPlan.md` §2, a planning document that no
+longer exists; they are **binding**, so they live here. `src/` cites this
+section, not a ticket: an archived ticket is a historical record and is
+never edited, and a live schema must not sit inside one.
 
 ### Entry schema
 
@@ -888,7 +892,13 @@ this section first:
 | `state_id` | The State the entry records |
 | `state_dir` | Where that State was written |
 | `outcome` | How the command ended |
+| `toolchain` | The versions that produced it: cgitsync, git, pixi, dvc, git-lfs |
 | `entry_hash` | `sha256:` over every field above, in canonical form |
+
+The toolchain is inside the hash like every other field, so an edited
+version string is as detectable as an edited command. An entry written
+before the field existed carries none, and hashes exactly as it did then —
+the key is absent from the payload rather than present and empty.
 
 **The canonical form is an explicit field list**, serialised with sorted
 keys and no whitespace — never "whatever the record happens to hold" — so
@@ -925,6 +935,26 @@ Two consequences, both load-bearing:
 - **`verify` never heals.** `--repair` corrects the untrusted `HEAD` cache
   and nothing else. Entries are never rewritten or deleted: a register that
   can be edited back into looking clean is evidence of nothing.
+
+### What the chain is checked against
+
+Two passes, and the second became possible only once a State was named by
+its content:
+
+- **The chain**, on its own: links, entry hashes, sequence gaps and
+  duplicates, and the `HEAD` cache against the recomputed head.
+- **The States on disk**: an entry naming a State that is not there
+  (`MISSING_STATE`), a stored snapshot whose content no longer hashes to the
+  name it is filed under (`STATE_DIGEST_MISMATCH`), and a State on disk that
+  no entry records (`ORPHAN_STATE`).
+
+### Which snapshot is "current"
+
+The newest entry names it. Resolution asks the chain first, then falls back
+to the single-file register and finally to the most recently modified
+snapshot — the two rules that serve workspaces written before the chain
+existed. Deciding from a filesystem timestamp is what the register used to
+do to pick a parent, and it is what the chain exists to stop.
 
 ### The four answers `verify` owes
 

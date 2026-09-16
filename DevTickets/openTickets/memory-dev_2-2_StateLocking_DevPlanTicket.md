@@ -56,7 +56,7 @@ Two things, both under `.cgitsync/`:
   `src/`.
 - **The ledger.** Two runs append. Under today's single-file register that
   is a whole-file rewrite, so one run's entries simply vanish. Under a
-  hash chain ([OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md)) it is worse
+  hash chain ([OneRegister](../archive/20260916_OneRegister_DevPlanTicket.md)) it is worse
   in a more useful way: two entries claim the same parent, and the chain
   forks. A fork is at least *detectable*, which is an argument for doing
   the chain first and the locking after.

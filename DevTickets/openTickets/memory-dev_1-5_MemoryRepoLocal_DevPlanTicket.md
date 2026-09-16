@@ -93,7 +93,7 @@ deliberate, documented, opt-in field — before anything leaves the machine,
 not after someone notices.
 
 G5 also governs the toolchain each entry now carries
-([OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md) §3.1). A version
+([OneRegister](../archive/20260916_OneRegister_DevPlanTicket.md) §3.1). A version
 string may leave the machine; the path the tool was found at and the user
 it ran as may not. `"git 2.39.5"` is fine and useful.
 `"/home/someone/.pixi/envs/default/bin/git"` is the same leak as

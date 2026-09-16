@@ -29,7 +29,7 @@ outgrew one file. Memory is a larger subject than the CLI.
 structure. §3 the command surface. §4 the work. §5 acceptance.
 
 **Who it is for.** Whoever takes M4, after
-[OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md). Doing it earlier means
+[OneRegister](../archive/20260916_OneRegister_DevPlanTicket.md). Doing it earlier means
 moving code that is about to change shape.
 
 **What you need to do with it.** §1 is a move, not a rewrite. Resist
@@ -109,7 +109,7 @@ Read-only to start with, because M4 ships before there is anywhere to push:
 
 `memory status` and `memory show` also print the **toolchain** the entries
 record — cgitsync, git, pixi, and dvc or git-lfs where they were used —
-which [OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md) §3.1 puts
+which [OneRegister](../archive/20260916_OneRegister_DevPlanTicket.md) §3.1 puts
 in every entry at the owner's request. `status` shows the genesis entry's
 and the latest one's, because the interesting question is whether they
 differ; `show` shows the entry's own. A tool that was not installed prints

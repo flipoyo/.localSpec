@@ -73,7 +73,7 @@ project's memory is pushed.
 ### 1.1 The toolchain travels with the ledger, not with the index
 
 Every ledger entry carries the versions that made it
-([OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md) §3.1), so they
+([OneRegister](../archive/20260916_OneRegister_DevPlanTicket.md) §3.1), so they
 reach another machine for free when the memory repository is pushed:
 inside the entry, covered by its hash, verifiable by whoever pulls it.
 
