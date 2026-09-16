@@ -30,7 +30,7 @@ size one. §3 the checks that become possible here. §3.1 the toolchain an
 entry must carry. §4 the work. §5 acceptance.
 
 **Who it is for.** Whoever takes M3, after
-[StateIdentity](memory-dev_1-2_StateIdentity_DevPlanTicket.md) has landed. Not
+[StateIdentity](../archive/20260916_StateIdentity_DevPlanTicket.md) has landed. Not
 before: a chain whose entries name timestamp-derived directories records
 nothing a second machine can use.
 

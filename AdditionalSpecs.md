@@ -279,7 +279,7 @@ human-readable summary.
 | `gts_document.py` | 0 (+ Ring-1 adapter) | `.gts` runtime state-snapshot parsing/validation; the one canonical content-hash builder. |
 | `master.py` | 1 | Local, workspace-scoped Git identity for ComplexGitSync's own automated commits; persisted per `CGSHOME` via `.cgitsync/master.toml` — not part of the `.cgs`/`.gts` project spec. |
 | `paths.py` | 1 | Environment-marker path portability (`$HOME`/`%USERPROFILE%`/etc.) and `CGSHOME`/`CGSPATH` resolution. |
-| `state_store.py` | 1 | Content-addressed `.cgitsync/state(<hash>)_n/` directory allocation — the general mechanism every lifecycle command uses (not related to the deleted Memory transport, despite the class name). |
+| `state_store.py` | 1 | The one place that composes a State's path: `.cgitsync/state/<hash>.gts`, where the hash is the document's own content digest (`state_path`). Still reads the older `state(<hash>)_n/` directories, so a workspace written before the flat layout resolves without being rewritten — and `snapshot_resolver.py` imports that grammar from here rather than carrying the copy it used to. Formerly content-addressed directory allocation — the general mechanism every lifecycle command uses (not related to the deleted Memory transport, despite the class name). |
 | `settings.py` | 1 | Where ComplexGitSync keeps its own workspaces, answered before any workspace is open — which is what separates it from `master.py`, whose `.cgitsync/master.toml` cannot be read until one has been found. Owns the root (`$CGSPATH`, else `$HOME/.cgs`), the **default workspace** that `snapshot_resolver.py` falls back to when none of its three inputs finds one, the `$HOME/.cgs/default` pointer that makes that workspace minted-once-then-reused, the empty but valid `.gts` written into it (`UNLOADED`, `is_ready = false` — an empty tree must never claim to be ready), the list of other workspaces under the root that the CLI prints as a hint and never selects from, and the `UseCase` (`STANDALONE`/`NESTED`) derived from whether the running installation sits inside the resolved CGSHOME. Derived, never stored: two callers in one process cannot disagree. See `.localSpec/DevTickets/archive/20260916_CgshomeDefault_DevPlanTicket.md`. |
 | `snapshot_resolver.py` | 1 | Resolves which `.gts` snapshot the CLI defaults to when a command omits one explicitly — and, when none of its three inputs finds a workspace at all, falls back to `settings.py`'s default workspace rather than raising (`CGSHOME_ORIGIN_DEFAULT`), except under an explicit `--search-dir`, where a directory the user named is never silently replaced, and — through its `describe_*` functions — reports *which input decided it*: `--search-dir`, `$CGSHOME`, or the current directory, in that order of precedence. The precedence is deliberate (the documented bootstrap tells users to export `$CGSHOME`), which is exactly why the reason has to travel with the answer: a stale export silently retargets every command at another workspace that holds the same repositories. This module never prints — `cli/_shared.py` turns a `CgshomeResolution`/`SnapshotResolution` into the `cgshome=`/`source=` lines and the mismatch warning. |
 | `ledger_store.py` | 1 | Atomic, one-file-per-entry persistence for the hash-chained register (`O_EXCL`-style writes, secret scrubbing, the untrusted-`HEAD`-cache pattern) — authored, not yet wired into `SyncLedger`'s actual write path. |
@@ -600,7 +600,7 @@ The canonical user-facing lifecycle contract is:
    - `client.initialise("install.cgs")`
    
    OR `initialise(.gts)` → restore from snapshot → `.gts READY`  *(existing project)*
-   - `client.initialise(".cgitsync/state(<hash>)_<n>/complexgitsync.gts")`
+   - `client.initialise(".cgitsync/state/<hash>.gts")`
    - Before the tree is confirmed ready, every repo with children (root or
      any nested repo that itself has further nested children) is safely
      pulled (parent-first) and has its `.gitignore` updated with the
@@ -803,6 +803,63 @@ replay  = ledger.replay()    # alias for history()
 client.get_ledger_history("project/demo.lgr")
 client.replay_ledger("project/demo.lgr")
 ```
+
+---
+
+## What a State's name is computed from
+
+A **State** is one `.gts` snapshot, written at `.cgitsync/state/<hash>.gts`.
+The hash is the document's own content digest, so the same tree yields the
+same file name on any machine — which is what makes a memory portable, and
+what lets two writes over an unchanged workspace produce one State instead
+of two.
+
+**A State is named by what it contains; the ledger is ordered by time.**
+Those are the two halves, and each keeps out of the other's business: a
+State says *what* a workspace held, an entry in the register says *when* it
+was seen and by what. Being seen twice is two entries pointing at one
+name, which is why nothing counts occurrences in a file name any more.
+
+`document.hash_canonicalisation` says which algorithm computed it. A
+document is always measured with the version it declares; a snapshot
+written before the field existed is version 1 for ever and is never
+silently rewritten.
+
+### Identity, or metadata
+
+The rule: **identity is what the workspace *is*; metadata is what was
+observed about it on one machine.** Only identity is hashed.
+
+| Hashed — identity | Not hashed — metadata |
+|---|---|
+| `project.name` | `project.root_absolute_path` — where this tree was materialised |
+| Each repository's `relative_path`, and the tree order that follows from it | Each repository's `absolute_path` and `parent_absolute_path` |
+| `name`, `node_type`, provider, owner, repo name, group, provider URL | `source_cgs_path` — where the `.cgs` happened to sit |
+| `commit_sha`, the three refs, `fallback_branch` and why it applied | `access_protocol` — ssh or https is a transport preference |
+| `repo_lifecycle_state`, `sync_state`, `discovery_state`, `worktree_state`, `is_reachable` | `private` / `writable` — what commands may touch a repository, not what it is |
+| `tree_state` and the `freeze_manifest` | `generated_at`, `command_origin` — facts about the run |
+| | **Toolchain versions** — cgitsync, git, pixi, dvc, git-lfs |
+
+**Toolchain versions are the one worth stating twice.** They belong to the
+ledger entry, never to a State: hashing them would give one tree two names
+on two machines running different git versions, and a version bump would
+rename every State in a workspace.
+
+Version 1 hashed the three path rows above and ordered repositories by
+absolute path. That is a location, not an identity, and it is why the
+digest was useless as a name two parties could agree on.
+
+### What sits beside a State
+
+| Path | What it is |
+|---|---|
+| `.cgitsync/state/<hash>.gts` | The State |
+| `.cgitsync/state/<hash>.cgs` | The spec it was built from — part of what that State was |
+| `.cgitsync/<project>.lgr` | The register, at one path. It used to be copied into every state directory before each write |
+| `.cgitsync/logs/<command>-<timestamp>.log` | A record of a run, named for the run. Two runs leaving the tree identical share one State and keep their own logs |
+
+Writing a State goes through a temporary file in the same directory and one
+rename, so a reader never sees a half-written snapshot.
 
 ---
 
