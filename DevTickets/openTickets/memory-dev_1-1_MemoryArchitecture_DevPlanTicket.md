@@ -64,7 +64,8 @@ register" somewhere in today's code. Fixed meanings:
 |---|---|---|
 | **State** | One `.gts` snapshot: what the tree contained at one moment | `.cgitsync/state/` |
 | **Ledger** | The ordered, hash-chained record of when each State was seen | `.cgitsync/lgr/` |
-| **Memory** | One project's States and Ledger together — everything `.cgitsync/` holds | `.cgitsync/`, and its memory repository |
+| **Memory** | One project's States, its Ledger and its commit logs — everything `.cgitsync/` holds | `.cgitsync/`, and its memory repository |
+| **Commit log** | What one State's commits said, and whether they were published | `.cgitsync/commit-logs/` |
 | **Reference ledger** | The distant index of which projects have a memory, and where | its own repository, one for all projects |
 
 A **memory repository** is an ordinary private/local repository in the
@@ -147,6 +148,20 @@ Two moments, both named by the owner: **genesis**, the first record a
 memory ever holds, and **each record**, so a chain that spans a year of
 upgrades says where each upgrade fell.
 
+### What else a record carries
+
+Versions answer "by what". The owner's second request
+(`.localSpec/DevTickets/archive/.closedUserTicket/20260916_addCommitMsgToMem.md`)
+answers **"what was written"**: the messages of the commits an operation
+made, for the project and for the private repositories, linked to the push
+that published them and reachable from a State's hash.
+
+That is one file per State beside the ledger, not a field in an entry — a
+message has no length limit and an entry must stay small and fixed. The
+entry carries a digest of it, so the file cannot be edited without trace.
+[CommitMemory](memory-dev_1-8_CommitMemory_DevPlanTicket.md) is the
+milestone; §3's D5 is where "what may a memory contain" settles it.
+
 **Versions are provenance, never identity.** They describe the machine
 that observed the tree, not the tree. Folding them into the content hash
 of a State would give one tree two names on two machines, which is exactly
@@ -204,6 +219,13 @@ login name. **No absolute path, no OS user name, no credential** — paths
 relative to the tree root, and `actor` a deliberate, documented, opt-in
 field. M4 does not ship until this holds.
 
+**Commit messages are the exception that proves the rule.** They are
+authored content and travel exactly as written — never scrubbed, reflowed
+or truncated, because rewriting somebody's words is the one thing a record
+must not do. What is forbidden is the machine around them: no absolute
+path, no OS user name, no diff. A memory says what happened and what it was
+called; it is not a second copy of the repository.
+
 ### D6. How much toolchain does an entry carry, and what does it cost?
 
 **Answered by the owner, 2026-09-16: every entry carries all five, every
@@ -236,7 +258,7 @@ With those two settled, D6 is closed.
 
 ## 4. The milestone map
 
-Seven tickets, this one included. Each is a milestone: something that
+Eight tickets, this one included. Each is a milestone: something that
 works and can be shown, not a layer that only makes sense once the next
 one lands.
 
@@ -249,12 +271,19 @@ one lands.
 | **M4** | MemoryModule | `memory/` exists with a CLI to match: a local memory can be inspected |
 | **M5** | MemoryRepoLocal | A project's memory is a repository, pushed, and survives the machine |
 | **M6** | MemorySyncDistant | The reference ledger answers "which projects, and where is their memory" |
+| **M7** | CommitMemory | A memory says what was committed, and whether it was ever pushed |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing
 portable. M3 before M5 because pushing a register nothing writes is
 pushing an empty directory. M4 before M5 because the code needs a home
 before it grows a protocol.
+
+M7 is the one that is not in the chain. Recording what a commit said needs
+nothing from M5 or M6 — only the ledger M3 built — so it is placed after
+M5 by preference, not by need: a memory that is already a repository
+carries its commit logs from its first push rather than gaining them in a
+later one.
 
 **`memory/` is a new top-level area of `src/ComplexGitSync/`**, the
 owner's own suggestion and the right one: `cli/` earned its own package
@@ -307,10 +336,11 @@ code:
   docstring in `src/` contradicts them.
 - §3's six decisions are answered in this file, by the owner, with the
   reasoning kept. D6 is answered as of 2026-09-16; five remain.
-- The six tickets in §4 exist, each naming this file for its design and
+- The seven tickets in §4 exist, each naming this file for its design and
   stating which milestone it delivers.
 - Every one of them states what it does *not* do, so the seams between
   them are visible from inside each ticket.
 
-It stays open until M6 lands, because it is the one document a reader
-should be able to open to find out what the memory system is.
+It stays open until the last milestone lands, because it is the one
+document a reader should be able to open to find out what the memory system
+is.

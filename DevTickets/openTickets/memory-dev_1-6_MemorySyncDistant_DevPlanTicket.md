@@ -70,17 +70,22 @@ everything, with its own consistency problem.
 It is **read-mostly and write-rarely**: one small record changes when a
 project's memory is pushed.
 
-### 1.1 The toolchain travels with the ledger, not with the index
+### 1.1 The toolchain and the commit logs travel with the ledger, not with the index
 
 Every ledger entry carries the versions that made it
 ([OneRegister](../archive/20260916_OneRegister_DevPlanTicket.md) §3.1), so they
 reach another machine for free when the memory repository is pushed:
 inside the entry, covered by its hash, verifiable by whoever pulls it.
 
-The reference ledger records none of them. It answers "which projects, and
-where is their memory" — a version belongs to a record, not to an index,
-and an index that duplicated them would be the second place they could
-disagree.
+The same holds for the commit messages
+[CommitMemory](memory-dev_1-8_CommitMemory_DevPlanTicket.md) records: they
+live beside the ledger, in the memory repository, and reach another machine
+when that repository is cloned.
+
+The reference ledger records none of it. It answers "which projects, and
+where is their memory" — a version and a message belong to a record, not to
+an index, and an index that duplicated them would be the second place they
+could disagree.
 
 ## 2. What it must never hold
 

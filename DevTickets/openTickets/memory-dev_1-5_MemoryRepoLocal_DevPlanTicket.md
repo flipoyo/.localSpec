@@ -92,6 +92,14 @@ name. Paths become relative to the tree root, and `actor` becomes a
 deliberate, documented, opt-in field — before anything leaves the machine,
 not after someone notices.
 
+G5 also governs the **commit logs** a memory will carry
+([CommitMemory](memory-dev_1-8_CommitMemory_DevPlanTicket.md)): a commit
+message travels exactly as written, because it is authored content and
+rewriting it would destroy the record — but nothing around it does. No
+absolute path, no OS user name, no diff. If that milestone has not landed
+when this one does, the gate still applies the day it lands: this is the
+ticket that decides what leaves the machine.
+
 G5 also governs the toolchain each entry now carries
 ([OneRegister](../archive/20260916_OneRegister_DevPlanTicket.md) §3.1). A version
 string may leave the machine; the path the tool was found at and the user
@@ -117,8 +125,8 @@ The commands, mirroring the client as `CLAUDE.md` requires:
 
 | Command | Does |
 |---|---|
-| `cgitsync memory init` | Proposes a memory repository name per D3 of the architecture, and mounts it once the user accepts |
-| `cgitsync memory push` | Commits what the memory gained and pushes it |
+| `cgitsync memory init` | Proposes a memory repository name per D3 of the architecture — `<owner>/.memory-<project name>` — and mounts it once the user accepts. **It does not create the repository on the host:** nothing in ComplexGitSync talks to a provider's API, and teaching it to would mean a network call and a credential where there is neither today. It prints the name and the one command that creates it, and waits |
+| `cgitsync memory push` | Commits what the memory gained — States, ledger entries, and commit logs once [CommitMemory](memory-dev_1-8_CommitMemory_DevPlanTicket.md) writes them — and pushes it |
 | `cgitsync memory clone` | Brings a project's memory onto a machine that does not have it |
 
 No automatic push. D4 of the architecture says the cadence question is
