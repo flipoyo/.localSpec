@@ -16,6 +16,20 @@
 > cgitsync command for creating a new repo on a gitProvider@owner or @group,
 > what i did manually. A user shouldn't go out of ComplexGitSync."*
 
+## State of play — 2026-09-17
+
+**Built, tested and documented: WP-1 to WP-5, WP-7 to WP-9.** All five
+commands exist, and `tests/integration/test_memory_onboarding.py` runs §2's
+sequence end to end against a bare repository. Every §6 decision was taken
+as recommended.
+
+**Open: WP-6, and the live run of §2.** The entry is not yet in
+`examples/complexgitsync4dev.cgs`, because D5 says it goes in only once
+`ComplexGitSync` exists on `flipoyo/.memory` — and creating that branch
+writes to the owner's account, which is the owner's call, not the agent's.
+The commands are in §2, they work, and the ticket stays open until they
+have been run.
+
 ## Abstract — read this first
 
 **The one-line version.** Today, getting a memory from "nothing" to "pushed

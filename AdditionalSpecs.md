@@ -286,6 +286,7 @@ human-readable summary.
 | `discovery.py` | 1 | Nested `.cgs` auto-discovery and `.gitmodules` parsing. |
 | `git_tree.py` | 1 | `GitTree`/`WorkingGitTree` structures, traversal, lifecycle state; `to_cgs()` delegates to `cgs_format.py`; `.gitignore` maintenance across the tree (`sync_gitignore`) — the reason this is Ring 1, not 0. Also the single rule for "which repo sits inside which": `resolve_repo_for_path` for a live tree, `innermost_containing_path` for plain paths before one exists. Owns privacy *state* as well: `propagate_privacy` pushes each parent's `private`/`writable` onto everything nested inside it (a parent defines its leaves; a leaf may restrict itself further, never open itself wider) and records the answer in `WorkingRepo.propagated_private`/`propagated_writable`. Every build path calls it beside `normalize_node_types`. |
 | `git_tree_branch.py` | 2 | The tree's branch *state*, and the counterpart to `git_branch.py`'s *rule*: which branch the tree is on (the root's — what `status` prints as `cgitsync_branch`), which branch each repository targets when the tree moves (`target`, a pass to `git_branch.resolve_propagated_ref` with the project's name filled in), which branch Git says each is on (`observed`, read once per repository and cached so one `status` costs one call per repository instead of two), and where the two disagree (`deviations`). Also holds `tree_project_name`, moved here from `operations.py` because the project's name exists in that code path only to name a private/local branch. Restates no rule: every answer it gives comes from `git_branch.py`. Four call sites computed all of this separately before it existed — `validate_branch_topology`, `_collect_branch_alignment_diagnostics`, `_branch_incoherence`, and the root read in `_restart_tree_common` — and the three that asked the same question disagreed about a detached root. `deviations(ignore_unreadable=...)` keeps the one difference that is real: a report skips a repository Git cannot answer for, a preflight gate must not. An instance is a snapshot — build a new one after a checkout or a pull. See `.localSpec/DevTickets/archive/20260916_StatusCurrentBranch_DevPlanTicket.md`. |
+| `provider.py` | 0 | **Which command-line tool creates a repository on which host, and with what arguments.** Runs nothing: `git_runner.run_tool` does that, for the same reason `toolchain.py` asks it for a version. Holds no credential, reads none and sends none — `gh`, `glab` and `tea` each keep their own, under their own `auth login`. The owner or group comes from `parse_repo_id` and from nowhere else. |
 | `toolchain.py` | 2 | The five version strings every ledger entry records — cgitsync, git, pixi, dvc, git-lfs — read at most once per process and reported as `none` when a tool is not installed. Asks `git_runner.tool_version` rather than importing `subprocess`, so the single-importer rule holds. A data backend is asked only when the operation being recorded used one: `dvc --version` starts a Python interpreter and would be felt on every `status`. |
 | `git_runner.py` | 2 | Git subprocess wrapper — the *only* module that imports `subprocess`, and therefore the one place the **decoding policy** for Git output lives. Git writes bytes, not text: `merge-tree`'s legacy form prints the content of the files it could not merge, and paths need not be UTF-8 either. Both wrappers (`_run`, `_query`) decode with `errors="replace"`, and `_query_bytes` hands back the raw bytes for the one caller that searches output it does not control. Strict decoding used to raise before the caller could read the exit code — see `AgentSpec/archive/20260910_MergeOutputDecoding_DevPlanTicket.md`. Owning the subprocess boundary also means owning the **environment** those subprocesses run in: `_non_interactive_git_env()` both stops Git blocking on a credential prompt and pins the language Git writes its messages in. ComplexGitSync reads Git's prose — no exit code says whether a fetch failed for want of credentials — so a translated message silently cost non-English users the `--force-protocol` recovery hint. `_english_message_locale()` is the only place that decision lives; it removes an inherited `LC_ALL` after copying its value into every other category, so only the language changes and encoding and collation are left alone. `LC_ALL=C.UTF-8` is the obvious fix and does not work: gettext still consults `$LANGUAGE`. See `AgentSpec/archive/20260911_GitLocaleIndependence_DevPlanTicket.md`. Every method that asks Git a question goes through `_query`/`_query_bytes`; none calls `subprocess.run` directly, which is what makes both the decoding policy and the environment policy inescapable rather than merely conventional. `can_merge_cleanly` returns the conflicting paths rather than a verdict, and reads both Git forms into the same answer: the modern form stops at the blank line before Git's notes, and the legacy form keeps a path only when its own block carries a conflict marker, since "changed in both" alone is not a conflict. A binary conflict prints no marker at all and is detected from Git's stderr warning — it used to be reported as clean, which let a tree-wide merge pass the preflight and then break halfway. See `AgentSpec/archive/20260910_MergeConflictReporting_DevPlanTicket.md`. |
 | `clone_guard.py` | 2 | Answers one question about a directory `initialise` is about to delete and re-clone: **would clearing this lose work that exists nowhere else?** Two read-only checks per destination — a dirty worktree, and commits reachable from `HEAD` that no remote-tracking ref holds. The second is deliberately *not* "is the branch ahead of its upstream": that form both misses a branch with no upstream carrying local commits, and wrongly blocks a detached `HEAD` parked on a commit the remote already has — which is exactly what a submodule checkout is, and what `init-from-submodules` depends on. Touches no worktree, which is what lets `orchestre.py` ask about every pending repository before deleting any of them, so a refusal anywhere leaves everything on disk. Decides nothing about whether a mount point is owned outright — that is `AppendCloneMode`'s question about the same `shutil.rmtree`. See `AgentSpec/archive/20260910_InitialiseDestroysExistingClones_DevPlanTicket.md`. |
@@ -356,7 +357,7 @@ ring, never a higher one.
 | 3 — ORCHESTRATION | `orchestre.py` (`Orchestre`, `ComplexGitSyncClient`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operations.py`, `registry.py`, `toolchain.py` |
 | 1 — FILESYSTEM | `paths.py`, `memory/` (`states`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
-| 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `ledger_entry.py`, `integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
+| 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `ledger_entry.py`, `integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The four import rules (machine-checked)
 
@@ -955,6 +956,41 @@ its content:
   (`ORPHAN_COMMIT_LOG`). The second is reported and never deleted: removing
   a record because the thing beside it went missing is how a record stops
   being one.
+
+### Creating a repository: the one thing this project asks another tool to do
+
+ComplexGitSync used to state that it never creates a repository on a host,
+"because that would mean a network call and a stored credential where there
+is neither". The second half was the reason, and it still holds. The rule is
+therefore amended rather than dropped:
+
+> **This project stores no credential and implements no provider's API.**
+> When a repository must be created, it runs the provider's own
+> command-line tool, which the user has already signed in to.
+
+| Provider | Tool | Signed in with |
+|---|---|---|
+| `github` | `gh` | `gh auth login` |
+| `gitlab` | `glab` | `glab auth login` |
+| `codeberg` / Gitea | `tea` | `tea login add` |
+
+`provider.py` (Ring 0) decides which tool and which arguments;
+`git_runner.run_tool` runs it, because that module is the project's only
+`import subprocess` and a second importer would put the decoding and
+environment policies out of reach. The same split `memory/repository.py`
+already uses: decide in one place, run in another.
+
+Three answers, and none of them is an exception for the ordinary cases:
+
+- **created** — it did not exist and now does.
+- **exists** — it was already there. Asked with `git ls-remote` before any
+  tool runs, so creating a repository twice costs nothing and cannot fail.
+  This is the normal answer for anybody who created it by hand first.
+- **unavailable** — the tool is missing or signed out. The command to run is
+  returned, and the exit code is `2` (*could not run*) — which is what this
+  project did for repository creation before it could do any of it.
+
+Everything else about a repository is still plain Git.
 
 ### The commit log: what was written, and whether anyone else has seen it
 
