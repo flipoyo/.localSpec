@@ -1,0 +1,1 @@
+The memory system of cgitsync must record the version of the dependencies that were used for state genesis and at the time of the records : pixi, git, dvc, git-lfs, cgitsync version.  

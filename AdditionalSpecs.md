@@ -888,12 +888,13 @@ CLI display requirements:
 
 ## Branches and ticket topics
 
-`main` is where ComplexGitSync's work lands, with one exception.
+`main` is where ComplexGitSync's work lands, with two exceptions.
 
 | Workstream | Branch | Ticket filename prefix |
 |---|---|---|
 | Everything else | `main` | `main_` |
 | Memory — `.cgitsync/`, the state area, the register/ledger, `memory/` and the distant reference ledger | `memory-dev` | `memory-dev_` |
+| Data — the `DataManager` layer, the DVC backend, `data_backend`/`data_paths`, and data materialisation and publication | `data-repo` | `data-repo_` |
 
 **Every change to a project's memory is developed on `memory-dev`.** The
 memory work is seven dependent milestones — see the MemoryArchitecture
@@ -905,9 +906,9 @@ project cannot afford to corrupt by accident is the record of what it
 synchronised. `memory-dev` merges into `main` when a milestone is finished
 and `pixi run lint` and `pixi run test` both pass.
 
-`memory-dev` is this project's only branch other than `main`, so those two
-are the only ticket filename prefixes it has. An open memory ticket is
-named
+`memory-dev` and `data-repo` are this project's branches other than
+`main`, so those three are the only ticket filename prefixes it has. An
+open memory ticket is named
 `.localSpec/DevTickets/openTickets/memory-dev_<priority>-<rank>_<Name>_DevPlanTicket.md`
 and carries `*Branch: memory-dev*` under its `*Created:*` line; every other
 open ticket is `main_<priority>-<rank>_<Name>_DevPlanTicket.md` and carries
@@ -915,6 +916,17 @@ open ticket is `main_<priority>-<rank>_<Name>_DevPlanTicket.md` and carries
 implied by its absence. Both conventions are defined in
 [.agentSpec/TICKETLIFECYCLE.md](../.agentSpec/TICKETLIFECYCLE.md) §2.3 and
 §3 — this section only says which branches exist here.
+
+**Every change to the data layer is developed on `data-repo`.** The data
+work is six dependent milestones — see the DataArchitecture ticket in
+[DevTickets/openTickets/](DevTickets/openTickets/) — that between them add a
+`.cgs`/`.gts` declaration, a `DataManager` dispatch layer, a DVC backend,
+and new refusals in the authoring, materialisation and release paths. A
+half-built data layer that stages a multi-gigabyte dataset into Git, or
+freezes a release whose data cannot be fetched, is not something to ship by
+accident on `main`. The branch merges back when a milestone is finished and
+`pixi run lint` and `pixi run test` both pass. DVC itself stays an optional
+Pixi feature: a Git-only project installs none of it.
 
 The prefix replaced an earlier topic prefix (`memDev-`), which named the
 same group one spelling differently and left the reader to map the two.

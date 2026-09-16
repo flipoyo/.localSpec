@@ -111,7 +111,62 @@ class DataManager:
 
 A `DataResult` must distinguish `READY`, `DIRTY`, `NOT_MATERIALIZED`, `MISSING_CACHE`, `REMOTE_UNAVAILABLE`, `UNSUPPORTED`, `FAILED`, and `UNKNOWN` without claiming that a merely clean Git tree is data-ready. Record backend, repository, operation, attempted step, safe-to-retry status, and redacted diagnostics. Do not serialize credentials or backend internals in CGS state.
 
-All subprocess calls use argument arrays, explicit `cwd=repo.root`, bounded/cancellable execution as appropriate, controlled logging, consistent failure handling, and **no** shell interpolation. Keep command execution out of `.cgs` parsing/domain validation. If no DVC repositories are selected, do not probe, install, or require DVC. A missing DVC executable in a selected DVC repo gives a precise per-repository error; never install it silently.
+All subprocess calls use argument arrays, explicit `cwd=repo.root`, bounded/cancellable execution as appropriate, controlled logging, consistent failure handling, and **no** shell interpolation. Keep command execution out of `.cgs` parsing/domain validation. If no DVC repositories are selected, do not probe, install, or require DVC. A missing DVC executable in a selected DVC repo gives a precise per-repository error; never install it silently — §3.1 says where a tested DVC is expected to come from.
+
+### 3.1 DVC is an optional runtime dependency, provided by a Pixi feature
+
+**DVC support is first-class in the CGS architecture, but DVC itself is an optional runtime dependency.** Both extremes are wrong: treating DVC as an external unmanaged prerequisite weakens reproducibility, and putting it unconditionally in CGS's core Pixi environment couples CGS to one particular data backend. A CGS project containing only ordinary repositories must not have to install DVC; otherwise the supposedly generic `DataManager` architecture is DVC-centric from the first commit.
+
+The requirement, replacing any reading of "if `dvc` is missing, fail because the user must install DVC externally":
+
+> `DvcManager` requires the `dvc` executable. The official CGS Pixi workspace SHOULD provide an optional `dvc` feature containing a tested DVC version. DVC MUST NOT be part of the mandatory CGS runtime environment.
+
+`DvcManager` there is the class §3 calls `DvcBackend`; the two names mean the same thing, and §3's is the one to implement.
+
+This is resolvable today rather than aspirational. DVC is distributed on `conda-forge` as a `noarch` package — currently DVC 3.67.1 — so Pixi resolves it natively from the same ecosystem CGS already uses, and records it in the lock file. That is preferable to bolting a separate `pip install dvc` step onto CGS. `pixi add dvc` is all it takes at the command line; in `pixi.toml` the pinned form is `dvc = ">=3.67,<4"`.
+
+Pixi's **features and environments** are the mechanism for exactly this situation — a feature carries its own dependencies and environments combine them:
+
+```toml
+[dependencies]
+python = "..."
+git = "..."
+
+[feature.dvc.dependencies]
+dvc = ">=3.67,<4"
+
+[environments]
+default = []
+dvc = ["dvc"]
+```
+
+Development, or a deployment that needs DVC, uses the DVC-enabled environment; an ordinary CGS installation stays light:
+
+```text
+CGS repository
+|
++-- pixi core environment
+|      \-- CGS works without DVC
+|
+\-- pixi DVC feature
+       \-- CGS + DataManager[DVC]
+```
+
+The structure is already right for the backend that follows, so Git LFS needs no redesign of the environment layout — only its own feature, whose exact dependency its own ticket decides:
+
+```toml
+[feature.dvc.dependencies]
+dvc = ">=3.67,<4"
+
+[feature.git-lfs.dependencies]
+git-lfs = "*"
+
+[environments]
+default = []
+dvc = ["dvc"]
+git-lfs = ["git-lfs"]
+data = ["dvc", "git-lfs"]
+```
 
 ## 4. Path ownership and staging policy
 
@@ -258,7 +313,7 @@ Not in scope: implementing Git LFS; simultaneous DVC+LFS ownership in one repo; 
 3. `.gts` alone is sufficient to recover repository backend identity and exact previously published data from a fresh workspace (assuming required remote objects are retained and accessible).
 4. Offline checkout and existing private repository policies remain intact.
 5. Failed or incomplete data publication cannot produce a successful CGS release; partial cross-repo effects are reported honestly.
-6. Git-only projects retain current behaviour and do not require DVC.
+6. Git-only projects retain current behaviour and do not require DVC: the default Pixi environment resolves and runs the full suite with no `dvc` package in it, and DVC lives in an optional `dvc` feature (§3.1).
 7. Git LFS remains unimplemented, but the contract is validated with a fake alternative backend and requires no redesign of CGS orchestration.
 
 **Design principle:** *CGS owns orchestration of code and data at GitRepo level. A data backend owns its own data format and storage protocol.*
@@ -274,3 +329,6 @@ Not in scope: implementing Git LFS; simultaneous DVC+LFS ownership in one repo; 
 - DVC push: https://doc.dvc.org/command-reference/push
 - DVC status: https://doc.dvc.org/command-reference/status
 - Git LFS architecture: https://git-lfs.com/
+- DVC on conda-forge (`noarch`): https://anaconda.org/conda-forge/dvc
+- Pixi workspaces and dependencies: https://pixi.prefix.dev/latest/first_workspace/
+- Pixi multiple environments: https://pixi.prefix.dev/latest/tutorials/multi_environment/
