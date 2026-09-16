@@ -30,7 +30,7 @@ decision actually was. §2 the gates, which are the real content of this
 ticket. §3 what graduation changes. §4 the work. §5 acceptance.
 
 **Who it is for.** Whoever takes M5, after
-[MemoryModule](memory-dev_1-4_MemoryModule_DevPlanTicket.md). The owner signs off §2
+[MemoryModule](../archive/20260916_MemoryModule_DevPlanTicket.md). The owner signs off §2
 before anything is pushed.
 
 **What you need to do with it.** Check every gate in §2 honestly. A gate
