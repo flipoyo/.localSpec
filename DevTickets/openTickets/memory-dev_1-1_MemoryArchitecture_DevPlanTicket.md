@@ -343,6 +343,7 @@ one lands.
 | **M5** | MemoryRepoLocal | A project's memory is a repository, pushed, and survives the machine |
 | **M6** | Omniscience — **stand-by** | The project's own register, appended to by everyone and quietly rewritable by nobody. Architecture written; §5's D1 decides whether it is built |
 | **M7** | CommitMemory — **landed 2026-09-17** | A memory says what was committed, and whether it was ever pushed |
+| **M8** | MemoryOnboarding | The steps a person runs once per project — create the repository, mount it, push it, merge it — are commands rather than instructions |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing
@@ -364,8 +365,20 @@ M7 was the one that is not in the chain. Recording what a commit said needed
 nothing from M5 or M6 — only the ledger M3 built — so it was placed after
 M5 by preference, not by need: a memory that is already a repository
 carries its commit logs from its first push rather than gaining them in a
-later one. That is what happened, and it leaves M6 as the only milestone
-this workstream still owes.
+later one. That is what happened.
+
+M8 is what M5 turned out to owe. M5 made a memory *able* to be a repository
+and left the first five steps of getting there as printed instructions: a
+`gh` command to run, an entry to paste into a `.cgs` by hand, and no way at
+all to turn a `.cgitsync` that is already full of States into that
+repository. Every one of those steps is run once per project and met by
+everyone, which is why they are the ones an early adopter judges the tool
+on. [MemoryOnboarding](memory-dev_1-2_MemoryOnboarding_DevPlanTicket.md)
+carries them, along with the first merge of a memory across project
+branches — the case where the branch being merged *into* has never existed
+— and Tutorial 5, which walks the whole sequence. It blocks the first merge
+of `memory-dev` into `main`, so it is the next thing to build; M6 is then
+the only milestone this workstream still owes.
 
 **`memory/` is a new top-level area of `src/ComplexGitSync/`**, the
 owner's own suggestion and the right one: `cli/` earned its own package
