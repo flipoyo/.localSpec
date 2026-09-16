@@ -112,6 +112,17 @@ So M2 is really: **define a portable canonical payload, versioned.**
   the workspace *is* (identity) or something observed about it on one
   machine (metadata). `commit_sha`, yes. A path, no. The rest needs
   deciding one field at a time, in writing.
+- **Toolchain versions are metadata, and this is the ticket that says so.**
+  The owner asks
+  (`.localSpec/DevTickets/archive/.closedUserTicket/20260916_memory-dependencies.md`)
+  that a memory record the versions of cgitsync, git, pixi, dvc and
+  git-lfs. None of them may enter the canonical payload: two machines
+  holding the identical tree with different git versions must produce the
+  same State name, and one version bump must not rename every State in a
+  workspace. They belong to the ledger entry, which
+  [OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) carries. See
+  [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md)
+  §2.4.
 - Version the result. New snapshots declare which canonicalisation they
   use; old snapshots keep validating under the old one, are never silently
   rewritten, and are never checked against the new algorithm.
@@ -144,6 +155,8 @@ Also:
 
 - Two writes over an unchanged workspace produce **one** State name, not
   two directories.
+- The canonical payload holds no toolchain version: a test changes the
+  recorded cgitsync and git versions and the State's name does not move.
 - No call to `new_time_l0_anchor` remains anywhere in the state-naming
   path (`grep` proves it).
 - A snapshot written by the old build still loads, still validates under

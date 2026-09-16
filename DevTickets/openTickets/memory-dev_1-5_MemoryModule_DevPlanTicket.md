@@ -107,6 +107,14 @@ Read-only to start with, because M4 ships before there is anywhere to push:
 | `cgitsync memory list` | The States this workspace holds, by name, with the ledger's timestamp for each |
 | `cgitsync memory show <hash>` | One State: what it recorded, and every ledger entry that names it |
 
+`memory status` and `memory show` also print the **toolchain** the entries
+record — cgitsync, git, pixi, and dvc or git-lfs where they were used —
+which [OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) §3.1 puts
+in every entry at the owner's request. `status` shows the genesis entry's
+and the latest one's, because the interesting question is whether they
+differ; `show` shows the entry's own. A tool that was not installed prints
+as `none`, never as a blank column.
+
 `cgitsync verify` stays where it is and keeps its name. It is the
 integrity question, users already know it, and moving it would break the
 CLI contract for no gain.

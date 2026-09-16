@@ -26,8 +26,8 @@ trace. Push a real chain and a reader on another machine can check it.
 
 **What you will find.** §1 the three registers and the two decisions that
 pick one. §2 the copy-forward, which is a correctness bug and not only a
-size one. §3 the checks that become possible here. §4 the work. §5
-acceptance.
+size one. §3 the checks that become possible here. §3.1 the toolchain an
+entry must carry. §4 the work. §5 acceptance.
 
 **Who it is for.** Whoever takes M3, after
 [StateIdentity](memory-dev_1-3_StateIdentity_DevPlanTicket.md) has landed. Not
@@ -112,6 +112,62 @@ implemented nowhere, because until M2 none of them was checkable:
 about what it could see. This milestone gives it something to see, and
 these three are how you prove it.
 
+## 3.1 What an entry says about the tools that made it
+
+> **Owner direction — 2026-09-16**, from
+> `.localSpec/DevTickets/archive/.closedUserTicket/20260916_memory-dependencies.md`:
+> a memory must record the versions of **cgitsync, git, pixi, dvc and
+> git-lfs** used at state genesis and at the time of each record.
+
+**This milestone is where that field lands, and it cannot land later
+cheaply.** The entry is hash-chained: add a field once the chain is real
+and every existing entry either has to be migrated or the schema has to
+carry two shapes forever. Adding it here, while the chain is being written
+for the first time, costs one line in the canonical payload.
+
+Today's `LedgerEntry` is `seq`, `prev`, `recorded_at`, `command`, `argv`,
+`state_id`, `state_dir`, `outcome`, `entry_hash`. The toolchain joins it as
+one grouped field, inside the canonical payload, so `entry_hash` covers it
+and an edited version string is as detectable as an edited command.
+
+Four rules, from
+[MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md)
+§2.4 and D6:
+
+1. **Genesis and every record — all five, every time.** Settled by the
+   owner on 2026-09-16 (MemoryArchitecture D6). The first entry a memory
+   holds carries all five versions, and so does every entry after it, so
+   each line stands on its own and a chain spanning a year of upgrades says
+   where each upgrade fell. Not "only when it changes": that makes reading
+   one entry mean replaying the chain, and a partly synced chain then
+   answers nothing.
+2. **`none` is a value.** A workspace with no DVC records DVC as `none` —
+   the owner's word, settled on 2026-09-16. Never an empty string, which
+   reads like "not asked" rather than "asked, and there is none". Write it
+   as the word, so a reader and a parser see the same thing; `git-lfs` is
+   `none` everywhere until the data workstream implements it.
+3. **Version, never location.** The version string only — never the path
+   the tool was found at, never the user it ran as.
+   [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md)
+   D5's rule covers this unchanged.
+4. **Asking must be cheap.** Settled by the owner on 2026-09-16: each tool
+   is asked at most once per command and the answer is reused for every
+   entry that command writes — never once per entry. A data backend is
+   asked only when the command actually touched a repository that uses it,
+   so a Git-only workspace never pays to record that it has no DVC.
+   `dvc --version` starts a Python interpreter and takes about a second;
+   asking it on every `cgitsync status` would be felt immediately.
+   [DataBackendContract](data-repo_2-7_DataBackendContract_DevPlanTicket.md)
+   owns the discovery.
+
+**A schema note this milestone must settle anyway.** `ledger_entry.py`'s
+docstring says the schema is "fixed by `.localSpec/DevTickets/IsolationPlan.md`
+§2.2 — do not add or rename fields without updating that document first",
+and that document no longer exists. Adding a field means naming the new
+authority for the schema. Recommendation: this ticket, cited from the
+docstring, with the field list restated in `.localSpec/AdditionalSpecs.md`
+when the chain becomes the live format.
+
 ## 4. The work
 
 | WP | Depends on | Touches | Deliverable |
@@ -122,6 +178,7 @@ these three are how you prove it.
 | **WP-R4** | WP-R2 | `ledger_entry.py`, `integrity.py` | One canonicalisation function, shared |
 | **WP-R5** | WP-R2 | `orchestre.py`, `integrity.py` | §3's three findings implemented |
 | **WP-R6** | — | `orchestre.py`, `ledger_store.py` | Legacy single-file registers still read. One-way migration; nothing is rewritten |
+| **WP-R9** | WP-R2, MemoryArchitecture D6 | `ledger_entry.py`, `orchestre.py`, `.localSpec/AdditionalSpecs.md` | §3.1's toolchain field: in the canonical payload, read once per process, a missing tool recorded as `none`, and the schema's authority named now that IsolationPlan.md is gone |
 | **WP-R7** | all | `tests/` | §5's cases, each provoked rather than asserted |
 | **WP-R8** | all | tests, docs, this ticket | Checklist, then archive under [TICKETLIFECYCLE.md](../../../.agentSpec/TICKETLIFECYCLE.md) |
 
@@ -145,6 +202,14 @@ they resolve today, whatever happens underneath.
 - `.cgitsync/` holds exactly one ledger. No file is copied forward into a
   state directory.
 - The hash canonicalisation appears once in `src/`.
+- Every entry records the cgitsync, git and pixi versions, and the genesis
+  entry does too; a chain written across two cgitsync versions shows both.
+- A workspace with no DVC records DVC as `none`, not as an empty string.
+- Editing a recorded version string makes `verify` report corruption, which
+  proves the toolchain is inside the entry hash.
+- Recording the toolchain costs at most one process call per tool per
+  cgitsync run, proven by counting calls in a test, and a Git-only
+  workspace never calls a data backend at all.
 - A workspace created before this change still resolves its snapshot and
   still runs every command.
 - `pixi run lint` and `pixi run test` pass.

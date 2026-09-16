@@ -28,7 +28,8 @@ other part of this tool exists to keep repositories in step across
 machines. Its own memory is the one thing that never leaves home.
 
 **What you will find.** §1 the vocabulary, which is where most confusion
-comes from. §2 the three layers. §3 the decisions the owner has to make.
+comes from. §2 the three layers, and what a record says about the tools
+that made it. §3 the decisions the owner has to make.
 §4 the milestone map — the six tickets and their order. §5 what this
 architecture refuses to do. §6 how we will know it works.
 
@@ -36,7 +37,8 @@ architecture refuses to do. §6 how we will know it works.
 answers §3 before milestone M4 starts.
 
 **What you need to do with it.** Read §1 and §2, then go to your own
-ticket. Answer §3 before M4.
+ticket. Answer §3 before M4 — except D6, which is answered already, bar
+its two sub-questions that M3 needs.
 
 ```mermaid
 graph TD
@@ -126,6 +128,36 @@ the code — a reference ledger on one provider for trees on another means
 compromising the code host does not silently let someone rewrite the
 record.
 
+### 2.4 What a record says about the tools that made it
+
+> **Owner direction — 2026-09-16**, from
+> `.localSpec/DevTickets/archive/.closedUserTicket/20260916_memory-dependencies.md`:
+> *"The memory system of cgitsync must record the version of the
+> dependencies that were used for state genesis and at the time of the
+> records: pixi, git, dvc, git-lfs, cgitsync version."*
+
+A memory is evidence, and evidence that does not say what produced it is
+worth less than it looks. Five versions matter: **cgitsync**, **git**,
+**pixi**, and — where the repository uses them — **dvc** and **git-lfs**.
+"A tree was synchronised on 4 March" answers much less than "…by cgitsync
+2.41 driving git 2.39.5", when the question two years later is why a
+restored release does not match.
+
+Two moments, both named by the owner: **genesis**, the first record a
+memory ever holds, and **each record**, so a chain that spans a year of
+upgrades says where each upgrade fell.
+
+**Versions are provenance, never identity.** They describe the machine
+that observed the tree, not the tree. Folding them into the content hash
+of a State would give one tree two names on two machines, which is exactly
+what M2 exists to stop — so they live in the **ledger entry**, where
+"when, by what, with what result" already lives, and the entry hash makes
+them tamper-evident for free. M2 states the rule; M3 carries the field.
+
+A version string is not a secret, but it is a fingerprint of a machine, so
+D5's rule applies to it unchanged: record the version, never the path the
+tool was found at, and never the user it ran as.
+
 ## 3. Decisions — the owner's call, needed before M4
 
 ### D1. What is pushed to a memory repository — everything, or the ledger?
@@ -171,6 +203,36 @@ Today's ledger records `snapshot_path = "$HOME/.cgs/CGS…/…"` and `actor =
 login name. **No absolute path, no OS user name, no credential** — paths
 relative to the tree root, and `actor` a deliberate, documented, opt-in
 field. M4 does not ship until this holds.
+
+### D6. How much toolchain does an entry carry, and what does it cost?
+
+**Answered by the owner, 2026-09-16: every entry carries all five, every
+time.** The alternatives and why they lost are kept below, because a
+decision without its reasoning is a decision that gets reopened.
+
+| Option | What happens |
+|---|---|
+| **Every entry carries all five** — **chosen** | An entry answers the question on its own. A truncated or partly synced chain still says what made each record. Costs roughly a hundred bytes per entry |
+| Only when it changes | The smallest ledger, and reading one entry now means replaying the chain back to the last change — so a partial chain cannot answer at all |
+| Genesis only | Answers the owner's first half and not the second; a year of upgrades leaves no trace |
+
+Two sub-questions remain open, and M3 needs them:
+
+- **What is recorded when a tool is not installed?** A workspace with no
+  DVC has no DVC version. **Answered by the owner, 2026-09-16: the word
+  `none`.** Never an empty string, which reads like "not asked" rather
+  than "asked, and there is none".
+- **What does asking cost?** `git --version` is a cheap subprocess.
+  `dvc --version` starts a Python interpreter and can take about a second,
+  which on every `cgitsync status` in a data workspace is not acceptable.
+  **Answered by the owner, 2026-09-16:** each tool is asked at most once
+  per command and the answer reused, and a data backend is asked only when
+  the command actually touched a repository that uses it. A Git-only
+  workspace never pays to record that it has no DVC. The data workstream's
+  [DataBackendContract](data-repo_2-7_DataBackendContract_DevPlanTicket.md)
+  owns the discovery itself.
+
+With those two settled, D6 is closed.
 
 ## 4. The milestone map
 
@@ -243,8 +305,8 @@ code:
 
 - `.localSpec/AdditionalSpecs.md` carries §1's four definitions, and no
   docstring in `src/` contradicts them.
-- §3's five decisions are answered in this file, by the owner, with the
-  reasoning kept.
+- §3's six decisions are answered in this file, by the owner, with the
+  reasoning kept. D6 is answered as of 2026-09-16; five remain.
 - The six tickets in §4 exist, each naming this file for its design and
   stating which milestone it delivers.
 - Every one of them states what it does *not* do, so the seams between

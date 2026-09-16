@@ -70,6 +70,18 @@ everything, with its own consistency problem.
 It is **read-mostly and write-rarely**: one small record changes when a
 project's memory is pushed.
 
+### 1.1 The toolchain travels with the ledger, not with the index
+
+Every ledger entry carries the versions that made it
+([OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) §3.1), so they
+reach another machine for free when the memory repository is pushed:
+inside the entry, covered by its hash, verifiable by whoever pulls it.
+
+The reference ledger records none of them. It answers "which projects, and
+where is their memory" — a version belongs to a record, not to an index,
+and an index that duplicated them would be the second place they could
+disagree.
+
 ## 2. What it must never hold
 
 - **No States.** A `.gts` lives in its project's memory repository. The

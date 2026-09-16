@@ -176,6 +176,27 @@ this interface is called from every command in the matrix.
 conda-forge on the day, and record the version the tests actually ran
 against.
 
+### D6. How does a backend report its own version, and what does asking cost?
+
+The memory workstream records the toolchain in every ledger entry — the
+owner's
+`.localSpec/DevTickets/archive/.closedUserTicket/20260916_memory-dependencies.md`
+asks for cgitsync, git, pixi, dvc and git-lfs — so `DataBackend` needs a
+way to say which version it is.
+
+Two things make this more than a getter. `dvc --version` starts a Python
+interpreter and takes about a second, so it must be read **once per
+process** and never per entry or per repository. And a backend that is
+configured but not installed has no version: the answer is `none`, the
+owner's word, settled on 2026-09-16 — which is what
+[OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) §3.1 records.
+
+Settled by the owner on 2026-09-16: a `version()` on the protocol, asked
+at most once per command and the answer reused, returning `none` when the
+tool is not installed. A backend is asked only when the command actually
+touched a repository that uses it — a Git-only tree must not pay a second
+to record that it has no DVC.
+
 ## 6. Work packages
 
 | WP | Depends on | Touches | Deliverable |
@@ -203,6 +224,9 @@ against.
 - `--dry-run` through the dispatcher writes nothing anywhere, proven by a
   filesystem snapshot before and after.
 - A failure in one repository names that repository and that phase.
+- `DataBackend.version()` is asked at most once per process, proven by
+  counting calls, and reports `none` rather than raising when the
+  executable is missing.
 - `pixi run lint`, `pixi run test` and `pixi run check-ceilings` pass.
 
 ## 8. What this milestone does not cover

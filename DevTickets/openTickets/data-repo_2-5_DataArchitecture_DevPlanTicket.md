@@ -97,6 +97,16 @@ the `.cgs` parser, or the domain model. Argument arrays, explicit
 is no `cgitsync data-add`. A capability that needs a new verb is a sign the
 capability was modelled wrong.
 
+One thing crosses into the memory workstream: **a backend must be able to
+say which version of itself it is.** The memory system records the
+toolchain of every entry it writes — cgitsync, git, pixi, and dvc or
+git-lfs where they were used — so `DataBackend` grows a `version()` that
+answers cheaply and says `none` when the tool is not installed.
+[DataBackendContract](data-repo_2-7_DataBackendContract_DevPlanTicket.md) D6
+owns the mechanism;
+[OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) §3.1 owns what is
+recorded.
+
 ## 3. The six milestones
 
 They land in this order. Each is a ticket of its own on `data-repo`.
