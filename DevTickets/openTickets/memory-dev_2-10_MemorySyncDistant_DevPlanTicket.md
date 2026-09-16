@@ -57,6 +57,183 @@ stand, that refusal has to be withdrawn deliberately, here, in writing.
 Nothing below settles any of this. Do not build from §1 until §0 is
 answered.
 
+## 0.1 A proposed answer — the journal is a DAG of published states
+
+> **Owner direction — 2026-09-16, in conversation:** *"elaborate a solution
+> that mimics blockchain behaviour for maintaining a unique register that
+> are organised around hash… generate a distant project state that includes
+> gitRepo explicitly in the hash, so that the distant repos chains more
+> information than the local one"*. What follows is that idea worked out.
+> It is a proposal for the owner to accept, amend or reject; nothing here
+> is settled.
+
+### What to take from a blockchain, and what to leave
+
+| Take | Leave |
+|---|---|
+| **Hash-linked records** — each names its predecessors by hash, so no record can be changed or re-ordered without every later one noticing | **Consensus** — mining, stake, voting |
+| **Content addressing** — a record's name is its content, so two people who saw the same thing write the same name | **A single total order** imposed by a protocol |
+| **Append-only, verify-from-anywhere** | **A currency, a reward, a peer network** |
+
+**Why consensus is the wrong half to copy.** A blockchain exists to decide
+which of two *plausible contradictory* histories is true, because nothing
+outside the chain can settle it. Here something can: the remote. Two
+observations of `origin/main` at one moment cannot legitimately disagree,
+and anyone with read access can ask. So we need the data structure, not the
+protocol — and building a consensus mechanism for a problem that has an
+arbiter would be ceremony, not safety.
+
+**Why a DAG rather than a chain.** A chain has one parent per record and a
+`seq`; two writers both produce `#7` and neither is wrong. A DAG has *zero
+or more* parents and no sequence number at all. Git solved this problem
+thirty years ago and this project is built on Git: a merge is a record with
+two parents, order is partial, and a total order is computed for display
+rather than stored. **This is how the architecture keeps its promise not to
+merge chains** — it does not merge them; it holds both and records that
+somebody saw both.
+
+### The published state — the owner's "distant project state"
+
+A local State answers *what one machine held*. It is a claim about a
+working tree, and nobody else can check it.
+
+A **published state** answers *what the remotes held* — and that is
+checkable by anyone, from anywhere, with no clone:
+
+```toml
+[[repo]]
+repository = "github:flipoyo/ComplexGitSync"   # the gitRepo, explicitly
+ref        = "refs/heads/main"
+commit     = "f336ecc5d1cc3abab0390e999d11818abe60c800"
+
+[[repo]]
+repository = "github:flipoyo/.localSpec"
+ref        = "refs/heads/ComplexGitSync"
+commit     = "9dd67b9e3eb62f4e2abef78dec651b8078ca6991"
+```
+
+`published_state_id = sha256(canonical form of the rows above)`.
+
+Three properties fall out of putting the repository identity *inside* the
+hash, which is exactly what the owner proposed:
+
+1. **It converges.** Two contributors who observe the same remotes compute
+   the same id. Identical observations collapse to one record instead of
+   two, without anybody merging anything.
+2. **It is falsifiable.** `git ls-remote <repository> <ref>` either returns
+   that commit or it does not. A local State can only be trusted; a
+   published state can be *checked*, years later, by someone who was never
+   there.
+3. **It says more than the local State.** The local one records where a
+   tree sat and what it held; this one records what the world could see.
+   That is the owner's "chains more information than the local one", and it
+   is the information a shared journal actually needs.
+
+### One record in the journal
+
+One file per record, named by its own hash — the same shape as the local
+ledger, for the same reason (see §2.2's merge property below):
+
+```toml
+[record]
+id          = "sha256:…"                    # over everything below
+parents     = ["sha256:…", "sha256:…"]      # zero at genesis, many at a merge
+recorded_at = "2026-09-16T16:43:32Z"
+contributor = "flipoyo"                     # named here, never in a local memory
+project     = "ComplexGitSync"
+
+[published_state]
+id   = "sha256:…"
+repo = [ … the rows above … ]
+
+[local]                                     # the link back, not a copy
+state       = "state(2acdc98…)"             # the local State this attests
+memory_ref  = "refs/heads/ComplexGitSync_memory-dev"
+ledger_head = "sha256:…"                    # that memory's chain head at the time
+```
+
+The `[local]` block is the join between the two layers: the journal says
+"this published state was attested by this contributor, whose own memory
+was at that chain head". Neither layer duplicates the other, and a reader
+who has access to both can walk from a published commit back to the local
+operation that produced it.
+
+### How two people stop colliding
+
+1. Each contributor works offline against their own local memory, exactly
+   as today. Nothing in the local write path learns about the journal.
+2. `cgitsync memory announce` fetches the journal branch, reads its **heads**
+   (records nobody names as a parent), computes the published state from
+   `git ls-remote`, and writes one record whose `parents` are those heads.
+3. Two people doing that concurrently produce two records with the same
+   parent — a fork, and both are true. The next announce names both and the
+   fork closes. **No arbitration, no rewriting, no lost record.**
+4. Pushing is a plain `git push` of new files. Because every record is a
+   separate file named by its hash, **two contributors never touch the same
+   file**: Git's own merge resolves it with no strategy, no driver and no
+   custom code. A non-fast-forward means fetch and push again, and nothing
+   is ever rebased or squashed.
+
+That is the whole protocol. It is small because the hard parts are already
+solved by content addressing (no duplicates) and by Git (no merge code).
+
+### What verification becomes
+
+`verify` on a journal can do something no local check can: **ask the
+world.** For any record, `git ls-remote` each `repository`/`ref` pair and
+compare. Three answers worth telling apart, in the spirit of the four this
+project already gives:
+
+| Answer | Means |
+|---|---|
+| **attested** | The remote still holds what the record says |
+| **moved on** | The ref now points elsewhere — expected, and not a fault: history advanced |
+| **contradicted** | Two records claim different commits for the same ref *at the same time*, or a commit named by a record is not in the remote at all |
+
+**Contradicted** is the one that matters and the one a chain alone can
+never produce. It is also, deliberately, *reported and not resolved*: the
+journal records that two contributors disagreed, and a person decides what
+that means.
+
+### Decisions this proposal needs
+
+- **D-A. Is the journal a DAG with no sequence numbers?** Recommended yes;
+  it is the single change that makes many writers possible, and it keeps
+  the local chain exactly as it is.
+- **D-B. Does the published state come from `git ls-remote`, or from the
+  local `.gts`?** Recommended `ls-remote`: a journal of what was published
+  is worth more than a journal of what somebody's disk said, and it is the
+  only version anybody else can check. It costs one network call per
+  repository per announce.
+- **D-C. Who may write to the journal, and how is the writer proved?**
+  Recommended: whoever can push the branch, with **Git's own commit
+  signatures** as the proof. `contributor` inside the record is a claim;
+  the signed commit is the evidence. Do not invent a signature field.
+- **D-D. Does "private/distant" still mean read-only here?** In the `.cgs`
+  vocabulary `private` without `writable` is read-only, so a journal
+  written by `announce` cannot be a `private/distant` mount in the current
+  sense. Either the journal is mounted writable (and "distant" means a
+  different account and provider, which is the security point), or
+  `announce` pushes it outside the tree-wide scope entirely. **This
+  collision must be settled before any code is written**, because it
+  decides whether the journal is part of the tree at all.
+- **D-E. What does a reader get by default?** Recommended: the DAG, shown
+  in topological order with `recorded_at` breaking ties — presentation
+  only, never stored, so no two readers can be given different histories by
+  a stored ordering nobody can check.
+
+### What this does not solve
+
+- **Clock skew.** `recorded_at` is a claim by a machine. It orders
+  presentation, never causality; causality is the `parents` edges.
+- **A contributor who lies.** A signed record proves who wrote it, not that
+  what they wrote was true. `ls-remote` catches a lie about a *current*
+  ref; a lie about a ref that has since moved is unfalsifiable, and the
+  journal should not pretend otherwise.
+- **Deletion.** A record can be removed from the journal by whoever can
+  force-push it. The DAG makes that visible — every child naming a missing
+  parent is a finding — but visible is not impossible.
+
 ## Abstract — read this first
 
 **The one-line version.** Every project's memory is pushed somewhere, and

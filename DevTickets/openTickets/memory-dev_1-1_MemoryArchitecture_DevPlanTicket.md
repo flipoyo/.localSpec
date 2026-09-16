@@ -12,9 +12,9 @@
 ## Abstract — read this first
 
 **The one-line version.** What a workspace remembers should outlive the
-machine it was remembered on: each project keeps its states and its ledger
-in a memory repository of its own, and one distant reference ledger knows
-which projects exist and where their memories are.
+machine it was remembered on: every project keeps its states and its ledger
+in a branch of one shared memory repository, and — one day — several
+people's memories of one project meet in a distant journal.
 
 **What this document is.** The architecture, the vocabulary, and the
 milestone map. It designs; it does not build. Each milestone is its own
@@ -29,9 +29,9 @@ machines. Its own memory is the one thing that never leaves home.
 
 **What you will find.** §1 the vocabulary, which is where most confusion
 comes from. §2 the three layers, and what a record says about the tools
-that made it. §3 the decisions the owner has to make.
-§4 the milestone map — the six tickets and their order. §5 what this
-architecture refuses to do. §6 how we will know it works.
+that made it. §3 the decisions the owner has to make. §4 the milestone map
+and the order it lands in. §5 what this architecture refuses to do. §6 how
+we will know it works.
 
 **Who it is for.** Whoever picks up any memory ticket, and the owner, who
 answers §3 before milestone M4 starts.
@@ -66,7 +66,7 @@ register" somewhere in today's code. Fixed meanings:
 | **Ledger** | The ordered, hash-chained record of when each State was seen | `.cgitsync/lgr/` |
 | **Memory** | One project's States, its Ledger and its commit logs — everything `.cgitsync/` holds | `.cgitsync/`, and its memory repository |
 | **Commit log** | What one State's commits said, and whether they were published | `.cgitsync/commit-logs/` |
-| **Reference ledger** | The distant index of which projects have a memory, and where | its own repository, one for all projects |
+| **Journal** | The distant record where several people's memories of one project meet. Not yet designed | its own repository, on another account |
 
 A **memory repository** is an ordinary private/local repository in the
 `.cgs` sense — shared with your other projects, on a branch of its own,
@@ -145,8 +145,14 @@ other. A hash chain gives tamper-evidence, not a merge rule, and this
 architecture has said from the start that it does not merge chains.
 
 Nothing here is decided. [MemorySyncDistant](memory-dev_2-10_MemorySyncDistant_DevPlanTicket.md)
-holds the question and has moved to stand-by until there is an answer to
-build.
+holds the question, and its §0.1 now holds a worked proposal — a
+hash-linked **DAG** of *published states*, each naming the repository, ref
+and commit the remotes actually held, so that two people who saw the same
+thing write the same record and a fork is closed by a third record naming
+both. It takes a blockchain's hash-linking and content addressing and
+leaves its consensus, because a blockchain exists to settle contradictions
+that have no arbiter and this one has one: the remote. The ticket stays
+stand-by until the owner accepts a shape.
 
 Keeping it distant and separate remains the point when it is designed. The
 account that can rewrite the evidence of what was synchronised should not
@@ -377,9 +383,18 @@ this project in `.localSpec/AdditionalSpecs.md`.
   acceptable answer. A machine with no network keeps a complete, valid,
   verifiable local memory.
 - **It does not merge chains.** Two people writing one memory repository
-  concurrently is a real problem with no answer here. D2's one-per-project
-  shape keeps it rare; a real merge rule for concurrent chains is its own
-  ticket, opened when someone actually needs it.
+  concurrently is a real problem with no answer here. A real merge rule for
+  concurrent chains is its own ticket, opened when someone actually needs
+  it.
+
+  **This refusal still stands, and the shared journal does not violate
+  it.** [MemorySyncDistant](memory-dev_2-10_MemorySyncDistant_DevPlanTicket.md)
+  §0.1 proposes that the distant journal be a *DAG* rather than a chain:
+  records name their predecessors, a fork is two records with one parent,
+  and closing it is a third record naming both. Nothing is merged — both
+  observations are kept, and somebody records that they saw both. A local
+  memory stays a strict chain, because one machine writing its own files
+  can have one.
 
 ## 6. Acceptance
 
