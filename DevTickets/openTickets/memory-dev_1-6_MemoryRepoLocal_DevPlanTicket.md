@@ -4,7 +4,7 @@
 
 *Branch: memory-dev*
 
-> **Milestone M5** of [MemoryArchitecture](1-1_memDev-MemoryArchitecture_DevPlanTicket.md).
+> **Milestone M5** of [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md).
 > Carries §4 of `.localSpec/DevTickets/archive/20260912_StateMemory_DevPlanTicket.md`,
 > which designed `.cgitsync/` as a repository and set the gates it has to
 > pass first.
@@ -30,7 +30,7 @@ decision actually was. §2 the gates, which are the real content of this
 ticket. §3 what graduation changes. §4 the work. §5 acceptance.
 
 **Who it is for.** Whoever takes M5, after
-[MemoryModule](1-5_memDev-MemoryModule_DevPlanTicket.md). The owner signs off §2
+[MemoryModule](memory-dev_1-5_MemoryModule_DevPlanTicket.md). The owner signs off §2
 before anything is pushed.
 
 **What you need to do with it.** Check every gate in §2 honestly. A gate

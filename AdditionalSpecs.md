@@ -890,10 +890,10 @@ CLI display requirements:
 
 `main` is where ComplexGitSync's work lands, with one exception.
 
-| Workstream | Branch | Ticket topic prefix |
+| Workstream | Branch | Ticket filename prefix |
 |---|---|---|
-| Everything else | `main` | none |
-| Memory — `.cgitsync/`, the state area, the register/ledger, `memory/` and the distant reference ledger | `memory-dev` | `memDev-` |
+| Everything else | `main` | `main_` |
+| Memory — `.cgitsync/`, the state area, the register/ledger, `memory/` and the distant reference ledger | `memory-dev` | `memory-dev_` |
 
 **Every change to a project's memory is developed on `memory-dev`.** The
 memory work is seven dependent milestones — see the MemoryArchitecture
@@ -905,14 +905,20 @@ project cannot afford to corrupt by accident is the record of what it
 synchronised. `memory-dev` merges into `main` when a milestone is finished
 and `pixi run lint` and `pixi run test` both pass.
 
-`memDev-` is this project's only ticket topic prefix. An open memory
-ticket is named
-`.localSpec/DevTickets/openTickets/<priority>-<rank>_memDev-<Name>_DevPlanTicket.md`
-and carries `*Branch: memory-dev*` under its `*Created:*` line; every
-other open ticket carries `*Branch: main*` and no topic prefix. Both
-conventions are defined in
+`memory-dev` is this project's only branch other than `main`, so those two
+are the only ticket filename prefixes it has. An open memory ticket is
+named
+`.localSpec/DevTickets/openTickets/memory-dev_<priority>-<rank>_<Name>_DevPlanTicket.md`
+and carries `*Branch: memory-dev*` under its `*Created:*` line; every other
+open ticket is `main_<priority>-<rank>_<Name>_DevPlanTicket.md` and carries
+`*Branch: main*`. The prefix is written out in both cases — `main_` is not
+implied by its absence. Both conventions are defined in
 [.agentSpec/TICKETLIFECYCLE.md](../.agentSpec/TICKETLIFECYCLE.md) §2.3 and
-§3 — this section only says which topics exist here.
+§3 — this section only says which branches exist here.
+
+The prefix replaced an earlier topic prefix (`memDev-`), which named the
+same group one spelling differently and left the reader to map the two.
+See `DevTickets/archive/20260916_TicketBranchNaming_DevPlanTicket.md`.
 
 The private configuration repositories mounted in the developer tree keep
 their own branches (`.localSpec` and `.claude` on `ComplexGitSync`,

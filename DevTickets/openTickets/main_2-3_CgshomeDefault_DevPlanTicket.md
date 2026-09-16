@@ -5,19 +5,19 @@
 *Branch: main*
 
 > **Memory review — 2026-09-12. Priority 2-3.** Ranked behind
-> [CliContract](2-1_CliContract_DevPlanTicket.md) and
-> [UserInstallPath](2-2_UserInstallPath_DevPlanTicket.md) after the
+> [CliContract](main_2-1_CliContract_DevPlanTicket.md) and
+> [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) after the
 > priority-1 pile became the memory path of
-> [MemoryArchitecture](1-1_memDev-MemoryArchitecture_DevPlanTicket.md). Two
+> [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md). Two
 > points of contact, and they pull in the same direction:
 >
 > - **"No living project yet" is the empty-memory answer.** D2 here asks
 >   what `status` says in a workspace with nothing in it. That is the same
->   question [VerifyHonesty](1-2_memDev-VerifyHonesty_DevPlanTicket.md) answers
+>   question [VerifyHonesty](memory-dev_1-2_VerifyHonesty_DevPlanTicket.md) answers
 >   for a ledger with no entries. One wording, decided once: a new
 >   workspace is not a broken one.
 > - **`$HOME/.cgs` is where an adopted project lands.**
->   [MemorySyncDistant](1-7_memDev-MemorySyncDistant_DevPlanTicket.md)'s `memory
+>   [MemorySyncDistant](memory-dev_1-7_MemorySyncDistant_DevPlanTicket.md)'s `memory
 >   adopt` builds a workspace from a memory on a machine that has none —
 >   which is exactly the default-root question D1 asks here, arriving from
 >   the other end. Settle D1 before adopt is built, or adopt will settle it
@@ -250,20 +250,20 @@ From a clone of this repository, with no `$CGSHOME` exported and no
 
 ## 6. Coordination
 
-[2-1 CliContract](2-1_CliContract_DevPlanTicket.md) owns the exception
+[CliContract](main_2-1_CliContract_DevPlanTicket.md) owns the exception
 boundary in `main` and the exit codes. It must record that an empty
 workspace is exit `0`, not a failure — otherwise a CI job wired to
 `cgitsync status` treats "the project has not started" as a broken build.
 `status --json` should carry the lifecycle state, the use case and the
 `CGSHOME` origin as fields when that lands.
 
-[2-2 UserInstallPath](2-2_UserInstallPath_DevPlanTicket.md) wants
+[UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) wants
 `cgitsync` installed outside any clone, which is the standalone case with
 no clone to stand in at all. The default workspace is what lets an
 installed `cgitsync status` answer anything on a machine that has never
 run the tool — worth having before that ticket claims installation works.
 
-[1-4 OneRegister](1-4_memDev-OneRegister_DevPlanTicket.md) covers what happens
+[OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) covers what happens
 *after* a workspace is found — the register, the snapshot, missing
 history. The empty default workspace is a new starting point for all of
 it, and the two should agree on what an empty register means.

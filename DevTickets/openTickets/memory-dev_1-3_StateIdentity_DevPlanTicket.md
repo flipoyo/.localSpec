@@ -4,7 +4,7 @@
 
 *Branch: memory-dev*
 
-> **Milestone M2** of [MemoryArchitecture](1-1_memDev-MemoryArchitecture_DevPlanTicket.md).
+> **Milestone M2** of [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md).
 > Split from `.localSpec/DevTickets/archive/20260912_StateMemory_DevPlanTicket.md`
 > (§2, §3.1, finding F2), and reshaped by the owner's
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260912_memorySpecs.md`, which asks for
@@ -33,7 +33,7 @@ means when the document records absolute paths. §4 the work. §5 acceptance,
 where cross-machine determinism is the test that matters.
 
 **Who it is for.** Whoever takes M2. Read
-[VerifyHonesty](1-2_memDev-VerifyHonesty_DevPlanTicket.md) first — it should land
+[VerifyHonesty](memory-dev_1-2_VerifyHonesty_DevPlanTicket.md) first — it should land
 before this.
 
 **What you need to do with it.** §3 is the risk. Do it first and do it

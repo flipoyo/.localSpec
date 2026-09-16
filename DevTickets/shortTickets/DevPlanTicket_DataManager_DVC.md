@@ -4,6 +4,7 @@
 **Target:** `flipoyo/ComplexGitSync`  
 **Implementation scope:** native CGS data orchestration + DVC backend  
 **Architectural extension only:** Git LFS backend (separate ticket)
+Implementation-branch : data-repo
 
 ## 0. Decision and objective
 

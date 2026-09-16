@@ -6,11 +6,11 @@
 
 > **Memory review — 2026-09-12. Priority 2-2** (was 1-3). Moved to
 > stand-by behind the memory path of
-> [MemoryArchitecture](1-1_memDev-MemoryArchitecture_DevPlanTicket.md). Two
+> [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md). Two
 > things the memory work changes here:
 >
 > - **D1's version scheme now has a second reader.**
->   [MemoryRepoLocal](1-6_memDev-MemoryRepoLocal_DevPlanTicket.md)'s gate G6 says
+>   [MemoryRepoLocal](memory-dev_1-6_MemoryRepoLocal_DevPlanTicket.md)'s gate G6 says
 >   a memory declares a schema version and a memory written by version *X*
 >   is read by *X+1*. That is a compatibility promise about stored data,
 >   not about a package number, and the two must not be conflated: decide
@@ -20,7 +20,7 @@
 >   clean-environment acceptance check in §5 should adopt a memory and get
 >   a working tree, not only print `--help` — that is the path a user on a
 >   new machine actually takes, and it is the one thing this ticket and
->   [MemorySyncDistant](1-7_memDev-MemorySyncDistant_DevPlanTicket.md) both
+>   [MemorySyncDistant](memory-dev_1-7_MemorySyncDistant_DevPlanTicket.md) both
 >   depend on.
 
 > **Release review — 2026-09-11. Priority 1-5.** Promoted from 2-6 for a tested installation outside the source checkout and a repeatable public release. Support only validated platforms; broader coverage is deferred.
@@ -179,7 +179,7 @@ releases cut from a tag rather than manually.
 
 ## 6. Coordination and deferred work
 
-Coordinate the version scheme with [2-1 CliContract](2-1_CliContract_DevPlanTicket.md)
+Coordinate the version scheme with [CliContract](main_2-1_CliContract_DevPlanTicket.md)
 before committing to major-version compatibility promises. Broadening operating
 system coverage and standalone binaries remain follow-up work, not release gates.
 Publication, package-name/account changes, tags, and remote workflow execution

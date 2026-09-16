@@ -1,0 +1,1 @@
+ Format the DevPlanTicket name as cgitsync-branch_PRIORITYID-ID_DevPlanTicket.md. defaut cgitsync-branch=main

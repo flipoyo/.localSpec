@@ -27,7 +27,8 @@ repository and the private repositories that configure it.
 
 **What you will find.** §1 the four directories. §2 the orchestration loop
 and who does what in it. §3 how a short ticket is closed. §4 the naming
-rules, and where they are defined. §5 what does *not* belong here.
+rules — branch, priority and rank — and where they are defined. §5 what
+does *not* belong here.
 
 **Who it is for.** The owner, who writes short tickets, and the agent, who
 turns them into plans. Nobody using `cgitsync` ever needs this directory —
@@ -41,7 +42,7 @@ is authoritative; §4 here only says which conventions this project uses.
 ```mermaid
 graph LR
     U["Owner"] -->|writes a request| S["shortTickets/<br/>name.md<br/><i>open user ticket</i>"]
-    S -->|"owner says: do it"| O["openTickets/<br/>1-3_Name_DevPlanTicket.md<br/><i>plans created / updated</i>"]
+    S -->|"owner says: do it"| O["openTickets/<br/>main_1-3_Name_DevPlanTicket.md<br/><i>plans created / updated</i>"]
     S -->|"work done"| C["archive/.closedUserTicket/<br/>YYYYMMDD_name.md<br/><i>closed request</i>"]
     O -->|implemented| A["archive/<br/>YYYYMMDD_Name_DevPlanTicket.md<br/><i>closed plan</i>"]
 
@@ -56,7 +57,7 @@ graph LR
 | Directory | Holds | Written by |
 |---|---|---|
 | `shortTickets/` | Open requests, in the owner's own words. A few lines is a normal size. | The owner |
-| `openTickets/` | Planning tickets: the analysed, ranked work. `<priority>-<rank>_[<topic>-]<Name>_DevPlanTicket.md` | The agent, on the owner's word |
+| `openTickets/` | Planning tickets: the analysed, ranked work. `<branch>_<priority>-<rank>_<Name>_DevPlanTicket.md` | The agent, on the owner's word |
 | `archive/` | Planning tickets whose work has landed, or that were dropped. `YYYYMMDD_<Name>_DevPlanTicket.md` | The agent, in the commit that finishes the work |
 | `archive/.closedUserTicket/` | Short tickets that have been acted on. `YYYYMMDD_<name>.md` | The agent, when the request is satisfied |
 
@@ -126,20 +127,23 @@ A request that is refused or dropped is closed the same way. The stamp
 records when it stopped being live, and the plans — or the answer given at
 the time — say why.
 
-## 4. Naming, priority, topic, branch
+## 4. Naming: branch, priority, rank
 
 [TICKETLIFECYCLE.md](../../.agentSpec/TICKETLIFECYCLE.md) defines these and
 is authoritative; this is the short version, with what is specific to
 ComplexGitSync.
 
+- **Branch prefix.** The filename opens with the branch the work lands
+  on — `main_` for everything except the memory workstream, which is
+  `memory-dev_`. It is always written out, `main` included. See *Branches
+  and ticket topics* in [AdditionalSpecs.md](../AdditionalSpecs.md) for
+  which branches this project has.
 - **Priority and rank.** `1` is prioritary, `2` is stand-by; the rank is
   the position inside that pile, compacted at each Ticket review.
-- **Topic prefix.** `memDev-` marks the memory workstream — the one topic
-  this project has. See *Branches and ticket topics* in
-  [AdditionalSpecs.md](../AdditionalSpecs.md).
-- **Branch line.** Every planning ticket states the branch its work lands
-  on under its `*Created:*` line: `*Branch: main*`, or
-  `*Branch: memory-dev*` for memory work.
+- **Branch line.** Every planning ticket also states its branch under its
+  `*Created:*` line: `*Branch: main*`, or `*Branch: memory-dev*` for
+  memory work. It says the same thing the filename does, and the two must
+  agree.
 - **Referring to a ticket** in prose: use its short name (`VerifyHonesty`),
   never its ranked filename — ranks move, and nothing tells you when a
   written-out rank goes stale.

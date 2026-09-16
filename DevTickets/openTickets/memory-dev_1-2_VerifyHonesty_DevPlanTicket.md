@@ -4,7 +4,7 @@
 
 *Branch: memory-dev*
 
-> **Milestone M1** of [MemoryArchitecture](1-1_memDev-MemoryArchitecture_DevPlanTicket.md).
+> **Milestone M1** of [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md).
 > Split from the audit in
 > `.localSpec/DevTickets/archive/20260912_StateMemory_DevPlanTicket.md` (§3.0a, §3.0,
 > finding F1). Smallest ticket on the memory path and the first one:
@@ -19,8 +19,8 @@ every workspace in existence, including a tampered one.
 
 **What this document is.** A bug ticket with the cause located and the
 evidence already gathered. No storage format changes here; that is
-[StateIdentity](1-3_memDev-StateIdentity_DevPlanTicket.md) and
-[OneRegister](1-4_memDev-OneRegister_DevPlanTicket.md).
+[StateIdentity](memory-dev_1-3_StateIdentity_DevPlanTicket.md) and
+[OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md).
 
 **Why it exists.** A distributed memory is worth exactly what its
 verification is worth. Before a memory is pushed anywhere, the command
@@ -96,7 +96,7 @@ Cheap to fix, in the same pass, all from the same audit:
   yet".** It has been wired in for weeks; `orchestre.py` imports five names
   from it.
 - **`LocalGitRegister`'s docstring** states the identity rule that
-  [StateIdentity](1-3_memDev-StateIdentity_DevPlanTicket.md) is about to reverse.
+  [StateIdentity](memory-dev_1-3_StateIdentity_DevPlanTicket.md) is about to reverse.
   Leave the sentence accurate for today and let M2 rewrite it; do not
   pre-announce a design that has not landed.
 
@@ -105,7 +105,7 @@ Cheap to fix, in the same pass, all from the same audit:
 | WP | Touches | Deliverable |
 |---|---|---|
 | **WP-V1** | `orchestre.py`, `integrity.py` | `verify` distinguishes §2's four answers. Missing and legacy history are never reported as verified history, and a legacy workspace is explained rather than crashed on |
-| **WP-V2** | `cli/expert.py` | Each answer prints its own line, and the wording says what was actually checked. Its exit code is settled with [CliContract](2-1_CliContract_DevPlanTicket.md) — "no history" is not a failure |
+| **WP-V2** | `cli/expert.py` | Each answer prints its own line, and the wording says what was actually checked. Its exit code is settled with [CliContract](main_2-1_CliContract_DevPlanTicket.md) — "no history" is not a failure |
 | **WP-V3** | `ledger_store.py`, `integrity.py`, `ledger_entry.py`, `config_document.py`, `status_render.py`, `state_store.py` | §3's citations and stale claims |
 | **WP-V4** | `tests/` | One regression test per §2 answer, each built from a fixture workspace |
 | **WP-V5** | tests, docs, this ticket | `pixi run lint` and `pixi run test`; the before-committing checklist; archive under [TICKETLIFECYCLE.md](../../../.agentSpec/TICKETLIFECYCLE.md) |
