@@ -82,6 +82,29 @@ checkable, and all of them hold before §3 begins:
 | G6 | Schema pinned, with a migration path | The ledger declares a version; one written by version *X* is read by *X+1*, proven by a fixture rather than asserted |
 | G7 | One memory, one implementation | M3 closed; `.cgitsync/` holds exactly one ledger |
 
+### The gates, checked — 2026-09-16
+
+| # | Gate | Evidence |
+|---|---|---|
+| G1 | State names are content-derived | `grep -rn new_time_l0_anchor src/` finds one docstring mention in `orchestre.py`'s `SystemClock` and no call anywhere in the naming path |
+| G2 | Cross-machine determinism | `tests/integration/test_state_identity.py` — the same tree in two directories yields one name, and a toolchain version does not move it |
+| G3 | The chain is real | `tests/integration/test_one_register.py` — a real operation writes an entry, `verify` reports a verified chain, and one flipped byte makes it corrupt |
+| G4 | Store-level integrity | The same file: a State that is gone, a State edited, a State nobody recorded — one test each |
+| G5 | **No secrets, no machine identity** | `tests/integration/test_memory_repository.py` — a memory made under a fake `$HOME` holds no user name, no directory above the tree, and at most one `$HOME`; a path in a recorded command line is written against the tree |
+| G6 | Schema pinned, with a migration path | `document.hash_canonicalisation` declares which algorithm measured a snapshot, and a version-1 document is read under version 1 for ever (`test_state_identity.py`); an entry written without a toolchain hashes exactly as it did before the field existed |
+| G7 | One memory, one implementation | Nothing writes the single-file register: `grep` finds no `LocalGitRegister(...)` construction in `src/` outside its own definition |
+
+**G5 as taken, in full.** A State records exactly one machine path — the
+tree's own root, with `$HOME` substituted — because a snapshot handed to
+`pull` from outside a workspace still has to say where its tree goes. Every
+other path is written against the tree (`$CGSTREE/...`), and a path outside
+the tree is not recorded at all. `actor` is gone with the single-file
+register that carried it. **The residue is deliberate and worth naming:**
+the root path still shows the directories between `$HOME` and the tree. It
+is the one path the gate's own wording allows, and dropping it would cost
+loose snapshots the ability to locate their tree. Say so if that trade
+should go the other way; it is one line.
+
 **G5 is the one most likely to be waved through.** Today's live register
 records `snapshot_path = "$HOME/.cgs/CGS…/ComplexGitSync/…"` and `actor =
 "flipoyo"`. The `$HOME` prefix is substituted; the rest of the path and the

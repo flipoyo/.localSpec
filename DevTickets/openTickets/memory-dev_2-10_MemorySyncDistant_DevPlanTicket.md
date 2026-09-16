@@ -256,7 +256,7 @@ must never hold. §3 the protocol. §4 the decisions. §5 the work. §6
 acceptance.
 
 **Who it is for.** Whoever takes M6, after
-[MemoryRepoLocal](memory-dev_1-5_MemoryRepoLocal_DevPlanTicket.md). Nothing here is
+[MemoryRepoLocal](../archive/20260916_MemoryRepoLocal_DevPlanTicket.md). Nothing here is
 safe to build on a memory that has not passed M5's gates.
 
 **What you need to do with it.** Settle §4, then §5. §2 is not negotiable.

@@ -80,7 +80,7 @@ commands and one result.
 - **A stale lock must be recoverable.** A machine that lost power holds a
   lock forever unless the lock records enough to be judged dead — and the
   judgement has to work without an OS user name or a machine identity,
-  which [MemoryRepoLocal](memory-dev_1-5_MemoryRepoLocal_DevPlanTicket.md)'s G5
+  which [MemoryRepoLocal](../archive/20260916_MemoryRepoLocal_DevPlanTicket.md)'s G5
   forbids in anything that gets pushed. A lock file is local-only and never
   pushed; state that in the design rather than discovering it later.
 - **Read-only commands must not block.** `status`, `view-tree` and

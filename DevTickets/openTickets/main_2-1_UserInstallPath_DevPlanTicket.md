@@ -10,7 +10,7 @@
 > things the memory work changes here:
 >
 > - **D1's version scheme now has a second reader.**
->   [MemoryRepoLocal](memory-dev_1-5_MemoryRepoLocal_DevPlanTicket.md)'s gate G6 says
+>   [MemoryRepoLocal](../archive/20260916_MemoryRepoLocal_DevPlanTicket.md)'s gate G6 says
 >   a memory declares a schema version and a memory written by version *X*
 >   is read by *X+1*. That is a compatibility promise about stored data,
 >   not about a package number, and the two must not be conflated: decide

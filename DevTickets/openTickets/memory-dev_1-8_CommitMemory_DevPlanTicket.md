@@ -36,7 +36,7 @@ which is the hard half. §4 what must never go in it. §5 decisions. §6 work
 packages. §7 acceptance. §8 what this is not.
 
 **Who it is for.** Whoever takes M7. It needs
-[MemoryRepoLocal](memory-dev_1-5_MemoryRepoLocal_DevPlanTicket.md) only for
+[MemoryRepoLocal](../archive/20260916_MemoryRepoLocal_DevPlanTicket.md) only for
 the push half; the recording half is local and could land first.
 
 **What you need to do with it.** Answer §5, then §6. D1 decides the shape
