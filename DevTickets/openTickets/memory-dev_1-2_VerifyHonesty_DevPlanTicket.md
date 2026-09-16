@@ -105,7 +105,7 @@ Cheap to fix, in the same pass, all from the same audit:
 | WP | Touches | Deliverable |
 |---|---|---|
 | **WP-V1** | `orchestre.py`, `integrity.py` | `verify` distinguishes §2's four answers. Missing and legacy history are never reported as verified history, and a legacy workspace is explained rather than crashed on |
-| **WP-V2** | `cli/expert.py` | Each answer prints its own line, and the wording says what was actually checked. Its exit code is settled with [CliContract](main_2-1_CliContract_DevPlanTicket.md) — "no history" is not a failure |
+| **WP-V2** | `cli/expert.py` | Each answer prints its own line, and the wording says what was actually checked. Its exit code is settled with [CliContract](../archive/20260916_CliContract_DevPlanTicket.md) — "no history" is not a failure |
 | **WP-V3** | `ledger_store.py`, `integrity.py`, `ledger_entry.py`, `config_document.py`, `status_render.py`, `state_store.py` | §3's citations and stale claims |
 | **WP-V4** | `tests/` | One regression test per §2 answer, each built from a fixture workspace |
 | **WP-V5** | tests, docs, this ticket | `pixi run lint` and `pixi run test`; the before-committing checklist; archive under [TICKETLIFECYCLE.md](../../../.agentSpec/TICKETLIFECYCLE.md) |

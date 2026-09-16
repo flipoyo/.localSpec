@@ -179,7 +179,7 @@ releases cut from a tag rather than manually.
 
 ## 6. Coordination and deferred work
 
-Coordinate the version scheme with [CliContract](main_2-1_CliContract_DevPlanTicket.md)
+Coordinate the version scheme with [CliContract](../archive/20260916_CliContract_DevPlanTicket.md)
 before committing to major-version compatibility promises. Broadening operating
 system coverage and standalone binaries remain follow-up work, not release gates.
 Publication, package-name/account changes, tags, and remote workflow execution

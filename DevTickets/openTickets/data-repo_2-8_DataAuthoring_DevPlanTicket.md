@@ -119,7 +119,7 @@ A column of its own, a suffix on `LOCAL`, or a second line? Recommendation:
 **a column**, printed only when the tree holds at least one data-backed
 repository, with a legend the way `SCOPE` has one. `status_render.py` owns
 the wording, as it already does for every other column, and the `--json`
-shape that [CliContract](main_2-1_CliContract_DevPlanTicket.md) defines
+shape that [CliContract](../archive/20260916_CliContract_DevPlanTicket.md) defines
 gains a field rather than a reinterpretation of an existing one.
 
 ### D2. Does `commit --no-stage` ever touch the backend?

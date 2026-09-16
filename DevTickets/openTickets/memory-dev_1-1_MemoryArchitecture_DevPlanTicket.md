@@ -275,7 +275,7 @@ Their filenames say so: an open memory ticket is
 `memory-dev_<priority>-<rank>_<Name>_DevPlanTicket.md`, and each one
 carries a `*Branch: memory-dev*` line under its `*Created:*` line. A ticket
 whose filename opens with `main_` is `main` work — including
-[CliContract](main_2-1_CliContract_DevPlanTicket.md),
+[CliContract](../archive/20260916_CliContract_DevPlanTicket.md),
 [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
 [CgshomeDefault](../archive/20260916_CgshomeDefault_DevPlanTicket.md), which the
 milestones ask questions of without being memory work themselves. The
