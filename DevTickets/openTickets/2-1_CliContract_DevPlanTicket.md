@@ -102,7 +102,11 @@ First release: `--json` on `status` and `verify`, printing one object on
 stdout and nothing else. JSON selects rendering; it does not authorize repair
 or change the command's underlying side effects.
 
-- `status` — the tree, per repository: name, path, branch, scope, sync state
+- `status` — the tree's own branch, then per repository: name, path,
+  branch, scope, sync state. The tree branch is a field of its own, with
+  the value and the name settled by
+  [1-8 StatusCurrentBranch](1-8_StatusCurrentBranch_DevPlanTicket.md), so the
+  table and the JSON answer "which branch am I on?" the same way
 - `verify` — the register's chain result
 Deferred follow-up: `validate` JSON (normalized document and failures) and
 JSON for all `--dry-run` plans. These do not gate this ticket's closure.
