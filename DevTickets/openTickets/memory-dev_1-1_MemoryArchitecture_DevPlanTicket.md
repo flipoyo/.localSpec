@@ -100,6 +100,17 @@ two ledger entries. Milestone M2 carries that decision.
 
 ### 2.2 Private/local — a memory that survives the machine
 
+> **Owner direction — 2026-09-16.** The developer spec
+> (`examples/complexgitsync4dev.cgs`) declares the memory mount before
+> `memory-dev` merges into `main`, so ComplexGitSync remembers itself the
+> same way it already configures itself.
+>
+> **It cannot be added first.** `github:flipoyo/.memory` exists and is
+> empty — `git ls-remote` returns no refs at all — and a mount whose branch
+> does not exist breaks `bootstrap` for everyone who uses that spec, CI
+> included. The order is: push a memory from a workspace that has one, which
+> creates the branch, and add the entry to the spec afterwards.
+
 `.cgitsync/` becomes a repository, mounted in the tree exactly like
 `.localSpec` or `.claude` is today:
 
@@ -123,7 +134,7 @@ own". Nothing in the gitignore-leak fix
 fix said the memory must not be committed *into the project repository as
 untyped content*, which stays true.
 
-### 2.3 Private/distant — the shared journal, not yet designed
+### 2.3 Private/distant — the project's own register
 
 > **Owner direction — 2026-09-16**, from
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260916_memoryRepo.md`:
@@ -144,15 +155,19 @@ tree on the same day; both memories are valid; neither is a prefix of the
 other. A hash chain gives tamper-evidence, not a merge rule, and this
 architecture has said from the start that it does not merge chains.
 
-Nothing here is decided. [MemorySyncDistant](memory-dev_2-10_MemorySyncDistant_DevPlanTicket.md)
-holds the question, and its §0.1 now holds a worked proposal — a
-hash-linked **DAG** of *published states*, each naming the repository, ref
-and commit the remotes actually held, so that two people who saw the same
-thing write the same record and a fork is closed by a third record naming
-both. It takes a blockchain's hash-linking and content addressing and
-leaves its consensus, because a blockchain exists to settle contradictions
-that have no arbiter and this one has one: the remote. The ticket stays
-stand-by until the owner accepts a shape.
+[Omniscience](memory-dev_2-10_Omniscience_DevPlanTicket.md) is the
+architecture. The shape, in one line: a repository mounted like every other
+private/writable one, holding one content-addressed file per record, whose
+chain is **Git's own commit history** — so `cgitsync` and a person with
+`git commit` append the same way, and shortening it rewrites every hash
+after the cut, which every clone notices on its next fetch.
+
+It takes a blockchain's hash-linking and content addressing and leaves its
+consensus, because a blockchain exists to settle contradictions that have
+no arbiter and this one has one: the remote. Its D1 is the owner's, and the
+honest sentence it turns on is that **no repository can make its own
+content unrewritable** — detection is the tool's job, prevention is branch
+protection on the host.
 
 Keeping it distant and separate remains the point when it is designed. The
 account that can rewrite the evidence of what was synchronised should not
@@ -325,7 +340,7 @@ one lands.
 | **M3** | OneRegister | One ledger, hash-chained, actually written, and able to fail |
 | **M4** | MemoryModule | `memory/` exists with a CLI to match: a local memory can be inspected |
 | **M5** | MemoryRepoLocal | A project's memory is a repository, pushed, and survives the machine |
-| **M6** | MemorySyncDistant — **stand-by** | Several people's memories of one project, in one shared journal. Reframed by D2 and not yet designed |
+| **M6** | Omniscience — **stand-by** | The project's own register, appended to by everyone and quietly rewritable by nobody. Architecture written; §5's D1 decides whether it is built |
 | **M7** | CommitMemory | A memory says what was committed, and whether it was ever pushed |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
@@ -336,8 +351,13 @@ before it grows a protocol.
 
 M6 is no longer next in the chain: with one shared `.memory` repository its
 original subject — an index of where each memory lives — is answered by the
-branch list, and what remains is the multi-user merge problem §2.3 states
-and nobody has solved. It is stand-by until it has a design.
+branch list. What remains is the multi-user problem, and
+[Omniscience](memory-dev_2-10_Omniscience_DevPlanTicket.md) now carries a
+design for it: a register whose chain is Git's own commit history, so a
+person can append with `git commit` and nobody can shorten it without every
+clone disagreeing on the next fetch. It stays stand-by until its D1 is
+answered — whether "append-only even by the owner" must be *prevented*, or
+whether *impossible to hide* is the promise.
 
 M7 is the one that is not in the chain. Recording what a commit said needs
 nothing from M5 or M6 — only the ledger M3 built — so it is placed after
@@ -388,7 +408,7 @@ this project in `.localSpec/AdditionalSpecs.md`.
   it.
 
   **This refusal still stands, and the shared journal does not violate
-  it.** [MemorySyncDistant](memory-dev_2-10_MemorySyncDistant_DevPlanTicket.md)
+  it.** [Omniscience](memory-dev_2-10_Omniscience_DevPlanTicket.md)
   §0.1 proposes that the distant journal be a *DAG* rather than a chain:
   records name their predecessors, a fork is two records with one parent,
   and closing it is a third record naming both. Nothing is merged — both

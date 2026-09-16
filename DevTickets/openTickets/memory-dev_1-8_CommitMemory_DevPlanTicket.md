@@ -187,11 +187,14 @@ neighbour is missing is how a record stops being one.
 
 ### D5. Does this land before or after MemoryRepoLocal?
 
-The recording half needs nothing from M5. The `published` block needs
-`push` to record what it published, which is also local. Only *sending* the
-file anywhere is M5's business. Recommendation: **after M5**, so that the
-first memory ever pushed already carries its commit logs — but it can move
-earlier if the messages are wanted sooner than the repository.
+**Answered by the owner, 2026-09-16: after M5, and before `memory-dev`
+merges into `main`.** M5 has landed, so this is the last milestone the
+memory workstream owes before any of it reaches `main` — which means the
+first memory ever pushed carries its commit messages from its first commit,
+rather than gaining them in a later one.
+
+Everything else on the workstream (StateLocking, Omniscience) lands after
+the merge.
 
 ## 6. Work packages
 
