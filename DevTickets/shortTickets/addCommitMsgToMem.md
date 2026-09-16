@@ -1,0 +1,1 @@
+Add a memory of cgitsync committed messages for project and private. This may be a special section of .cgitsync/commit-logs. commits messages should be linked to their push and accessible via the knowledge of state hash.gts. 
