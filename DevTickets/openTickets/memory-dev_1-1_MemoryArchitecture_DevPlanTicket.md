@@ -45,9 +45,9 @@ graph TD
     subgraph L["local — one workspace"]
         GTS["states<br/>.cgitsync/state/"] --> LGR["ledger<br/>.cgitsync/lgr/"]
     end
-    LGR -->|"M5: commit + push"| MEM["private/local<br/>memory repository<br/>one per project"]
-    MEM -->|"M6: announce"| REF["private/distant<br/>global reference ledger<br/>YOU ARE HERE"]
-    REF -->|"answers: which projects,<br/>whose memory, where"| ANY["any machine,<br/>any clone"]
+    LGR -->|"M5: commit + push"| MEM["private/local<br/>flipoyo/.memory<br/>one branch per project"]
+    MEM -->|"M6: not yet designed"| REF["private/distant<br/>shared project journal<br/>YOU ARE HERE"]
+    REF -->|"several people's memories<br/>of one project"| ANY["an open question"]
 
     classDef here fill:#1565C0,color:#fff,stroke:#111,stroke-width:2px;
     class REF here;
@@ -104,8 +104,15 @@ two ledger entries. Milestone M2 carries that decision.
 `.localSpec` or `.claude` is today:
 
 ```toml
-memory = { repository = "github:you/.memory-MyProject", relative_path = ".cgitsync", private = true, writable = true }
+memory = { repository = "github:flipoyo/.memory", relative_path = ".cgitsync", private = true, writable = true }
 ```
+
+**One repository, one branch per project** — exactly how `.localSpec` and
+`.claude` already work. `flipoyo/.memory` exists as of 2026-09-16, and a
+project's memory is its branch of it: `ComplexGitSync` while the project is
+on `main`, `ComplexGitSync_memory-dev` while it is on `memory-dev`, by the
+same `private_local_branch` rule every private/local mount follows. See
+§3's D2, which this reverses, and why.
 
 The parent's `.gitignore` keeps listing `.cgitsync/` — that is the
 ordinary rule for every child mount, the same line that keeps `docs/` out
@@ -116,18 +123,34 @@ own". Nothing in the gitignore-leak fix
 fix said the memory must not be committed *into the project repository as
 untyped content*, which stays true.
 
-### 2.3 Private/distant — one place that knows what exists
+### 2.3 Private/distant — the shared journal, not yet designed
 
-One repository, shared across every project this installation administers,
-holding an index and nothing else: for each project, its name, the memory
-repository that holds it, and the last memory head pushed there. It is
-**read-mostly and write-rarely**, and it never holds States.
+> **Owner direction — 2026-09-16**, from
+> `.localSpec/DevTickets/archive/.closedUserTicket/20260916_memoryRepo.md`:
+> *"There will be later a private/distant memory repo to design in order to
+> ensure the multi-user contribution to the global memory of a project. I do
+> not have a clear view yet, and it will be a problem of multi private/local
+> sync into a single private/distant project journal."*
 
-Keeping it distant and separate is the point. The account that can rewrite
-the evidence of what was synchronised should not be the account that holds
-the code — a reference ledger on one provider for trees on another means
-compromising the code host does not silently let someone rewrite the
-record.
+This layer was designed as an **index**: one repository naming, for each
+project, where its memory lived. With one shared `.memory` repository that
+question mostly answers itself — a project's memory is a branch, and the
+branch list is the index.
+
+What replaces it is a harder problem and an honestly open one: **several
+people, each with their own private/local memory of the same project,
+contributing to one shared journal of it.** Two people synchronise the same
+tree on the same day; both memories are valid; neither is a prefix of the
+other. A hash chain gives tamper-evidence, not a merge rule, and this
+architecture has said from the start that it does not merge chains.
+
+Nothing here is decided. [MemorySyncDistant](memory-dev_2-10_MemorySyncDistant_DevPlanTicket.md)
+holds the question and has moved to stand-by until there is an answer to
+build.
+
+Keeping it distant and separate remains the point when it is designed. The
+account that can rewrite the evidence of what was synchronised should not
+be the account that holds the code.
 
 ### 2.4 What a record says about the tools that made it
 
@@ -188,18 +211,44 @@ The ledger is small and grows by one entry per operation. States are whole
 
 ### D2. One memory repository per project, or one for all?
 
-Recommended: **one per project**, mounted at that project's `.cgitsync/`.
-It keeps a project's memory with the project, it needs no new mount
-semantics, and it means one project's memory can be shared with a
-collaborator without handing over every other project's. The reference
-ledger is what makes them findable as a set.
+**Answered by the owner, 2026-09-16: one for all** — `flipoyo/.memory`,
+mounted at each project's `.cgitsync/`, with one branch per project. It
+works exactly as every other private/writable mount does, which is the
+argument for it: no new mount semantics, no new branch rule, nothing to
+learn. The repository exists already.
+
+This reverses the recommendation below, which is kept because a reversed
+decision is only safe when what it cost is written down.
+
+| | One per project (recommended, not taken) | One for all (taken) |
+|---|---|---|
+| Mount semantics | Already exist | Already exist |
+| Sharing one project's memory | Hand over one repository | **Hand over access to every project's** — a reader of `.memory` can read every branch |
+| Finding them all | Needs the reference ledger | The branch list |
+| New repository per project | Yes, one each | None ever again |
+
+The cost is the sharing row, and it is real: memory is not a secret, but
+"who may read this project's history" stops being a per-project answer. The
+owner has taken that trade knowingly and for now; splitting later means
+moving branches into their own repositories, which is a day's work and no
+data loss.
 
 ### D3. How is a memory repository addressed?
 
-Recommended: declared in the `.cgs` like any other private entry, with a
-documented default convention (`<owner>/.memory-<project name>`) that
-`cgitsync memory init` proposes and the user accepts or overrides. No
-implicit repository is ever created without the user seeing its name.
+Settled with D2: declared in the `.cgs` like any other private entry —
+`github:<owner>/.memory`, `relative_path = ".cgitsync"`, `private`,
+`writable` — and the branch derived by the ordinary private/local rule.
+`cgitsync memory init` proposes that entry and mounts it once the user
+accepts. **No repository is ever created by ComplexGitSync**: nothing here
+talks to a provider's API, so `init` prints the name and the command that
+creates it, and waits.
+
+**The branch forks with the project's branch, and that is the intended
+behaviour.** On `memory-dev` a project's memory is `ComplexGitSync_memory-dev`;
+it merges back into `ComplexGitSync` when the project branch merges, the
+same as `.localSpec`. It also means the same hazard: work recorded on one
+branch is not visible from the other until the merge, which this project
+has already hit once and recovered from by merging rather than by copying.
 
 ### D4. When does a sync happen?
 
@@ -270,7 +319,7 @@ one lands.
 | **M3** | OneRegister | One ledger, hash-chained, actually written, and able to fail |
 | **M4** | MemoryModule | `memory/` exists with a CLI to match: a local memory can be inspected |
 | **M5** | MemoryRepoLocal | A project's memory is a repository, pushed, and survives the machine |
-| **M6** | MemorySyncDistant | The reference ledger answers "which projects, and where is their memory" |
+| **M6** | MemorySyncDistant — **stand-by** | Several people's memories of one project, in one shared journal. Reframed by D2 and not yet designed |
 | **M7** | CommitMemory | A memory says what was committed, and whether it was ever pushed |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
@@ -278,6 +327,11 @@ chain of entries pointing at timestamp-named directories records nothing
 portable. M3 before M5 because pushing a register nothing writes is
 pushing an empty directory. M4 before M5 because the code needs a home
 before it grows a protocol.
+
+M6 is no longer next in the chain: with one shared `.memory` repository its
+original subject — an index of where each memory lives — is answered by the
+branch list, and what remains is the multi-user merge problem §2.3 states
+and nobody has solved. It is stand-by until it has a design.
 
 M7 is the one that is not in the chain. Recording what a commit said needs
 nothing from M5 or M6 — only the ledger M3 built — so it is placed after

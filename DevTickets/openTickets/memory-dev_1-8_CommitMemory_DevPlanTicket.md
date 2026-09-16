@@ -133,7 +133,10 @@ build this at all.
 
 ## 4. What must never go in it
 
-`MemoryRepoLocal`'s gate G5 governs this file the moment it is pushed:
+`MemoryRepoLocal`'s gate G5 governs this file the moment it is pushed —
+and where it is pushed to is now one shared `.memory` repository, one
+branch per project, so a reader of any project's memory is a reader of the
+repository. That raises the cost of getting this wrong, not the rules:
 
 - **No absolute path, no OS user name.** A commit's author is a name and an
   email the repository already publishes; the *machine* the commit was made

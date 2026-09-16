@@ -1,15 +1,61 @@
-# MemorySyncDistant — one place that knows which projects exist
+# MemorySyncDistant — one shared journal for several people's memories
 
 *Created: 2026-09-12*
 
 *Branch: memory-dev*
 
-> **Milestone M6** of [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md),
-> and the last of them. From the owner's
+> **Milestone M6** of [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md).
+> From the owner's
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260912_memorySpecs.md`: *"cgitsync should be capable of
 > synchronizing local memory repos with its own private/distant global
 > reference ledger that records all cgitsync administrated pushed
 > private/local project-name/.cgitsync"*.
+
+> **Reframed and moved to stand-by — 2026-09-16.** The owner's
+> `.localSpec/DevTickets/archive/.closedUserTicket/20260916_memoryRepo.md`
+> made every project's memory a branch of one shared `.memory` repository.
+> That answers most of what this ticket was for — "which projects, and
+> where is their memory" is now the branch list — and leaves the part
+> nobody has designed: *"multi-user contribution to the global memory of a
+> project … a problem of multi private/local sync into a single
+> private/distant project journal"*, in the owner's words, with *"I do not
+> have a clear view yet"*.
+>
+> So this is **priority 2**: real work, correctly identified, and not
+> buildable until the question in §0 has an answer. Everything below §0 is
+> the earlier design, kept because half of it — what such a repository must
+> never hold, and how a client talks to one — survives whatever shape the
+> answer takes.
+
+## 0. The question this ticket now has to answer
+
+Several people work on one project. Each has a private/local memory of it —
+their own States, their own chain, their own commit logs — and each is
+**valid**: nothing in them is wrong, they simply saw different things on
+different machines at overlapping times.
+
+The shared journal has to hold what the project as a whole did. So:
+
+1. **Two chains, one journal.** A hash chain gives tamper-evidence, not a
+   merge rule. Two people's entry `#7` are both legitimately `#7`. What
+   does the journal's sequence mean, and who assigns it?
+2. **What survives the merge.** A State is content-named, so the same tree
+   seen by two people is one file — that part is solved, and it is why M2
+   mattered. The ledger is the hard half.
+3. **Who may write.** A journal everyone can append to is a journal anyone
+   can lie in; a journal one person owns is a bottleneck and a single point
+   of rewriting.
+4. **What a reader gets.** Is the journal a merged history, an append-only
+   pile of per-person chains, or an index pointing at each person's memory
+   branch?
+
+This architecture has said from the start that **it does not merge chains**
+(§5 of MemoryArchitecture). If that stands, option 3 or 4 is the answer and
+the journal is a set of chains side by side, not one chain. If it does not
+stand, that refusal has to be withdrawn deliberately, here, in writing.
+
+Nothing below settles any of this. Do not build from §1 until §0 is
+answered.
 
 ## Abstract — read this first
 

@@ -113,8 +113,32 @@ that way.
 The memory is declared in the `.cgs` like any other private entry:
 
 ```toml
-memory = { repository = "github:you/.memory-MyProject", relative_path = ".cgitsync", private = true, writable = true }
+memory = { repository = "github:flipoyo/.memory", relative_path = ".cgitsync", private = true, writable = true }
 ```
+
+> **Owner direction — 2026-09-16**, from
+> `.localSpec/DevTickets/archive/.closedUserTicket/20260916_memoryRepo.md`:
+> one shared `.memory` repository, working *exactly* as every other
+> private/writable mount — a branch per project, and a derived
+> `<project>_<branch>` branch while the project is on one of its own. The
+> repository exists. This reverses the architecture's D2, which recommended
+> one repository per project; the trade it makes is written there.
+
+**Nothing new is needed to make this work.** That is the point of the
+decision: the mount, the privacy flags, the branch derivation, the
+`--private` scope and the preflight that measures a private repo against
+its own branch all exist and are tested. A memory is a private/local
+repository that happens to hold States instead of settings.
+
+Two consequences worth stating before they are discovered:
+
+- **The memory forks when the project branches.** On `memory-dev` it is
+  `ComplexGitSync_memory-dev`; it merges back when the branch does. Work
+  recorded on one branch is invisible from the other until then — this
+  project hit exactly that with `.localSpec` on 2026-09-16 and recovered by
+  merging, never by copying files between branches.
+- **Everyone who can read `.memory` can read every project's branch.** The
+  architecture's D2 records that cost; this ticket only inherits it.
 
 The parent's `.gitignore` still lists `.cgitsync/`, because that is the
 ordinary rule for every child mount — the same line that keeps `docs/` out
@@ -125,9 +149,9 @@ The commands, mirroring the client as `CLAUDE.md` requires:
 
 | Command | Does |
 |---|---|
-| `cgitsync memory init` | Proposes a memory repository name per D3 of the architecture — `<owner>/.memory-<project name>` — and mounts it once the user accepts. **It does not create the repository on the host:** nothing in ComplexGitSync talks to a provider's API, and teaching it to would mean a network call and a credential where there is neither today. It prints the name and the one command that creates it, and waits |
+| `cgitsync memory init` | Writes the `.cgs` entry above — `github:<owner>/.memory`, mounted at `.cgitsync`, private and writable — and mounts it once the user accepts. **It does not create the repository on the host:** nothing in ComplexGitSync talks to a provider's API, and teaching it to would mean a network call and a credential where there is neither today. It prints the entry and the one command that creates the repository, and waits |
 | `cgitsync memory push` | Commits what the memory gained — States, ledger entries, and commit logs once [CommitMemory](memory-dev_1-8_CommitMemory_DevPlanTicket.md) writes them — and pushes it |
-| `cgitsync memory clone` | Brings a project's memory onto a machine that does not have it |
+| `cgitsync memory clone` | Brings a project's memory onto a machine that does not have it — the right branch of `.memory`, not a repository of its own |
 
 No automatic push. D4 of the architecture says the cadence question is
 answered from evidence once there is a protocol to measure, and until then
