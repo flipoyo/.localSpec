@@ -1,0 +1,1 @@
+cgitsync memory-explore must be developped cause it is impossible to navigate into the files of .memory for a human beings. The tree of the pushes with commit message should be accessible by branch (main default) as well as the tree of the branch ordered following the entries in lgr

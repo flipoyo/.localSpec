@@ -33,7 +33,7 @@ means when the document records absolute paths. §4 the work. §5 acceptance,
 where cross-machine determinism is the test that matters.
 
 **Who it is for.** Whoever takes M2. Read
-[VerifyHonesty](memory-dev_1-2_VerifyHonesty_DevPlanTicket.md) first — it should land
+[VerifyHonesty](../archive/20260916_VerifyHonesty_DevPlanTicket.md) first — it should land
 before this.
 
 **What you need to do with it.** §3 is the risk. Do it first and do it
@@ -120,7 +120,7 @@ So M2 is really: **define a portable canonical payload, versioned.**
   holding the identical tree with different git versions must produce the
   same State name, and one version bump must not rename every State in a
   workspace. They belong to the ledger entry, which
-  [OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) carries. See
+  [OneRegister](memory-dev_1-3_OneRegister_DevPlanTicket.md) carries. See
   [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md)
   §2.4.
 - Version the result. New snapshots declare which canonicalisation they

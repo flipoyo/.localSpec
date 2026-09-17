@@ -30,7 +30,7 @@ decision actually was. §2 the gates, which are the real content of this
 ticket. §3 what graduation changes. §4 the work. §5 acceptance.
 
 **Who it is for.** Whoever takes M5, after
-[MemoryModule](memory-dev_1-5_MemoryModule_DevPlanTicket.md). The owner signs off §2
+[MemoryModule](../archive/20260916_MemoryModule_DevPlanTicket.md). The owner signs off §2
 before anything is pushed.
 
 **What you need to do with it.** Check every gate in §2 honestly. A gate
@@ -82,6 +82,29 @@ checkable, and all of them hold before §3 begins:
 | G6 | Schema pinned, with a migration path | The ledger declares a version; one written by version *X* is read by *X+1*, proven by a fixture rather than asserted |
 | G7 | One memory, one implementation | M3 closed; `.cgitsync/` holds exactly one ledger |
 
+### The gates, checked — 2026-09-16
+
+| # | Gate | Evidence |
+|---|---|---|
+| G1 | State names are content-derived | `grep -rn new_time_l0_anchor src/` finds one docstring mention in `orchestre.py`'s `SystemClock` and no call anywhere in the naming path |
+| G2 | Cross-machine determinism | `tests/integration/test_state_identity.py` — the same tree in two directories yields one name, and a toolchain version does not move it |
+| G3 | The chain is real | `tests/integration/test_one_register.py` — a real operation writes an entry, `verify` reports a verified chain, and one flipped byte makes it corrupt |
+| G4 | Store-level integrity | The same file: a State that is gone, a State edited, a State nobody recorded — one test each |
+| G5 | **No secrets, no machine identity** | `tests/integration/test_memory_repository.py` — a memory made under a fake `$HOME` holds no user name, no directory above the tree, and at most one `$HOME`; a path in a recorded command line is written against the tree |
+| G6 | Schema pinned, with a migration path | `document.hash_canonicalisation` declares which algorithm measured a snapshot, and a version-1 document is read under version 1 for ever (`test_state_identity.py`); an entry written without a toolchain hashes exactly as it did before the field existed |
+| G7 | One memory, one implementation | Nothing writes the single-file register: `grep` finds no `LocalGitRegister(...)` construction in `src/` outside its own definition |
+
+**G5 as taken, in full.** A State records exactly one machine path — the
+tree's own root, with `$HOME` substituted — because a snapshot handed to
+`pull` from outside a workspace still has to say where its tree goes. Every
+other path is written against the tree (`$CGSTREE/...`), and a path outside
+the tree is not recorded at all. `actor` is gone with the single-file
+register that carried it. **The residue is deliberate and worth naming:**
+the root path still shows the directories between `$HOME` and the tree. It
+is the one path the gate's own wording allows, and dropping it would cost
+loose snapshots the ability to locate their tree. Say so if that trade
+should go the other way; it is one line.
+
 **G5 is the one most likely to be waved through.** Today's live register
 records `snapshot_path = "$HOME/.cgs/CGS…/ComplexGitSync/…"` and `actor =
 "flipoyo"`. The `$HOME` prefix is substituted; the rest of the path and the
@@ -92,8 +115,16 @@ name. Paths become relative to the tree root, and `actor` becomes a
 deliberate, documented, opt-in field — before anything leaves the machine,
 not after someone notices.
 
+G5 also governs the **commit logs** a memory will carry
+([CommitMemory](memory-dev_1-8_CommitMemory_DevPlanTicket.md)): a commit
+message travels exactly as written, because it is authored content and
+rewriting it would destroy the record — but nothing around it does. No
+absolute path, no OS user name, no diff. If that milestone has not landed
+when this one does, the gate still applies the day it lands: this is the
+ticket that decides what leaves the machine.
+
 G5 also governs the toolchain each entry now carries
-([OneRegister](memory-dev_1-4_OneRegister_DevPlanTicket.md) §3.1). A version
+([OneRegister](../archive/20260916_OneRegister_DevPlanTicket.md) §3.1). A version
 string may leave the machine; the path the tool was found at and the user
 it ran as may not. `"git 2.39.5"` is fine and useful.
 `"/home/someone/.pixi/envs/default/bin/git"` is the same leak as
@@ -105,8 +136,32 @@ that way.
 The memory is declared in the `.cgs` like any other private entry:
 
 ```toml
-memory = { repository = "github:you/.memory-MyProject", relative_path = ".cgitsync", private = true, writable = true }
+memory = { repository = "github:flipoyo/.memory", relative_path = ".cgitsync", private = true, writable = true }
 ```
+
+> **Owner direction — 2026-09-16**, from
+> `.localSpec/DevTickets/archive/.closedUserTicket/20260916_memoryRepo.md`:
+> one shared `.memory` repository, working *exactly* as every other
+> private/writable mount — a branch per project, and a derived
+> `<project>_<branch>` branch while the project is on one of its own. The
+> repository exists. This reverses the architecture's D2, which recommended
+> one repository per project; the trade it makes is written there.
+
+**Nothing new is needed to make this work.** That is the point of the
+decision: the mount, the privacy flags, the branch derivation, the
+`--private` scope and the preflight that measures a private repo against
+its own branch all exist and are tested. A memory is a private/local
+repository that happens to hold States instead of settings.
+
+Two consequences worth stating before they are discovered:
+
+- **The memory forks when the project branches.** On `memory-dev` it is
+  `ComplexGitSync_memory-dev`; it merges back when the branch does. Work
+  recorded on one branch is invisible from the other until then — this
+  project hit exactly that with `.localSpec` on 2026-09-16 and recovered by
+  merging, never by copying files between branches.
+- **Everyone who can read `.memory` can read every project's branch.** The
+  architecture's D2 records that cost; this ticket only inherits it.
 
 The parent's `.gitignore` still lists `.cgitsync/`, because that is the
 ordinary rule for every child mount — the same line that keeps `docs/` out
@@ -117,9 +172,9 @@ The commands, mirroring the client as `CLAUDE.md` requires:
 
 | Command | Does |
 |---|---|
-| `cgitsync memory init` | Proposes a memory repository name per D3 of the architecture, and mounts it once the user accepts |
-| `cgitsync memory push` | Commits what the memory gained and pushes it |
-| `cgitsync memory clone` | Brings a project's memory onto a machine that does not have it |
+| `cgitsync memory init` | Writes the `.cgs` entry above — `github:<owner>/.memory`, mounted at `.cgitsync`, private and writable — and mounts it once the user accepts. **It does not create the repository on the host:** nothing in ComplexGitSync talks to a provider's API, and teaching it to would mean a network call and a credential where there is neither today. It prints the entry and the one command that creates the repository, and waits |
+| `cgitsync memory push` | Commits what the memory gained — States, ledger entries, and commit logs once [CommitMemory](memory-dev_1-8_CommitMemory_DevPlanTicket.md) writes them — and pushes it |
+| `cgitsync memory clone` | Brings a project's memory onto a machine that does not have it — the right branch of `.memory`, not a repository of its own |
 
 No automatic push. D4 of the architecture says the cadence question is
 answered from evidence once there is a protocol to measure, and until then
