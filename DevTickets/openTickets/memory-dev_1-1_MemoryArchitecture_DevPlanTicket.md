@@ -74,6 +74,18 @@ written only with `--private`. It is not a new kind of mount, and it needs
 no new transport: the provider registry in `git_repo.py` already carries
 everything a memory repository needs.
 
+**Paths superseded by M12
+([WorkingTransitionState](memory-dev_1-2_WorkingTransitionState_DevPlanTicket.md),
+2026-09-17).** Every `.cgitsync/...` path above is where things lived
+before that milestone. After it: `.cgitsync` is renamed `.working`, and
+what M5 mounted at `.cgitsync/` — the memory repository itself — nests one
+level inside, at `.working/.memory/`. `state/`, `lgr/` and `commit-logs/`
+keep their names but split across the frontier M12 draws: the pending
+increment sits in `.working/{state,lgr,commit-logs}/`, folded into
+`.working/.memory/{state,lgr,commit-logs}/` by `memory push`. The words in
+the table above did not change, only where each one is currently found on
+disk.
+
 ## 2. The three layers
 
 ### 2.1 Local — what a project remembers
@@ -133,6 +145,17 @@ own". Nothing in the gitignore-leak fix
 (`archive/20260903_CgitsyncGitignoreLeak_DevPlanTicket.md`) is undone: that
 fix said the memory must not be committed *into the project repository as
 untyped content*, which stays true.
+
+**After M12, the `.cgs` entry and the `.gitignore` line both read
+`.working` instead of `.cgitsync`, and `relative_path` points at
+`.working/.memory`** — the mount itself is unchanged (still private,
+still writable, still one branch per project by the same rule), only the
+directory it sits inside is renamed and the mount now nests one level
+into it rather than being it. See WorkingTransitionState for why: this
+same section's own promise — a repository "mounted in the tree exactly
+like `.localSpec` or `.claude`" — turned out to need `.cgitsync` to stop
+also being ComplexGitSync's own live state directory before it could be
+true for `merge`/`checkout` as well as for `add`/`commit`/`push`.
 
 ### 2.3 Private/distant — the project's own register
 
@@ -258,8 +281,9 @@ data loss.
 ### D3. How is a memory repository addressed?
 
 Settled with D2: declared in the `.cgs` like any other private entry —
-`github:<owner>/.memory`, `relative_path = ".cgitsync"`, `private`,
-`writable` — and the branch derived by the ordinary private/local rule.
+`github:<owner>/.memory`, `relative_path = ".working/.memory"` (`.cgitsync`
+before M12), `private`, `writable` — and the branch derived by the
+ordinary private/local rule.
 `cgitsync memory init` proposes that entry and mounts it once the user
 accepts. **No repository is ever created by ComplexGitSync**: nothing here
 talks to a provider's API, so `init` prints the name and the command that
@@ -347,7 +371,7 @@ one lands.
 | **M9** | MemoryOnboarding — **landed 2026-09-17** | The steps a person runs once per project — create the repository, mount it, push it, merge it — are commands rather than instructions |
 | **M10** | MemoryExplore | A memory a person can read: what was published, by branch, and the ledger's own order made legible |
 | **M11** | MemoryReboot | Starting a memory's history over, on purpose, without losing the chapter before it |
-| **M12** | WorkingTransitionState | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded |
+| **M12** | WorkingTransitionState — **landed 2026-09-17** | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing
@@ -410,10 +434,19 @@ worktree is never actually clean, and a real `git checkout` on it — which
 fails for real reasons, not cosmetic ones. Caught live on this project's
 own tree: `merge --all memory-dev --into main` moved three repositories
 onto `main` and aborted on `.memory` mid-sweep. `.working`
-([WorkingTransitionState](memory-dev_1-4_WorkingTransitionState_DevPlanTicket.md))
+([WorkingTransitionState](memory-dev_1-2_WorkingTransitionState_DevPlanTicket.md))
 gives the live-write job its own directory, so `.memory` goes back to
 being an ordinary private/local repository everywhere, D3's forking
 behaviour included, with nothing excluded from anything.
+
+**M12 is filed `1-2`, ahead of M10 and M11 in the actual work queue**,
+despite its higher milestone number — the numbers here record when each
+was opened, not build order (M8 already came before M9 for the same
+reason). `MemoryExplore` and `MemoryReboot` both read or write the path
+`.working` renames (`.cgitsync`, `.cgitsync/.cgs/`); building either one
+before `.working` exists means rebuilding it once `.working` lands.
+`WorkingTransitionState` goes first so they are built once, against the
+final layout.
 
 M6 remains the only milestone this workstream owes with no ticket
 open against it; M10, M11 and M12 are the three with tickets open and no

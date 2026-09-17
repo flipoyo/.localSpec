@@ -60,7 +60,8 @@ graph TD
 | `memory status` | How much is remembered, and does it verify | A health check, not a browse |
 
 None of the three is organised **by branch**, and `.memory` is
-one-repository-many-branches by design (`memory-dev_1-2_MemoryOnboarding`):
+one-repository-many-branches by design
+(`../archive/20260917_MemoryOnboarding_DevPlanTicket.md`):
 `ComplexGitSync` for this project on `main`, `ComplexGitSync_memory-dev`
 for it on `memory-dev`, a different pair per project. Reading a memory
 today means picking States out of a flat list and hoping they belong to
@@ -109,8 +110,11 @@ filtered to commits; this is *everything that happened*, including
 
 ### D1. Local read, or does it ever need a clone?
 
-Recommendation: **local only, to start.** Read the `.cgitsync/` already on
-this disk — the same source every other `memory` command reads. Exploring
+Recommendation: **local only, to start.** Read `.working/.memory/` (folded
+history) and `.working/` (pending, not yet folded) already on this disk —
+the same two sources every other `memory` command reads, since
+[WorkingTransitionState](memory-dev_1-2_WorkingTransitionState_DevPlanTicket.md)
+lands first (this ticket is now `1-3` for exactly that reason). Exploring
 a branch nobody has cloned here yet is a real want (matches §2.1's "by
 branch, main default" — implying other branches exist you have not
 checked out) but is a second milestone: it needs the memory's own multi-

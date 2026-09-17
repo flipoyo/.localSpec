@@ -49,7 +49,13 @@ graph TD
 
 ## 1. What races
 
-Two things, both under `.cgitsync/`:
+Two things, both under `.working/` — the live-write area
+([WorkingTransitionState](memory-dev_1-2_WorkingTransitionState_DevPlanTicket.md)
+gives it a directory of its own, separate from `.working/.memory/`, which
+only a `memory push` fold ever touches. Two concurrent `memory push`
+calls can still race on the fold itself; the same lock this ticket
+proposes for `.working/` covers that case too, taken for the duration of
+the fold rather than the whole command):
 
 - **The state area.** Two runs allocate and publish a state at the same
   time. There is no `locks/` directory and no advisory lock anywhere in
@@ -75,8 +81,11 @@ commands and one result.
 
 ## 3. What a fix has to respect
 
-- **No daemon, no lock server.** An advisory lock file under `.cgitsync/`,
-  taken and released by the process, is the shape that fits this tool.
+- **No daemon, no lock server.** An advisory lock file under `.working/`,
+  taken and released by the process, is the shape that fits this tool —
+  and fits `.working` particularly well: a lock is local-only and never
+  pushed, which is exactly what everything else under `.working` already
+  is.
 - **A stale lock must be recoverable.** A machine that lost power holds a
   lock forever unless the lock records enough to be judged dead — and the
   judgement has to work without an OS user name or a machine identity,

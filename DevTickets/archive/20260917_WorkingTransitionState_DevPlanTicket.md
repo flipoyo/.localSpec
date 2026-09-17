@@ -20,12 +20,26 @@
 > **Revised the same day, layout only:** *"a mount .working/.memory would
 > be way clearer than .working next to .cgitsync with a link towards
 > .cgitsync in .working. having .memory rather than .cgitsync is much
-> clearer for anyone."* `.memory` nests **inside** `.working`, at
-> `.working/.memory`, rather than sitting beside it with a symlink between
+> clearer for anyone."* `.memory` nests **inside** the workspace's own
+> state directory, rather than sitting beside it with a symlink between
 > them — nesting *is* the link, so no separate link mechanism is needed at
-> all (§2's original symlink proposal is withdrawn). `.cgitsync` is also
-> renamed to `.working` throughout: the historical name described the tool
-> that wrote there, not what the directory is.
+> all (§2's original symlink proposal is withdrawn).
+>
+> **Scoped down at implementation time, 2026-09-17.** `.cgitsync` turned
+> out to name more than the memory feature: `settings.py`'s CGSHOME
+> discovery, `snapshot_resolver.py`, and `master.toml` all use it as the
+> name of *every* workspace's own local state, whether or not a memory is
+> ever adopted. Renaming it to `.working` throughout, as first written
+> below, would have meant migrating every existing cgitsync workspace
+> anywhere — a foundational rename of the tool's own convention, not a
+> memory-feature change. **Decided: `.cgitsync` keeps its name.** Only the
+> memory mount nests one level deeper — `.cgitsync/.memory/` — which fixes
+> the exact bug (a checkout inside a directory the tool keeps writing to)
+> without touching anything outside the memory feature. Everywhere below
+> that still reads `.working` or `.working/.memory` means `.cgitsync` and
+> `.cgitsync/.memory` — kept as first written, since the reasoning (nesting
+> instead of a link, what moves where, what `memory push` does) is
+> unchanged; only the outer name is.
 
 ## Abstract — read this first
 
@@ -68,9 +82,9 @@ is the fix that makes that recovery unnecessary in the first place.
 **What you will find.** §1 what moves where, and why. §2 nesting instead
 of a link — what changed from the first draft. §3 what `memory push` does
 now. §4 what this milestone undoes from today's earlier fixes, and why
-that is correct rather than wasted work. §5 open questions the owner
-should confirm before implementation starts, including migrating this
-project's own tree. §6 acceptance.
+that is correct rather than wasted work. §5 three implementation details,
+settled rather than left open. §6 acceptance, including migrating this
+project's own tree.
 
 **Who it is for.** Whoever implements this milestone, and whoever next
 wonders why `.memory`'s worktree is clean where it used to be dirty.
@@ -191,36 +205,34 @@ becomes rare rather than routine — worth keeping (a mid-fold dirty read is
 still real and still deserves the explanation), but it will stop being the
 first thing every `status` call prints.
 
-## 5. Open questions for the owner, before implementation
+## 5. Settled, not left open
 
-1. **Ledger numbering across the fold.** `lgr/000094.toml` sits in
-   `.working/.memory`; the next command's entry is `000095.toml` — written
-   directly into `.working` at that number, or renumbered at fold time?
-   Proposed: whatever writes a new `lgr` entry asks `.working/.memory/lgr`
-   for the highest number already folded and continues from there, so
-   numbering stays one sequence across both halves and a fold never
-   renumbers anything it moves.
-2. **What happens to `.working` on a fresh clone / `memory clone`?**
-   `.working/.memory` clones with `git clone` (into that nested path
-   directly, so nothing needs moving afterward); `.working`'s own top
-   level is not git content at all, so a second machine starts with
-   nothing pending there — created empty by whatever command first writes
-   into it, or eagerly by `memory_adopt`/`memory_clone` themselves. Either
-   is fine; whichever is simpler to implement.
-3. **Migrating this project's own tree.** `examples/complexgitsync4dev.cgs`
-   declares `relative_path = ".cgitsync"` today, and this project's own
-   workspace holds real history there — 94+ ledger entries, the merge this
-   ticket exists because of. Landing this milestone means: move
-   `.cgitsync/` to `.working/.memory/` on disk (a plain `git mv`-style
-   move inside the mount, not a re-clone — the `.git` directory and its
-   history travel unchanged), update the `.cgs` entry's `relative_path`,
-   and update the root `.gitignore` line. Whether that is a manual,
-   documented one-time step for this project (and anyone else who already
-   mounted a memory before this milestone) or a small `cgitsync memory
-   migrate` command that does the move generically is the owner's call —
-   this project is the only tree that needs it today, which argues for
-   documenting it once rather than building a command for an audience of
-   one, but a second early adopter would want the command.
+None of these are policy — each has one reasonable answer, so implementation
+does not wait on them:
+
+1. **Ledger numbering across the fold.** Whatever writes a new `lgr` entry
+   asks `.working/.memory/lgr` for the highest number already folded and
+   continues from there. Numbering stays one sequence across both halves;
+   a fold never renumbers anything it moves.
+2. **`.working` on a fresh clone / `memory clone`.** `.working/.memory`
+   clones with `git clone`, into that nested path directly — nothing needs
+   moving afterward. `.working`'s own top level is not git content, so
+   `memory_adopt`/`memory_clone` create it empty, eagerly, the same moment
+   they create `.working/.memory` — a workspace with a mounted memory
+   always has both, or neither.
+3. **Migrating this project's own tree.** A small `cgitsync memory
+   migrate` command: inside `.cgitsync`, moves `.git` and every file `git
+   ls-files` lists into a new `.cgitsync/.memory/` subdirectory (an
+   ordinary file move, not a re-clone — history travels with `.git`
+   unchanged), leaving whatever is untracked — this project's own pending
+   `lgr`/`state`/`logs`/`commit-logs` — exactly where it already is; then
+   updates the `.cgs` entry's `relative_path` from `.cgitsync` to
+   `.cgitsync/.memory`. The root `.gitignore` needs no change: `.cgitsync`
+   was always listed there and still is. Cheap to build alongside the rest
+   of this milestone, matches this project's own stated preference
+   elsewhere for "a documented command rather than delete this file if you
+   think it's safe" (`StateLocking` §4's acceptance), and this project
+   needs to run it regardless of whether anyone else ever does.
 
 ## 6. Acceptance
 
@@ -236,10 +248,12 @@ first thing every `status` call prints.
 - `memory status`/`memory list`/`memory show`/`verify` answer identically
   to today, reading folded and pending content from their respective
   nested paths.
-- This project's own workspace is migrated: `.cgitsync/` moved to
-  `.working/.memory/`, `examples/complexgitsync4dev.cgs` and the root
-  `.gitignore` updated, verified with the same live `merge --all
-  memory-dev --into main` that broke today.
+- `cgitsync memory migrate` exists, and running it against this project's
+  own workspace moves the mount from `.cgitsync/` to `.cgitsync/.memory/`
+  (tracked content only — pending content stays put), updates
+  `examples/complexgitsync4dev.cgs`'s `relative_path`, and the result is
+  verified with the same live `merge --all memory-dev --into main` that
+  broke today.
 - `is_memory_mount`, `iter_write_scope`, and the preflight/READY exemptions
   named in §4 are removed, not merely unused — with the tests that
   exercised them (`tests/unit/test_repo_scope.py::TestIterWriteScope`,
@@ -248,4 +262,7 @@ first thing every `status` call prints.
 - `.localSpec/AdditionalSpecs.md`'s `git_repo.py`/`operations.py`/`memory/`
   rows are rewritten to describe `.working`, not the exclusions it
   replaces.
+- `cgitsync memory migrate` is documented in the README command table and
+  `docs/Text/user_guide.tex`, and its client method in
+  `docs/Text/api_python.tex`, the same as every other command.
 - `pixi run lint` and `pixi run test` pass.
