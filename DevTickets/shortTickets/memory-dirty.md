@@ -1,0 +1,1 @@
+the memory repo remains in dirty state after add --all commit --all, push --all. add --private modifies status but commit and push go back to dirty. 
