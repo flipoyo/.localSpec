@@ -347,6 +347,7 @@ one lands.
 | **M9** | MemoryOnboarding — **landed 2026-09-17** | The steps a person runs once per project — create the repository, mount it, push it, merge it — are commands rather than instructions |
 | **M10** | MemoryExplore | A memory a person can read: what was published, by branch, and the ledger's own order made legible |
 | **M11** | MemoryReboot | Starting a memory's history over, on purpose, without losing the chapter before it |
+| **M12** | WorkingTransitionState | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing
@@ -398,8 +399,25 @@ tree, the acceptance criterion M9 was written against.
 M10 and M11 were both opened 2026-09-17, from the owner's own short ticket
 and a direct request, ahead of M9's own close: reading a memory and
 starting one over are both things a memory that is now a real repository
-needs. M6 remains the only milestone this workstream owes with no ticket
-open against it; M10 and M11 are the two with tickets open and no code yet.
+needs.
+
+M12 was opened the same day, after M9's own merge fix
+(`memory-dev_MergeMemoryExclusion`) turned out to fix only `merge`'s
+precondition and not the reason it failed: `.cgitsync` is both `.memory`'s
+git repository and ComplexGitSync's own live state directory, so its
+worktree is never actually clean, and a real `git checkout` on it — which
+`merge`/`tag`/`freeze-release` all still perform, by D3's own design —
+fails for real reasons, not cosmetic ones. Caught live on this project's
+own tree: `merge --all memory-dev --into main` moved three repositories
+onto `main` and aborted on `.memory` mid-sweep. `.working`
+([WorkingTransitionState](memory-dev_1-4_WorkingTransitionState_DevPlanTicket.md))
+gives the live-write job its own directory, so `.memory` goes back to
+being an ordinary private/local repository everywhere, D3's forking
+behaviour included, with nothing excluded from anything.
+
+M6 remains the only milestone this workstream owes with no ticket
+open against it; M10, M11 and M12 are the three with tickets open and no
+code yet.
 
 **`memory/` is a new top-level area of `src/ComplexGitSync/`**, the
 owner's own suggestion and the right one: `cli/` earned its own package
