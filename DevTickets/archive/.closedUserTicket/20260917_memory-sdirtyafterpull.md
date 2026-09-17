@@ -1,0 +1,1 @@
+after your treament status display a sync issue only for memory. I pulled and it became dirty. push did nothing more. I don't understand it should be ok after you add commit push. Investigate further and fix the bug
