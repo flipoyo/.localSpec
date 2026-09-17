@@ -957,6 +957,34 @@ its content:
   a record because the thing beside it went missing is how a record stops
   being one.
 
+### Merging when the tree contains the tool
+
+`pixi.toml` installs this checkout editable and the developer tree *is*
+`CGSHOME` — the `NESTED` use case `settings.py` names. So a tree-wide
+checkout rewrites the code that runs the **next** command.
+
+> **A checkout and the merge that follows it must be one command.**
+> `cgitsync checkout <older>` then `cgitsync merge <newer>` makes the older
+> build perform the merge, against a workspace the newer one wrote.
+
+`merge --into <target>` (`operations.merge_into_tree`) is that one command.
+The property it relies on is that **Python imports its modules at start-up**,
+so a running process keeps the build it began with whatever happens to
+`src/` underneath it; the code on disk when it finishes is the merged code.
+Nothing may be inserted between its checkout and its merge that starts
+another process, and the two must never be split into separate commands
+again.
+
+Two supporting rules:
+
+- **Every repository is checked before any is touched**, so a conflict or a
+  missing target leaves the whole tree on the source branch — the promise
+  `merge_tree` already made, extended to cover the checkout.
+- **`checkout` warns and never refuses** when it is about to install a
+  different build (`ComplexGitSyncClient._warn_if_build_changes`). Checking
+  out an older branch to read it is legitimate; `main_1-4_SnapshotVersionGuard`
+  is what makes that older build fail honestly if it is then used.
+
 ### Creating a repository: the one thing this project asks another tool to do
 
 ComplexGitSync used to state that it never creates a repository on a host,

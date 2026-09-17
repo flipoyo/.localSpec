@@ -29,14 +29,13 @@ run itself, which writes branches to the owner's account and is the owner's
 call, not the agent's. §2 was revised on 2026-09-17 to the owner's order —
 merge the project first, then mount — and measured against this workspace.
 
-**This ticket is second in the memory workstream's implementation order.**
-Its §2 step 1 is `cgitsync merge memory-dev --into main`, which does not
-exist yet —
-[SelfHostedMerge](memory-dev_1-2_SelfHostedMerge_DevPlanTicket.md) builds
-it. This ticket is where that command gets its first real use: closing the
-memory workstream's operational cycle by actually merging `memory-dev` into
-`main` and mounting the memory. Nothing here can be run for real until
-SelfHostedMerge lands.
+**Its blocker has landed.** §2 step 1 is
+`cgitsync merge memory-dev --into main`, and
+[SelfHostedMerge](../archive/20260917_SelfHostedMerge_DevPlanTicket.md)
+built it on 2026-09-17. Measured against this workspace the same day, the
+dry run reports both repositories as fast-forwards and names the build on
+`main`. **Everything in §2 is now runnable**; what remains is running it,
+which writes to the owner's account and is the owner's call.
 
 ## Abstract — read this first
 
@@ -155,7 +154,7 @@ this tool exists to make unnecessary, and a runbook that does it is a
 runbook admitting a missing command.
 
 So the missing command is being built instead:
-[SelfHostedMerge](memory-dev_1-2_SelfHostedMerge_DevPlanTicket.md) adds
+[SelfHostedMerge](../archive/20260917_SelfHostedMerge_DevPlanTicket.md) adds
 `cgitsync merge <source> --into <target>`, which checks out the target and
 merges the source **inside one process** — and a process keeps running the
 build it started with, whatever happens to `src/` underneath it. Step 1
@@ -194,7 +193,7 @@ pixi run cgitsync status          # .memory shows as private/local
 ```
 
 Every command is `cgitsync`. There is no `git` in this sequence, which is
-the point of [SelfHostedMerge](memory-dev_1-2_SelfHostedMerge_DevPlanTicket.md).
+the point of [SelfHostedMerge](../archive/20260917_SelfHostedMerge_DevPlanTicket.md).
 
 ### 2.3 Two things not to do afterwards
 
