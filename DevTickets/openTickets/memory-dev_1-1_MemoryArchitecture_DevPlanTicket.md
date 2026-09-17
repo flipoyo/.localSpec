@@ -345,6 +345,8 @@ one lands.
 | **M7** | CommitMemory — **landed 2026-09-17** | A memory says what was committed, and whether it was ever pushed |
 | **M8** | SelfHostedMerge — **landed 2026-09-17** | `cgitsync merge <source> --into <target>`: checkout and merge in one process, so a tree that manages its own source never runs a stale build partway through |
 | **M9** | MemoryOnboarding | The steps a person runs once per project — create the repository, mount it, push it, merge it — are commands rather than instructions |
+| **M10** | MemoryExplore | A memory a person can read: what was published, by branch, and the ledger's own order made legible |
+| **M11** | MemoryReboot | Starting a memory's history over, on purpose, without losing the chapter before it |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing
@@ -384,8 +386,16 @@ older build against the newer one's workspace — the 2026-09-16 incident.
 [SelfHostedMerge](../archive/20260917_SelfHostedMerge_DevPlanTicket.md) makes
 `checkout` and `merge` one process instead of two, which is what M9's own
 first step needs in order to run for real. It landed on 2026-09-17 and unblocked the
-first merge of `memory-dev` into `main`, which M9's §2 now performs; M6 is
-then the only milestone this workstream still owes once M9 is run.
+first merge of `memory-dev` into `main`, which M9's §2 now performs. M9 is
+itself blocked mid-run by a bug outside this workstream
+(`main_1-1_PullOutsideRoot`) — its own memory is already a real, pushed
+repository; only the tree formally recognising the mount remains.
+
+M10 and M11 were both opened 2026-09-17, from the owner's own short ticket
+and a direct request, ahead of M9's own close: reading a memory and
+starting one over are both things a memory that is now a real repository
+needs, independent of whether M9's last step has landed yet. M6 remains
+the only milestone this workstream owes with no ticket open against it.
 
 **`memory/` is a new top-level area of `src/ComplexGitSync/`**, the
 owner's own suggestion and the right one: `cli/` earned its own package
