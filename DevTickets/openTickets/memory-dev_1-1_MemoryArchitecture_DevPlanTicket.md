@@ -343,7 +343,8 @@ one lands.
 | **M5** | MemoryRepoLocal | A project's memory is a repository, pushed, and survives the machine |
 | **M6** | Omniscience — **stand-by** | The project's own register, appended to by everyone and quietly rewritable by nobody. Architecture written; §5's D1 decides whether it is built |
 | **M7** | CommitMemory — **landed 2026-09-17** | A memory says what was committed, and whether it was ever pushed |
-| **M8** | MemoryOnboarding | The steps a person runs once per project — create the repository, mount it, push it, merge it — are commands rather than instructions |
+| **M8** | SelfHostedMerge | `cgitsync merge <source> --into <target>`: checkout and merge in one process, so a tree that manages its own source never runs a stale build partway through |
+| **M9** | MemoryOnboarding | The steps a person runs once per project — create the repository, mount it, push it, merge it — are commands rather than instructions |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing
@@ -367,18 +368,24 @@ M5 by preference, not by need: a memory that is already a repository
 carries its commit logs from its first push rather than gaining them in a
 later one. That is what happened.
 
-M8 is what M5 turned out to owe. M5 made a memory *able* to be a repository
+M9 is what M5 turned out to owe. M5 made a memory *able* to be a repository
 and left the first five steps of getting there as printed instructions: a
 `gh` command to run, an entry to paste into a `.cgs` by hand, and no way at
 all to turn a `.cgitsync` that is already full of States into that
 repository. Every one of those steps is run once per project and met by
 everyone, which is why they are the ones an early adopter judges the tool
-on. [MemoryOnboarding](memory-dev_1-2_MemoryOnboarding_DevPlanTicket.md)
-carries them, along with the first merge of a memory across project
-branches — the case where the branch being merged *into* has never existed
-— and Tutorial 5, which walks the whole sequence. It blocks the first merge
-of `memory-dev` into `main`, so it is the next thing to build; M6 is then
-the only milestone this workstream still owes.
+on. [MemoryOnboarding](memory-dev_1-3_MemoryOnboarding_DevPlanTicket.md)
+carries them, along with Tutorial 5, which walks the whole sequence.
+
+M8 came before M9 in the numbering, not after, because building M9 exposed
+it: this project manages its own source tree, editable-installed, so
+checking out an older branch and then merging into it runs the checkout's
+older build against the newer one's workspace — the 2026-09-16 incident.
+[SelfHostedMerge](memory-dev_1-2_SelfHostedMerge_DevPlanTicket.md) makes
+`checkout` and `merge` one process instead of two, which is what M9's own
+first step needs in order to run for real. It blocks the first merge of
+`memory-dev` into `main`, so it is the next thing to build; M6 is then the
+only milestone this workstream still owes once M8 and M9 land.
 
 **`memory/` is a new top-level area of `src/ComplexGitSync/`**, the
 owner's own suggestion and the right one: `cli/` earned its own package

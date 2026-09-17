@@ -24,11 +24,19 @@ sequence end to end against a bare repository. Every §6 decision was taken
 as recommended.
 
 **Open: WP-6, and the live run of §2.** The entry is not yet in
-`examples/complexgitsync4dev.cgs`, because D5 says it goes in only once
-`ComplexGitSync` exists on `flipoyo/.memory` — and creating that branch
-writes to the owner's account, which is the owner's call, not the agent's.
-The commands are in §2, they work, and the ticket stays open until they
-have been run.
+`examples/complexgitsync4dev.cgs`: it is added by `memory mount` during the
+run itself, which writes branches to the owner's account and is the owner's
+call, not the agent's. §2 was revised on 2026-09-17 to the owner's order —
+merge the project first, then mount — and measured against this workspace.
+
+**This ticket is second in the memory workstream's implementation order.**
+Its §2 step 1 is `cgitsync merge memory-dev --into main`, which does not
+exist yet —
+[SelfHostedMerge](memory-dev_1-2_SelfHostedMerge_DevPlanTicket.md) builds
+it. This ticket is where that command gets its first real use: closing the
+memory workstream's operational cycle by actually merging `memory-dev` into
+`main` and mounting the memory. Nothing here can be run for real until
+SelfHostedMerge lands.
 
 ## Abstract — read this first
 
@@ -113,50 +121,89 @@ interactively from scratch. Both replace; neither appends.
 
 ## 2. The sequence — the owner's, and the tutorial's
 
-This is what has to be run on ComplexGitSync itself before `memory-dev` can
-merge into `main`. It is the acceptance test of §8 and the worked example of
-Tutorial 5, and it is written here once so the three cannot drift apart.
+**Revised 2026-09-17, on the owner's call: merge first, then mount.** The
+original order here mounted the memory on `memory-dev` and then merged it
+into `main`, which is why §5 exists. Merging the project first is simpler
+and avoids that case rather than solving it:
+
+- `.cgitsync` is not mounted yet, so the memory takes no part in the merge.
+  There is nothing to coordinate.
+- On `main`, this project's memory branch **is** `ComplexGitSync` — the
+  branch a merge would otherwise have had to create. The memory is born
+  where it belongs instead of being moved there.
+- Step 5 of the old order, `memory branch --project-branch main`, is not
+  needed at all. The command stays: it is what a project whose memory was
+  born on a feature branch still needs, and what `merge` names when it finds
+  a branch missing.
+
+Everything the memory recorded during the `memory-dev` work is kept: the
+directory is the same directory, and `memory adopt` commits all of it onto
+`ComplexGitSync` as one history, with no fork to merge later.
+
+### 2.1 The hazard, and the command that removes it
+
+`main` is at **2.59** and `memory-dev` at 2.68. `main` has no `memory/`
+package and no `hash_canonicalisation` at all. `cgitsync checkout main` puts
+that build into `src/`, which is an editable install, so the *next* cgitsync
+command runs 2.59 against a memory 2.68 wrote. **That is the incident of
+2026-09-16.**
+
+An earlier revision of this section routed around it with four `git fetch`
+commands. The owner refused that, correctly: *"cgitsync was developped to
+avoid that exact strategy."* Dropping to `git` to move a branch is the thing
+this tool exists to make unnecessary, and a runbook that does it is a
+runbook admitting a missing command.
+
+So the missing command is being built instead:
+[SelfHostedMerge](memory-dev_1-2_SelfHostedMerge_DevPlanTicket.md) adds
+`cgitsync merge <source> --into <target>`, which checks out the target and
+merges the source **inside one process** — and a process keeps running the
+build it started with, whatever happens to `src/` underneath it. Step 1
+below is that command. Nothing else in this sequence changes.
+
+### 2.2 The commands
 
 ```bash
-# 0. Where we are: project on memory-dev, memory not yet a repository.
-pixi run cgitsync status            # cgitsync_branch=memory-dev
-pixi run cgitsync memory status     # states=…, entries=…, verification=verified
+# 0. Safety net. A no-op when everything is already pushed.
+pixi run cgitsync push --private
+pixi run cgitsync push
 
-# 1. The repository, created without leaving cgitsync (§3).
-pixi run cgitsync repo create github:flipoyo/.memory --private
-#    Already created by hand on 2026-09-16 — the command must say so and
-#    succeed, not fail. See §3's "already there" rule.
+# 1. The merge, in one command, for the whole tree. Needs SelfHostedMerge.
+pixi run cgitsync merge memory-dev --into main --dry-run
+pixi run cgitsync merge memory-dev --into main --private
+pixi run cgitsync merge memory-dev --into main
+pixi run cgitsync status          # cgitsync_branch=main, dirty=0
 
-# 2. The .cgs learns about it (§4). The demo case the owner asked for.
+# 2. Publish the merge.
+pixi run cgitsync push --private
+pixi run cgitsync push
+
+# 3. The memory. Four commands, once for this project, ever.
+pixi run cgitsync repo create github:flipoyo/.memory   # already-there
+pixi run cgitsync memory init                          # branch=ComplexGitSync
 pixi run cgitsync memory mount --cgs examples/complexgitsync4dev.cgs
-#    Appends one entry under repos, keeping the file's own formatting:
-#    { repository = "github:flipoyo/.memory", relative_path = ".cgitsync",
-#      default_branch = "ComplexGitSync", fallback_branch = "main",
-#      private = true, writable = true },
-
-# 3. This .cgitsync becomes that repository, on this branch's memory (§5).
 pixi run cgitsync memory adopt
-#    Keeps every State and ledger entry already on disk. Creates the branch
-#    ComplexGitSync_memory-dev locally, from origin/main.
-
-# 4. The branch reaches origin.
 pixi run cgitsync memory push
-#    refs/heads/ComplexGitSync_memory-dev now exists.
 
-# 5. The memory of the branch we are merging *into* is created (§5).
-pixi run cgitsync memory branch --project-branch main
-#    Creates and pushes ComplexGitSync, so the merge has a target.
-
-# 6. The ordinary merge, which now covers the memory like any private repo.
-pixi run cgitsync checkout main
-pixi run cgitsync merge memory-dev --private
-pixi run cgitsync merge memory-dev
-pixi run cgitsync push --private && pixi run cgitsync push
+# 4. Ship the .cgs change, and let the tree learn about the mount.
+pixi run cgitsync add
+pixi run cgitsync commit "the developer tree now mounts the project's memory at .cgitsync"
+pixi run cgitsync push
+pixi run cgitsync pull examples/complexgitsync4dev.cgs
+pixi run cgitsync status          # .memory shows as private/local
 ```
 
-Steps 1 to 5 happen **once per project, ever**. Step 6 is the ordinary
-release flow, unchanged. That ratio is the whole argument for this ticket:
-rarely used, and met by everyone.
+Every command is `cgitsync`. There is no `git` in this sequence, which is
+the point of [SelfHostedMerge](memory-dev_1-2_SelfHostedMerge_DevPlanTicket.md).
+
+### 2.3 Two things not to do afterwards
+
+- **Never `initialise`, `clean-init` or `pull-force` this workspace once the
+  memory is mounted.** Those delete and re-clone every mounted repository,
+  and `.cgitsync` is now one. Use `pull`.
+- **Going back to `memory-dev` later is ordinary.** `checkout` creates
+  `ComplexGitSync_memory-dev` in the memory from wherever it stands, and it
+  merges back the same way every other private/local repository does.
 
 ## 3. Creating a repository from `cgitsync`
 
