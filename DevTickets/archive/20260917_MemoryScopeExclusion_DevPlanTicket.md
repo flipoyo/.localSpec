@@ -71,48 +71,60 @@ time, on this project's own tree — matching the owner's report exactly.
 
 ## 2. The fix
 
-**The memory mount is excluded from `RepoScope.PROJECT`, `PRIVATE` and
-`WRITABLE` — every write scope but `ALL`.** `RepoScope.includes()`
-(`git_repo.py`) now checks a new, derived field,
-`WorkingRepo.is_memory_mount`, before anything else:
+**`add`/`commit`/`push` are the only commands that exclude the memory —
+`RepoScope` itself does not know about it.** A first version of this fix
+put the exclusion in `RepoScope.includes()`, and it was wrong: `RepoScope`
+is shared by `merge`, `tag` and `freeze-release` too, and excluding the
+memory there silently broke something already shipped and relied on —
+`merge --private`/`--all` reconciling the memory's branches across a
+project branch merge, exactly the way it already reconciles
+`.localSpec`/`.claude`. Measured before reverting that version:
+`merge memory-dev --into main --all`'s dry-run plan simply stopped naming
+`.memory` at all.
+
+So the exclusion is narrower, and lives one level up, in a new
+`operations.iter_write_scope`:
 
 ```python
-if self is RepoScope.ALL:
-    return True
-if repo.is_memory_mount:
-    return False
+def iter_write_scope(tree, scope):
+    return (repo for repo in iter_tree_leaf_first(tree, scope)
+            if not repo.is_memory_mount)
 ```
 
-`is_memory_mount` is never declared in a `.cgs` and never read back from a
-`.gts` — it is recognised the same way the tool already recognises the
-memory everywhere else, by where it sits (`relative_path ==
-memory.repository.MOUNT_PATH`), computed once when the registry is built
-from either document (`registry.py`).
+`add_tree`, `commit_tree` and `push_tree` — and only those three — call
+this instead of `iter_tree_leaf_first(tree, scope)` directly. `merge_tree`,
+`merge_into_tree`, `tag_tree`, `freeze_release_tree`, and every preflight
+check keep using `iter_tree_leaf_first` unchanged, so the memory stays
+exactly as reachable to them as `.localSpec`/`.claude` are.
+
+`is_memory_mount` (`WorkingRepo`, `git_repo.py`) is never declared in a
+`.cgs` and never read back from a `.gts` — recognised the same way the
+tool already recognises the memory everywhere else, by where it sits
+(`relative_path == memory.repository.MOUNT_PATH`), computed once when the
+registry is built from either document (`registry.py`).
 
 This costs `memory push`/`memory adopt` nothing: both already operate
 directly on `memory_mount_path(workspace)` through `git_runner`, never
-through `RepoScope`/`iter_tree_leaf_first` at all.
+through `RepoScope` at all.
 
 ## 3. What changes, and what stays the same
 
 - **`add`, `commit`, `push` — with no flag, `--private`, or `--all` — never
   touch `.cgitsync` again.** Only `memory push` (and, later,
   `memory reboot`) does.
+- **`merge`, `tag`, `freeze-release` are unaffected.** `merge --private`/
+  `--all` still reconciles the memory's branches across a project-branch
+  merge, the same way it always has for `.localSpec`/`.claude` — this is
+  the thing the first version of this fix broke and this version restores.
 - **`cgitsync status` still reports `.memory` honestly.** It reads every
   repository's real git status independent of scope, so a memory with
   unpushed content still shows `dirty` — correctly: that is what tells a
-  reader `memory push` has something to do. What changed is that ordinary
-  commands no longer *pretend* to have handled it.
+  reader `memory push` has something to do. What changed is that `add`/
+  `commit`/`push` no longer *pretend* to have handled it.
 - **The SCOPE column keeps saying `private/local`.** The memory did not
   become read-only or shared; it is still entirely the workspace's own to
-  write, only through a different command. Making it declared
-  `writable = false` instead would have "fixed" the scope leak too, but by
-  mislabelling the memory `private/distant` — which is false, and a worse
-  answer than the bug it would have replaced.
-- **`tag`/`freeze-release`** (`RepoScope.WRITABLE`) also stop reaching the
-  memory, for the identical reason `commit`/`push` do — nobody asked for
-  this specifically, but leaving them touching it while `commit`/`push`
-  do not would have been the inconsistent, half-fixed version of this.
+  write, only through a different command (or through `merge`, for the
+  cross-branch case).
 
 ## 4. Acceptance — measured, not asserted
 
@@ -128,9 +140,19 @@ $ cgitsync status
 .memory   .cgitsync   private/local   …   clean   synced
 ```
 
-Plus `tests/unit/test_repo_scope.py`'s
-`test_each_scope_selects_what_the_documentation_promises`, updated on this
-project's own developer spec: `.memory` is absent from `PRIVATE` and
-`WRITABLE`, present in `ALL`.
+And, restoring what the first version broke:
 
-`pixi run lint` and `pixi run test` pass — 1514 tests.
+```
+$ cgitsync merge main --into memory-dev --all --dry-run
+plan_order=… -> .memory: ComplexGitSync_memory-dev <- ComplexGitSync (…) -> …
+```
+
+`.memory` is back in the plan.
+
+Plus `tests/unit/test_repo_scope.py`'s new `TestIterWriteScope`: the
+memory is absent from `iter_write_scope(tree, PRIVATE)` but present in
+plain `iter_tree_leaf_first(tree, PRIVATE)` — the two commands that use
+each. `test_each_scope_selects_what_the_documentation_promises` confirms
+`RepoScope` itself still includes `.memory` in `PRIVATE`.
+
+`pixi run lint` and `pixi run test` pass — 1517 tests.
