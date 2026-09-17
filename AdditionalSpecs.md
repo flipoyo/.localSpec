@@ -847,6 +847,20 @@ ledger entry, never to a State: hashing them would give one tree two names
 on two machines running different git versions, and a version bump would
 rename every State in a workspace.
 
+**The tool's own version leaked in exactly this way, from version 2 until
+version 3 closed it.** `hash_canonicalisation` was meant to be the one
+fixed format marker; version 2's payload also put `CGS_VERSION` — the
+running package's own version — inside the `document` block it hashed,
+never pinned to a real fixed value, so it read back whatever `__version__`
+happened to be at write time. Two machines on different builds, or one
+machine before and after an upgrade, computed two different names for the
+identical tree — precisely the failure the paragraph above describes,
+just not yet found when it was written
+(`memory-dev_1-2_StateVersionLeak_DevPlanTicket.md`). Version 3 drops that
+block from the payload entirely; every version-2 document already on disk
+keeps validating under version 2, leak included, for as long as it declares
+that version — the same rule that already protects version-1 documents.
+
 Version 1 hashed the three path rows above and ordered repositories by
 absolute path. That is a location, not an identity, and it is why the
 digest was useless as a name two parties could agree on.
