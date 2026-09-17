@@ -975,15 +975,25 @@ Nothing may be inserted between its checkout and its merge that starts
 another process, and the two must never be split into separate commands
 again.
 
-Two supporting rules:
+Three supporting rules:
 
 - **Every repository is checked before any is touched**, so a conflict or a
   missing target leaves the whole tree on the source branch — the promise
   `merge_tree` already made, extended to cover the checkout.
 - **`checkout` warns and never refuses** when it is about to install a
   different build (`ComplexGitSyncClient._warn_if_build_changes`). Checking
-  out an older branch to read it is legitimate; `main_1-4_SnapshotVersionGuard`
+  out an older branch to read it is legitimate; `main_1-2_SnapshotVersionGuard`
   is what makes that older build fail honestly if it is then used.
+- **A scoped call's preflight does not check branch alignment.** The shared
+  preflight (`operations._run_preflight_checks`) enforces "this repository
+  is on the branch the tree expects" for every other command, because for
+  them that is a real precondition — `checkout`/`branch` were meant to have
+  put it there already. `merge --into` is the one command whose job is
+  taking a repository *from* wherever it sits *to* the branch named by the
+  call, so "not yet there" is this command's input, not a fault. Without
+  this, a `--private` or `--all` call run after an earlier scoped `--into`
+  would refuse the very repositories it exists to move — see
+  `main_1-1_MergeIntoScopeSync`.
 
 ### Creating a repository: the one thing this project asks another tool to do
 
