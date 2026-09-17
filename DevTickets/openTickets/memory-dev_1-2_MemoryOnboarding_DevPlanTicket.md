@@ -23,19 +23,24 @@ commands exist, and `tests/integration/test_memory_onboarding.py` runs §2's
 sequence end to end against a bare repository. Every §6 decision was taken
 as recommended.
 
-**Open: WP-6, and the live run of §2.** The entry is not yet in
-`examples/complexgitsync4dev.cgs`: it is added by `memory mount` during the
-run itself, which writes branches to the owner's account and is the owner's
-call, not the agent's. §2 was revised on 2026-09-17 to the owner's order —
-merge the project first, then mount — and measured against this workspace.
+**§2 steps 0–3 have been run for real, on this project.** This project's
+own memory is now a real, pushed repository —
+`github:flipoyo/.memory`, branch `ComplexGitSync`, mounted at `.cgitsync`,
+started from `origin/main` as designed, 29 States and 35 ledger entries,
+`cgitsync verify` reports `verified`. `repo create`, `memory init`,
+`memory mount --cgs examples/complexgitsync4dev.cgs`, `memory adopt` and
+`memory push` all ran exactly as §2.2 describes and all behaved exactly as
+designed.
 
-**Its blocker has landed.** §2 step 1 is
-`cgitsync merge memory-dev --into main`, and
-[SelfHostedMerge](../archive/20260917_SelfHostedMerge_DevPlanTicket.md)
-built it on 2026-09-17. Measured against this workspace the same day, the
-dry run reports both repositories as fast-forwards and names the build on
-`main`. **Everything in §2 is now runnable**; what remains is running it,
-which writes to the owner's account and is the owner's call.
+**Open: step 4's `pull`, and WP-6.** `cgitsync pull
+examples/complexgitsync4dev.cgs` — the last command in §2.2, meant to let
+the tree formally list `.memory` as mounted — fails on this workspace with
+two separate errors, neither caused by this ticket:
+[PullOutsideRoot](../../../.localSpec/DevTickets/openTickets/main_1-1_PullOutsideRoot_DevPlanTicket.md).
+The `.cgs` entry itself (WP-6) is already in
+`examples/complexgitsync4dev.cgs`, committed and pushed; what is missing is
+the registry formally recognising it, which needs that fix first. This
+ticket stays open until `pull` succeeds here.
 
 ## Abstract — read this first
 
