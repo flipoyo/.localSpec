@@ -4,12 +4,15 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-18.** Renumbered `1-4` → `1-3` → `1-2` as
-> [CheckoutForkGuard](../archive/20260918_CheckoutForkGuard_DevPlanTicket.md)
+> **Ticket review — 2026-09-18.** Renumbered `1-4` → `1-3` → `1-2` → `1-1`
+> as
+> [CheckoutForkGuard](../archive/20260918_CheckoutForkGuard_DevPlanTicket.md),
+> [SnapshotVersionGuard](../archive/20260918_SnapshotVersionGuard_DevPlanTicket.md),
 > and
-> [SnapshotVersionGuard](../archive/20260918_SnapshotVersionGuard_DevPlanTicket.md)
+> [PushFoldsMemory](../archive/20260918_PushFoldsMemory_DevPlanTicket.md)
 > were each implemented and archived ahead of it — compaction, not a
-> priority change of this ticket's own.
+> priority change of this ticket's own. It is now the only ticket left in
+> the `main` priority-1 pile.
 
 > **Owner direction — 2026-09-18, in conversation:** *"It may be also time
 > for closing memory-dev branch, by implementing a branch closing command
