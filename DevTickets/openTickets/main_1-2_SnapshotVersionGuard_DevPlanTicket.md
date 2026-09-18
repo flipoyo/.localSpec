@@ -4,6 +4,12 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-18.** Moved from `1-1` to `1-2`: the original
+> order reflected filing date, not severity.
+> [CheckoutForkGuard](main_1-1_CheckoutForkGuard_DevPlanTicket.md) is a
+> live, repeat-offender bug; this incident is already found, recovered
+> from, and has a smaller fix, so it goes second.
+
 > **Incident ticket.** Written the day it happened, 2026-09-16, from a real
 > breakage in the developer workspace: every `cgitsync` command failed with
 > a hash-mismatch error after a branch switch. Cause found, workspace

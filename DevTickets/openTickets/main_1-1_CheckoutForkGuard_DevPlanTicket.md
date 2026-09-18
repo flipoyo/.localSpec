@@ -4,6 +4,12 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-18.** Promoted from `1-2` to `1-1`: the
+> original 1-1/1-2 order reflected filing date, not severity. This is a
+> live, repeat-offender bug (it has silently forked a branch twice
+> already) versus [SnapshotVersionGuard](main_1-2_SnapshotVersionGuard_DevPlanTicket.md)'s
+> already-recovered-from incident, so it goes first.
+
 > **Owner report — 2026-09-18**, from
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260918_checkoutMemoryUpstream.md`:
 > *"Again a problem with memory that doesn't have an upstream branch, after
