@@ -11,57 +11,73 @@
 > existing. I suspect there are still exceptions in the code about .memory
 > that shouldn't exist anymore because it is now only a private/local
 > repo."*
+>
+> **Owner follow-up, same day**, pushing back on this ticket's first
+> draft: *"Why don't we see the same problem for the other two
+> private/local branches [`.localSpec`, `.claude`]? I am persisting in
+> wanting a clear analysis of what are the specificities of `.memory`
+> with respect to other private/local. Those specificities must be
+> erased as much as possible. Or maybe you should include a fetch in the
+> checkout request if not executed before — is `.memory` a good reference
+> for checking that information?"* This revision answers that with
+> forensic evidence (§2) instead of the generic "it could happen to
+> anyone" the first draft gave, and makes the fetch-on-demand the
+> recommended fix (§4 D1) rather than a rejected option.
 
 ## Abstract — read this first
 
-**The one-line version.** `checkout`'s `create_global_branch` step trusts
-whatever remote-tracking refs this clone already happens to have; when it
-does not have the one it needs, it silently creates a brand-new,
-untracked local branch of the same name instead of refusing — and on
-`ComplexGitSync`'s own `.cgitsync/.memory`, that is exactly what just
-happened, forking a real, already-pushed `ComplexGitSync_memory-dev` under
-a local branch that shares nothing with it but its name.
+**The one-line version.** `.memory` really is different from `.localSpec`
+and `.claude` on this workspace right now — not because of leftover code,
+but because of what actually happened to each of their `.git` directories
+during this workspace's own `bootstrap`: something fetched every branch
+for `.localSpec` and `.claude` a minute after cloning them, and never
+touched `.memory` at all. `checkout`'s branch-creation fallback then did
+exactly what it always does when a branch's remote history is unknown to
+this clone — created one fresh at HEAD — silently forking `.memory`'s
+`ComplexGitSync_memory-dev` under a name that already existed, differently,
+on the remote.
 
-**What this document is.** An audit that found no `.memory`-specific
-leftover code — the owner's suspicion pointed at the right symptom but the
-wrong cause. The actual defect is generic to `checkout`/`branch`, already
-partly known (`.localSpec/DevTickets/archive/20260911_UpstreamBranchDisplay_DevPlanTicket.md`),
-and reproduced live on this project's own workspace with real shas, kept
-in §1.
+**What this document is.** A forensic reconstruction of this workspace's
+own `.git` reflogs, per repository, proving *when* each repo last saw the
+network and what it received — settling the "why `.memory` and not the
+others" question with timestamps and commit hashes rather than a general
+argument. Then the code-level cause, and a fix that removes the
+specificity instead of merely working around it.
 
-**Why it exists.** A private/local repository's branch name is *derived*
-(`git_branch.py`'s `private_local_branch`) rather than typed by the user,
-so the user has no way to know, before running `checkout`, whether this
-clone has ever seen that derived name's remote branch. `.memory` forks one
-such name per project branch, which is why it is the repo most likely to
-hit this — not because it carries special-case code, but because it
-carries none.
+**Why it exists.** The owner asked twice: first to find the leftover
+`.memory` exception (there is none, in the source this workspace runs
+today), then to explain why `.memory` alone shows the symptom and to
+prefer closing the gap by fetching automatically over merely refusing.
+§2 delivers the first answer with evidence; §4 D1 takes the second
+instruction as the recommendation.
 
-**What you will find.** §1 the live reproduction on this project's own
-tree. §2 the cause, traced to one fallback branch in one function. §3 why
-this is not a `.memory`-only bug, and why `.memory` finds it first. §4
-decisions the owner must make about the fix. §5 work packages. §6
-acceptance. §7 what this does not cover.
+**What you will find.** §1 the failure, live. §2 the forensic trace: three
+repos cloned within 13 seconds of each other, two of them fetched a
+minute later, one not — with the timestamps and the per-ref Git reflogs
+that prove it, and why this is a dated, already-half-fixed exclusion bug
+rather than a design gap unique to `.memory`. §3 the code path that turns
+"never fetched" into a silent fork. §4 decisions, D1 recommending the
+fetch-on-demand the owner asked for. §5 work packages. §6 acceptance. §7
+what this does not cover.
 
-**Who it is for.** Whoever fixes `checkout`'s silent-fork gap, and the
-owner, for §4.
+**Who it is for.** Whoever builds the fix, and the owner, to confirm D1.
 
-**What you need to do with it.** Read §1 and §2 — the whole defect is one
-fallback call with no guard — then answer §4.
+**What you need to do with it.** Read §2 first this time — it is the
+answer to "what is specific about `.memory`," and it is not a code
+difference.
 
 ```mermaid
 graph TD
-    CO["cgitsync checkout memory-dev"] --> PROP["propagate_global_branch:<br/>.memory's target = ComplexGitSync_memory-dev"]
-    PROP --> CGB["create_global_branch"]
-    CGB --> LOCAL{"local branch<br/>exists?"}
-    LOCAL -->|no| REMOTE{"refs/remotes/origin/<br/>ComplexGitSync_memory-dev<br/>cached here?"}
-    REMOTE -->|yes, tracked ref found| JOIN["git branch --track<br/>correct, safe"]
-    REMOTE -->|no ref cached —<br/>never fetched, though<br/>it exists on the remote| FORK["git branch (from HEAD)<br/>YOU ARE HERE — silent fork"]
-    FORK --> CHECKOUT["git checkout<br/>reports success"]
-    CHECKOUT --> BROKEN["no upstream, diverged history,<br/>invisible until push or verify"]
+    BOOT["bootstrap: clone .claude, .localSpec, .memory<br/>within 13s of each other, all at ComplexGitSync"] --> GAP["~1 minute passes"]
+    GAP --> FETCH["something fetches every branch<br/>for .claude and .localSpec<br/>(.git/logs/refs/remotes: fetch: storing head)"]
+    GAP --> NOFETCH[".memory: no fetch reflog at all<br/>YOU ARE HERE"]
+    FETCH --> CO["checkout memory-dev, 2 min after clone"]
+    NOFETCH --> CO
+    CO -->|.claude, .localSpec: ref cached| JOIN["git branch --track — joins the real branch"]
+    CO -->|.memory: nothing cached| FORK["git branch (from HEAD) — silent fork"]
 
     classDef here fill:#1565C0,color:#fff,stroke:#111,stroke-width:2px;
-    class FORK here;
+    class NOFETCH here;
 ```
 
 ---
@@ -79,9 +95,6 @@ $ git branch -vv
 $ git branch -r
   origin/ComplexGitSync                              # only one — never fetched the others
 
-$ git config --get-all remote.origin.fetch
-+refs/heads/*:refs/remotes/origin/*                  # already wide; not a narrow-refspec case
-
 $ git ls-remote --heads origin
 21f97030c6192906856cf730c06fc6ded5350122  refs/heads/ComplexGitSync
 670d6e86cb527c60d38dc6585b579e8f029f40cf  refs/heads/ComplexGitSync_memory-dev   # exists, and differs
@@ -90,18 +103,116 @@ ee601f22905339e51f02c87d95eb437b27ea59f3  refs/heads/main
 
 `ComplexGitSync_memory-dev` is real, pushed, and at `670d6e8` — a
 different commit from what this clone's `ComplexGitSync_memory-dev` sits
-at (`21f9703`, identical to `ComplexGitSync`, i.e. wherever `.memory`
-happened to be checked out before). `checkout memory-dev` created a
-second, unrelated branch under the real branch's name, gave it no
-upstream, and reported success as if it had joined it.
+at (`21f9703`, identical to `ComplexGitSync`). `checkout memory-dev`
+created a second, unrelated branch under the real branch's name, gave it
+no upstream, and reported success as if it had joined it. The refspec is
+already the wide one (`+refs/heads/*:refs/remotes/origin/*`) — this is not
+the narrow-refspec bug from
+`.localSpec/DevTickets/archive/20260911_UpstreamBranchDisplay_DevPlanTicket.md`.
 
-This is not a narrow-refspec problem (§3 of the archived
-UpstreamBranchDisplay ticket) — the refspec here is already the wide one.
-It is that nothing has ever run an actual `git fetch` against this
-`.memory` clone since it last saw only `ComplexGitSync`, and `checkout`
-does not run one either.
+## 2. The forensic trace: what is actually specific about `.memory` here
 
-## 2. The cause, traced to one fallback
+The owner's question deserves the real answer, not "it could happen to
+any repo." Comparing the three private/local mounts' own `.git` reflogs on
+this exact workspace settles it.
+
+### 2.1 All three were cloned within 13 seconds of each other
+
+```console
+.claude       reflog: 0a79621 HEAD@{00:18:27}: clone: from github.com:flipoyo/.claude.git
+.localSpec    reflog: 8d12b85 HEAD@{00:18:31}: clone: from github.com:flipoyo/.localSpec.git
+.memory       reflog: 21f9703 HEAD@{00:18:40}: clone: from github.com:flipoyo/.memory.git
+```
+
+`bootstrap` cloned all three, one after another, all landing on branch
+`ComplexGitSync` (every mount's `default_branch` in
+`examples/complexgitsync4dev.cgs` is the project's own name — the
+`private_local_branch` rule's answer for the project's default branch).
+Nothing distinguishes `.memory`'s clone from the other two at this point:
+same single-branch download, same wide refspec written afterward
+(`git_runner.py`'s `clone()`, one function, no repo-specific branch in it —
+confirmed by reading it; there is no second `clone()` implementation
+anywhere for memory).
+
+### 2.2 A minute later, two of the three were fetched, one was not
+
+Git logs every remote-tracking ref's own history separately from `HEAD`'s
+(`.git/logs/refs/remotes/<remote>/<branch>`), which is not what
+`git reflog show` prints by default. Asking each ref directly
+(`git reflog show origin/<branch>`) is conclusive:
+
+```console
+.claude:     refs/remotes/origin/ComplexGitSync_memory-dev@{00:19:27}: fetch: storing head
+.claude:     refs/remotes/origin/main@{00:19:27}: fetch: storing head
+.claude:     refs/remotes/origin/ComplexGitSync_multi-branch@{00:19:27}: fetch: storing head
+
+.localSpec:  refs/remotes/origin/ComplexGitSync_memory-dev@{00:19:28}: fetch: storing head
+.localSpec:  refs/remotes/origin/main@{00:19:28}: fetch: storing head
+
+.memory:     (no such log file exists at all — .git/logs/refs/remotes is empty for .memory)
+```
+
+`.claude` and `.localSpec` were both fetched, in full, one second apart —
+clearly one sweep reaching both. `.memory` shows **zero** fetch activity,
+ever, on this clone: not a failed attempt, not a partial one — nothing.
+Two minutes after the initial clone (`00:20:33`), a single
+`cgitsync checkout memory-dev` moved all three at once: `.claude` and
+`.localSpec` had `ComplexGitSync_memory-dev` cached from the `00:19:2x`
+fetch and joined it correctly (their `HEAD` reflogs show the checkout
+landing on a *different* commit than the clone did — proof of a real
+fast-forward, not a fork at the same commit); `.memory` had nothing cached
+and forked.
+
+### 2.3 Why the sweep reached two repos and skipped the third
+
+This shape — a bulk operation touching every private/local repo except
+`.memory` — is not a coincidence; it is the exact fingerprint of a real,
+dated bug in this project's own history:
+
+```text
+b87ce37  2026-09-17 16:59:59  "pull no longer runs git on the memory either,
+                                for the same reason add/commit/push stopped"
+114f8c5  2026-09-17 20:59:19  "...a freshly onboarded memory now reaches READY
+                                through an ordinary pull too, which the same
+                                exclusion had quietly broken"
+```
+
+For four hours on 2026-09-17, `pull` (and whatever swept-fetch runs ahead
+of it) explicitly skipped `.memory` while still reaching `.localSpec` and
+`.claude` — by design at the time, to stop `.memory`'s worktree from
+looking dirty while it was still sharing `.cgitsync` with ComplexGitSync's
+own live state. `114f8c5` reversed that exclusion the same evening. **This
+workspace's own `memory-dev` checkout is already past that fix** (its
+`HEAD` is `8f4c777`, later still) — so the exclusion is not live in the
+code this workspace runs today. But `bootstrap` necessarily runs from
+*outside* the workspace it is creating (there is no `cgitsync` to bootstrap
+with before the clone exists), using whichever `cgitsync` build was
+already installed on the machine at the time. Whatever build actually
+performed the post-clone fetch at `00:19:2x` reached `.localSpec` and
+`.claude` but not `.memory` — precisely what a build still carrying (or
+briefly re-carrying) that exclusion would do.
+
+**The specificity is real, but it is a fossil, not a design flaw to
+delete.** There is no `.memory`-shaped `if` left to remove from
+`src/ComplexGitSync/` — confirmed again in this revision by grepping every
+module outside `memory/` for a literal `.memory` reference (only
+docstrings and comments remain, same result as the first pass). What is
+specific to `.memory` is this *one workspace's* git history: it was
+cloned by a tool build that (still, or again, briefly) skipped it during
+the exact bootstrap window, and nothing has fetched it since. Erasing the
+specificity, per the owner's instruction, means two different things:
+
+- **For this workspace**: a one-time manual catch-up (§7) — not a code
+  change, because there is no code left that would reproduce the skip.
+- **For every future workspace**: closing the gap that let a stale or
+  skipped fetch go unnoticed at all — which is §3's actual code defect,
+  independent of which historical bug happened to trigger it this time.
+  A future regression in some other command's fetch coverage would hit
+  the exact same silent fork, on any repo, the next time it happens. §4
+  D1 is how to make `checkout` stop depending on some *other* command
+  having fetched first.
+
+## 3. The code path that turns "never fetched" into a silent fork
 
 `operations.py::create_global_branch`
 ([`operations.py:130`](../../../src/ComplexGitSync/operations.py#L130)) is
@@ -120,129 +231,101 @@ git_runner.create_branch(repo.absolute_path, target)   # <-- the fallback that j
 
 The comment immediately above this code already names the exact failure
 mode ("forked a second history under a name the user believed they were
-joining") and cites the archived ticket — the guard was written
-*knowing* about this danger. What it does not do is establish its own
-precondition: `remote_tracking_branch_exists`
+joining") and cites
+`.localSpec/DevTickets/archive/20260911_UpstreamBranchDisplay_DevPlanTicket.md`
+— the guard was written *knowing* about this danger. What it does not do
+is establish its own precondition: `remote_tracking_branch_exists`
 ([`git_runner.py:548`](../../../src/ComplexGitSync/git_runner.py#L548))
 is offline by contract, reading only `refs/remotes/<remote>/<branch>` as
-this clone already has it. Nothing upstream of `create_global_branch`
-guarantees that ref is current, or even present, before the fallback
-decides "never heard of it, must be new."
+this clone already has it — a cache with no way to tell "genuinely new"
+apart from "real, just never fetched here," which is exactly the
+ambiguity §2 shows landing the wrong way for `.memory`.
 
-`checkout_tree`
-([`operations.py:382`](../../../src/ComplexGitSync/operations.py#L382))
-and `branch_tree`
-([`operations.py:429`](../../../src/ComplexGitSync/operations.py#L429))
-are both, by their own docstrings and `git_runner.py`'s `branch_known`
-docstring, deliberately offline: "must keep working with no network."
-`pull` is the one command that fetches first
-(`_fetch_all_refs`/`_repair_fetch_refspec` in `_restart_tree`,
-`.localSpec/DevTickets/archive/20260911_UpstreamBranchDisplay_DevPlanTicket.md`
-WP-2) — and the project's own regression test for "checkout joins a
-colleague's branch" proves this by calling `pull` immediately before
-`checkout`:
+`checkout_tree` and `branch_tree` are both, by their own docstrings and
+`git_runner.py`'s `branch_known` docstring, deliberately offline: "must
+keep working with no network." `pull` is the one command that fetches
+first (`_fetch_all_refs`/`_repair_fetch_refspec` in `_restart_tree`,
+UpstreamBranchDisplay WP-2) — and the project's own regression test for
+"checkout joins a colleague's branch" proves this by calling `pull`
+immediately before `checkout`:
 [`test_upstream_tracking.py:288`](../../../tests/integration/test_upstream_tracking.py#L288),
 `# A pull is what brings their ref here`. Nobody reading `checkout`'s own
-output is told that.
-
-## 3. Why this is not a `.memory`-only bug
-
-The owner's suspicion was that leftover `.memory`-specific exceptions
-remain from before WorkingTransitionState made it an ordinary
-private/local repository. **This audit found none.** Grepping every
-module outside `memory/` for a literal `.memory` reference turns up only
-docstrings and comments; `create_global_branch`, `checkout_tree`,
-`branch_tree` treat `.memory` exactly like `.localSpec` or `.claude` —
-which is the point, and which is working as designed.
-
-The defect is generic: **any** repository whose target branch this clone
-has never fetched hits the same fallback, project repos included. A user
-running `cgitsync checkout <colleague's branch>` without pulling first
-forks it exactly the same way — `test_checkout_still_creates_a_brand_new_branch_at_head`
-in the same test file documents this as *intended* behaviour for a name
-"the remote has never heard of," and `create_global_branch` has no way to
-tell that case apart from "the remote has heard of it, but this clone has
-never asked."
-
-`.memory` (and every private/local repo) is simply the shape of
-repository most likely to trigger it in practice, for a reason that has
-nothing to do with leftover code:
-
-- Its branch name is **derived** (`git_branch.py`'s `private_local_branch`:
-  `<project>` on the project's default branch, `<project>_<branch>`
-  elsewhere) rather than typed by the user, so an ordinary
-  `cgitsync checkout memory-dev` silently asks `.memory` to join or fork
-  `ComplexGitSync_memory-dev` — a name the user never typed and has no way
-  to reason about before running the command.
-- It forks and rejoins on every project-branch switch, by design (D3 in
-  `memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md`) — so the ambiguous
-  case (branch exists remotely, never fetched here) comes up on the very
-  first `checkout` to a project branch this workspace has not visited
-  before, which is an ordinary, expected workflow step, not an edge case.
-- Nothing prompts a user to `pull` before switching project branches —
-  `bootstrap`'s own instructions (`CLAUDE.md`, *Bootstrapping a working
-  checkout*) go straight from clone to `pixi install` to running
-  commands, and switching to a workstream's branch (`memory-dev`, in this
-  project's own case) is naturally the very next thing typed.
-
-So: right symptom, right instinct that something is off about `.memory`
-and branches — wrong cause. There is nothing to delete; there is a guard
-to finish.
+output is told that a prior `pull` is what made it safe.
 
 ## 4. Decisions — the owner's call
 
 ### D1. What should the fallback do when it cannot tell join from fork?
 
+The owner's own suggestion — fetch as part of `checkout` when this clone
+has not already done so for the branch in question — is the recommended
+answer, not merely an option, because §2 shows exactly why "assume
+somebody else already fetched" is not safe to rely on: it depends on a
+different command, run by a possibly different `cgitsync` build, having
+swept every repo without missing one. `checkout` should not depend on
+that.
+
 | Option | What happens | Cost |
 |---|---|---|
-| **Refuse for private/local repos only (recommended)** | When the target is a *derived* branch name (`repo.effective_private`) and neither a local nor a cached remote-tracking ref exists, raise `GitSyncError` naming `cgitsync pull` (or `memory clone --branch NAME` where a memory mount is involved) rather than guessing. Project repos keep today's behaviour — a name the user typed themselves creating fresh at HEAD is usually exactly what they meant, and is already tested (`test_checkout_still_creates_a_brand_new_branch_at_head`). | One new refusal path; zero network calls added |
-| Live `ls-remote` check for every repo | Before falling back, ask `git_runner.remote_branch_exists(remote_url, target)` (already used by `memory_clone`/`memory_adopt`, `git ls-remote --heads`, no full fetch) for every repo about to fork. Fetch just that ref and track it when found; fall back to HEAD only when the remote truly has never heard of it. | Gives `checkout`/`branch` a real network dependency for the first time — a deliberate reversal of "must keep working with no network" |
-| Warn only, change nothing | Print a warning naming the risk and suggesting `pull` first, still fork. | Cheapest, and does not fix the bug — a warning in `checkout`'s output is exactly as easy to miss as the missing `[origin/...]` in `branch -vv` already is, which is what led to this report |
-| Do nothing; document "pull before checkout" | Add the warning to README/tutorials only. | Costs nothing to build and fixes nothing; the failure stays silent and this ticket recurs |
+| **Fetch on demand, scoped to the ambiguous case (recommended)** | Exactly where the fallback fires today — no local branch, no cached remote-tracking ref — ask the network directly: `git_runner.remote_branch_exists(remote_url, target)` (`git ls-remote --heads`, already used by `memory_clone`/`memory_adopt`; no full fetch). Found → `git fetch origin <target>` that one ref, then create tracking it, exactly like the already-cached branch. Not found → create fresh at HEAD, unchanged. | One network round-trip, only in the case that is rare by construction (a branch this clone has genuinely never created or tracked) — not a cost paid by every `checkout` |
+| Refuse for private/local repos only | Raise `GitSyncError` naming `cgitsync pull` instead of guessing, when the target is a derived branch name (`repo.effective_private`). Never touches the network itself. | Zero network calls added, but still depends on the user remembering to run `pull` — the exact dependency §2 shows failing silently |
+| Warn only, change nothing | Print a warning and still fork. | Cheapest, and does not fix the bug — as easy to miss as the absent `[origin/...]` in `branch -vv` already was |
+| Do nothing; document "pull before checkout" | README/tutorials only. | Fixes nothing; §2's failure mode (a different tool, or an older build, silently skipping one repo's fetch) recurs the next time bootstrap runs from a slightly different `cgitsync` version |
 
-### D2. Does the refusal apply only to private/local repos, or to every repo?
+### D2. Does the on-demand fetch apply only to private/local repos, or to every repo?
 
-Recommendation: **private/local only**, per D1. An ordinary project
-branch name is one the user chose and typed; `checkout <name-I-just-made-up>`
-creating it fresh is the common, correct case
-(`test_checkout_still_creates_a_brand_new_branch_at_head`). A derived
-private/local name is the one case where the user cannot tell, from the
-command they typed, whether they are about to fork somebody's work.
-Extending the refusal to project repos too is worth asking the owner
-about explicitly, since it would change already-tested, arguably correct
-behaviour.
+Recommendation: **every repo**, unlike the first draft's private-only
+refusal. The ambiguity is identical for a project branch a colleague
+pushed (`test_checkout_still_creates_a_brand_new_branch_at_head` already
+distinguishes "genuinely new" from this case only by assumption, not by
+asking) — and fetching on demand, unlike refusing, does not change
+behaviour for the common "I typed a brand-new name" case: the `ls-remote`
+comes back empty and `create_global_branch` falls through to today's
+exact behaviour, so `test_checkout_still_creates_a_brand_new_branch_at_head`
+needs no exception carved out for project repos the way a refusal would
+have needed one.
 
-### D3. What does the refusal actually tell the user to run?
+### D3. Is `.memory`'s own ledger a useful signal for "was this fetched before"?
 
-Recommendation: name `cgitsync pull` when the repository is reachable by
-an ordinary pull (every private/local repo, since WorkingTransitionState
-made `pull` reach `.memory` like any other), so the message is one
-command, not a diagnosis exercise.
+No — and it is worth saying why, since the owner asked directly. The
+ledger (`memory/ledger_store.py`) records **this tool's own commands**
+against **this project's tree** — a `memory show`/`memory explore`
+question. Whether a *specific Git remote-tracking ref* has ever been
+fetched into a *specific repository* is a fact Git already keeps for free,
+per repository, with no new bookkeeping needed:
+`refs/remotes/<remote>/<branch>` either exists or it does not
+(`remote_tracking_branch_exists`, already read by `create_global_branch`
+today), and §2's own forensic trace used exactly this — Git's per-ref
+reflog — to prove when each fetch happened. Building a second,
+memory-shaped record of "have I fetched X" would duplicate a fact Git
+already answers correctly and offline; D1's fix reads that existing fact
+and, only when it says "no," asks the network once instead of guessing.
 
 ## 5. Work packages
 
 | # | Depends on | Touches | Delivers |
 |---|---|---|---|
-| **WP-1** | D1, D2 | `operations.py` | `create_global_branch`'s fallback refuses, naming `cgitsync pull`, when `repo.effective_private` is true and neither a local nor a cached remote-tracking ref exists for the derived target. Project repos are unchanged. |
-| **WP-2** | WP-1 | `tests/integration/test_upstream_tracking.py` or a new file | A regression test shaped exactly like the live incident in §1: a private/local repo's branch pushed from *another* clone, this clone never fetching it, `checkout <project-branch>` refuses by name instead of forking. A second test confirms an ordinary project repo's brand-new branch name still creates at HEAD, unchanged. |
-| **WP-3** | WP-1 | `README.md`, `docs/Text/user_guide.tex` | Document the refusal and the fix (`cgitsync pull`) wherever `checkout` and private/local repos are already explained. |
+| **WP-1** | D1, D2 | `git_runner.py` | A helper that, given a remote URL and branch name this clone has neither locally nor as a cached remote-tracking ref, fetches exactly that ref (`git fetch <remote> <branch>`) and reports whether the remote had it — built from the existing `remote_branch_exists`/`fetch` primitives, not a new subprocess pattern. |
+| **WP-2** | WP-1 | `operations.py` | `create_global_branch`'s fallback calls WP-1's helper before creating a branch at HEAD: found → `create_branch(..., start_point=f"{remote}/{target}")` after the fetch, exactly like the already-cached path; not found → unchanged. |
+| **WP-3** | WP-2 | `tests/integration/test_upstream_tracking.py` or a new file | A regression test shaped exactly like §2: a private/local repo's branch pushed from *another* clone, this clone never fetching it (no `pull` run — the case that used to depend on one), `checkout <project-branch>` joins the real branch instead of forking. A second test confirms a project repo's colleague-pushed branch is now found by `checkout` alone, without a preceding `pull` — tightening `test_checkout_joins_a_colleagues_branch_instead_of_forking_its_name`'s own precondition. A third confirms `test_checkout_still_creates_a_brand_new_branch_at_head` is unaffected (no ref anywhere → still created at HEAD). |
+| **WP-4** | WP-2 | `README.md`, `docs/Text/user_guide.tex` | Document that `checkout`/`branch` now fetch the one ref they need when they do not already have it, and no longer require a `pull` first to safely join a colleague's (or another clone's) branch. |
 
 ## 6. Acceptance
 
-- Reproducing §1's exact shape — a private/local repo whose derived
-  branch exists on the remote but has never been fetched into this
-  clone — `checkout <project-branch>` refuses by name (`cgitsync pull`)
-  instead of creating a divergent local branch.
-- `checkout <brand-new-name-nobody-has-used>` on an ordinary project repo
-  still creates it at HEAD, exactly as before — `test_checkout_still_creates_a_brand_new_branch_at_head`
+- Reproducing §2's exact shape — a repository whose target branch exists
+  on the remote but has never been fetched into this clone, and no other
+  command has fetched it either — `checkout <project-branch>` joins the
+  real branch (fetching it on demand) instead of creating a divergent
+  local one.
+- `checkout <brand-new-name-nobody-has-used>` still creates it at HEAD,
+  exactly as before — `test_checkout_still_creates_a_brand_new_branch_at_head`
   passes unchanged.
-- `checkout <colleague's branch>` on an ordinary project repo, preceded by
-  `pull`, still joins it — `test_checkout_joins_a_colleagues_branch_instead_of_forking_its_name`
-  passes unchanged.
+- `checkout <colleague's branch>` on a project repo now joins it without
+  requiring a `pull` first.
 - `pixi run lint` and `pixi run test` pass.
 - This project's own `.cgitsync/.memory`, once repaired by hand (§7), no
   longer reproduces §1 on a subsequent `checkout` to a branch this clone
-  has not fetched.
+  has not fetched — and would not have needed the manual repair at all had
+  this fix existed when `bootstrap` ran.
 
 ## 7. What this does not cover
 
@@ -251,13 +334,13 @@ command, not a diagnosis exercise.
   `.cgitsync/.memory` needs a manual fix (delete the forked local branch,
   fetch, recreate tracking the real remote branch) — a one-time
   operational cleanup, not a code change, and not blocked on this ticket.
-- **Extending the refusal to ordinary project repos.** Left to D2 if the
-  owner wants it; not assumed here.
-- **A live network check as the default (`ls-remote` before every
-  fork).** Listed in D1 and not recommended, but the owner's call to make
-  either way — it is a bigger philosophy change than a refusal message.
-- **`branch_known()`'s own duplication of these two checks.** Noticed in
-  passing (`create_global_branch` inlines the same
-  local-then-remote-tracking check `branch_known` already names), not
-  fixed here — a reuse cleanup with no behaviour change, worth its own
-  pass if anyone touches this function again.
+- **Auditing `bootstrap`'s own post-clone fetch step for the same gap.**
+  §2.3 traced tonight's skip to *some* external tool's behaviour, not to
+  code in this checkout; if `bootstrap` itself (in whatever version
+  eventually ships this fix) also runs a sweep-fetch after cloning, it is
+  worth checking that sweep can no longer silently skip one repository —
+  a related but separate audit, since this ticket's fix makes `checkout`
+  safe regardless of what bootstrap did or did not fetch.
+- **`branch_known()`'s own duplication of the local-then-remote-tracking
+  check** `create_global_branch` inlines instead of calling. Noticed in
+  passing, not fixed here — a reuse cleanup with no behaviour change.
