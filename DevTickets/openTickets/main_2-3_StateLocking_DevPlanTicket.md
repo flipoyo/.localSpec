@@ -2,12 +2,19 @@
 
 *Created: 2026-09-12*
 
-*Branch: memory-dev*
+*Branch: main*
+
+> **Ticket review — 2026-09-18.** Moved from `memory-dev_2-2` to
+> `main_2-3`: [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md)
+> moved onto `main` in the same pass, and this ticket's own concurrency
+> work is scoped to the State area and ledger, not to anything still
+> exclusive to `memory-dev`. It stays last in the pile — still stand-by,
+> and still the least urgent of the three.
 
 > Split out of `.localSpec/DevTickets/archive/20260912_StateMemory_DevPlanTicket.md`
 > §3.5, which declared it out of scope and asked for a ticket of its own.
 > Stand-by, and it gets more important with every memory milestone — see
-> [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md).
+> [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md).
 
 ## Abstract — read this first
 

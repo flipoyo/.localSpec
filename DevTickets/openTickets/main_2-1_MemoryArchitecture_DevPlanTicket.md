@@ -2,12 +2,22 @@
 
 *Created: 2026-09-12*
 
-*Branch: memory-dev*
+*Branch: main*
 
 > **Owner direction — 2026-09-12.** From
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260912_memorySpecs.md`. This ticket is the design the
 > six that follow implement; it is priority 1-1 because every one of them
 > cites it for what a memory is and where it lives.
+
+> **Ticket review — 2026-09-18.** Moved from `memory-dev_1-1` to
+> `main_2-1`: the memory system this ticket designed has substantially
+> landed (`.cgitsync`/`.memory`, State, the ledger, `memory explore`,
+> `memory reboot`), so this document is now the architecture reference the
+> landed code implements, not an open memory-dev design. It keeps its rank
+> ahead of [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
+> [StateLocking](main_2-3_StateLocking_DevPlanTicket.md) because both still
+> cite it. [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) is
+> the one piece of this design still active and stays on `memory-dev`.
 
 ## Abstract — read this first
 
@@ -178,7 +188,7 @@ tree on the same day; both memories are valid; neither is a prefix of the
 other. A hash chain gives tamper-evidence, not a merge rule, and this
 architecture has said from the start that it does not merge chains.
 
-[Omniscience](memory-dev_2-10_Omniscience_DevPlanTicket.md) is the
+[Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) is the
 architecture. The shape, in one line: a repository mounted like every other
 private/writable one, holding one content-addressed file per record, whose
 chain is **Git's own commit history** — so `cgitsync` and a person with
@@ -382,7 +392,7 @@ before it grows a protocol.
 M6 is no longer next in the chain: with one shared `.memory` repository its
 original subject — an index of where each memory lives — is answered by the
 branch list. What remains is the multi-user problem, and
-[Omniscience](memory-dev_2-10_Omniscience_DevPlanTicket.md) now carries a
+[Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) now carries a
 design for it: a register whose chain is Git's own commit history, so a
 person can append with `git commit` and nobody can shorten it without every
 clone disagreeing on the next fetch. It stays stand-by until its D1 is
@@ -477,7 +487,7 @@ Their filenames say so: an open memory ticket is
 carries a `*Branch: memory-dev*` line under its `*Created:*` line. A ticket
 whose filename opens with `main_` is `main` work — including
 [CliContract](../archive/20260916_CliContract_DevPlanTicket.md),
-[UserInstallPath](main_2-1_UserInstallPath_DevPlanTicket.md) and
+[UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
 [CgshomeDefault](../archive/20260916_CgshomeDefault_DevPlanTicket.md), which the
 milestones ask questions of without being memory work themselves. The
 convention is stated in
@@ -500,7 +510,7 @@ this project in `.localSpec/AdditionalSpecs.md`.
   it.
 
   **This refusal still stands, and the shared journal does not violate
-  it.** [Omniscience](memory-dev_2-10_Omniscience_DevPlanTicket.md)
+  it.** [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md)
   §0.1 proposes that the distant journal be a *DAG* rather than a chain:
   records name their predecessors, a fork is two records with one parent,
   and closing it is a third record naming both. Nothing is merged — both

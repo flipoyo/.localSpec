@@ -214,6 +214,6 @@ out of scope for this ticket to add one just to carry this line.
   happens *inside* a command a person ran for an unrelated reason (to
   push their work, cut a tag, freeze a release) — "it must work offline"
   and "it is not a sync service"
-  (`memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md` §5) still hold:
+  (`main_2-1_MemoryArchitecture_DevPlanTicket.md` §5) still hold:
   nothing here runs on a timer or without the person having typed
   something that was always going to touch the network anyway.

@@ -4,9 +4,14 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-18.** Renumbered from `main_2-1` to `main_2-2`:
+> [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md) moved
+> onto `main` in the same pass and keeps first place in this pile because
+> both open items below still cite it.
+
 > **Memory review — 2026-09-12. Priority 2-2** (was 1-3). Moved to
 > stand-by behind the memory path of
-> [MemoryArchitecture](memory-dev_1-1_MemoryArchitecture_DevPlanTicket.md). Two
+> [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md). Two
 > things the memory work changes here:
 >
 > - **D1's version scheme now has a second reader.**
@@ -20,7 +25,7 @@
 >   clean-environment acceptance check in §5 should adopt a memory and get
 >   a working tree, not only print `--help` — that is the path a user on a
 >   new machine actually takes, and it is the one thing this ticket and
->   [Omniscience](memory-dev_2-10_Omniscience_DevPlanTicket.md) both
+>   [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) both
 >   depend on.
 
 > **Release review — 2026-09-11. Priority 1-5.** Promoted from 2-6 for a tested installation outside the source checkout and a repeatable public release. Support only validated platforms; broader coverage is deferred.

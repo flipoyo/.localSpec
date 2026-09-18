@@ -4,6 +4,13 @@
 
 *Branch: memory-dev*
 
+> **Ticket review — 2026-09-18.** Renumbered from `2-10` to `2-1`: it is
+> now the only open ticket left on `memory-dev`, the rest of that pile
+> (`MemoryArchitecture`, `StateLocking`) having moved to `main` in the
+> same pass because the memory system they designed has substantially
+> landed. This one stays on `memory-dev` because the global register it
+> describes has not been built yet.
+
 > **The architecture of the global project register.** It replaces
 > MemorySyncDistant, which was designed as an index of where each project's
 > memory lived — a question the shared `.memory` repository answered by
