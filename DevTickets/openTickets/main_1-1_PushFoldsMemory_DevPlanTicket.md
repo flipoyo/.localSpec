@@ -4,6 +4,13 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-18.** Renumbered `1-3` → `1-2` → `1-1` as
+> [CheckoutForkGuard](../archive/20260918_CheckoutForkGuard_DevPlanTicket.md)
+> and
+> [SnapshotVersionGuard](../archive/20260918_SnapshotVersionGuard_DevPlanTicket.md)
+> were each implemented and archived ahead of it — compaction, not a
+> priority change of this ticket's own.
+
 > **Owner direction — 2026-09-18:** *"Extend push --all or --private. They
 > push branches project/private accordingly but for the --private
 > pipeline run first cgitsync memory push. This way the .memory management

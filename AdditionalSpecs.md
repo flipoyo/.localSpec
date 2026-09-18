@@ -827,6 +827,30 @@ document is always measured with the version it declares; a snapshot
 written before the field existed is version 1 for ever and is never
 silently rewritten.
 
+**A reader that meets a version it does not know refuses by name, before
+computing anything.** This is the general rule every stored format in this
+project follows, not a `.gts`-specific one: a document declares its own
+version, and a build encountering a *higher* one than it understands must
+say so and stop, rather than apply its own rules to a payload it was never
+designed for. Applying today's canonicalisation to a document written
+under tomorrow's produces a hash that is simply wrong — not close, not a
+useful approximation — and a wrong hash next to a mismatch check reads as
+*corrupt*, which is the worst possible answer, because it is not true and
+it invites deleting the one thing that was fine. This is exactly what
+happened once, self-hosted (`SnapshotVersionGuard`,
+`.localSpec/DevTickets/archive/20260918_SnapshotVersionGuard_DevPlanTicket.md`):
+`checkout main` wrote a version-2 State and, in the same run, swapped this
+editable checkout's own code to a build that only understood version 1 —
+which then recomputed the hash the old way, got a different digest, and
+reported a perfectly good snapshot as corrupt. `GtsDocument.compute_snapshot_hash`
+now raises `UnsupportedSnapshotFormatError` — a `ConfigValidationError`
+subclass the CLI maps to exit `2` unconditionally, even under `validate` —
+the moment a document's declared `hash_canonicalisation` exceeds
+`CURRENT_HASH_CANONICALISATION`, before `_build_canonical_payload` runs at
+all. A version this build *does* know, including every legacy one still on
+disk, is completely unaffected: the guard only fires going forward in
+time, never backward.
+
 ### Identity, or metadata
 
 The rule: **identity is what the workspace *is*; metadata is what was

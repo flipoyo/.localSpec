@@ -4,6 +4,13 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-18.** Renumbered `1-4` → `1-3` → `1-2` as
+> [CheckoutForkGuard](../archive/20260918_CheckoutForkGuard_DevPlanTicket.md)
+> and
+> [SnapshotVersionGuard](../archive/20260918_SnapshotVersionGuard_DevPlanTicket.md)
+> were each implemented and archived ahead of it — compaction, not a
+> priority change of this ticket's own.
+
 > **Owner direction — 2026-09-18, in conversation:** *"It may be also time
 > for closing memory-dev branch, by implementing a branch closing command
 > in git-branch.py of complexgitsync."* Asked back what "closing" should
