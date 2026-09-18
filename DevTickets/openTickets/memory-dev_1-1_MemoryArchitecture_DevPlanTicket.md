@@ -370,7 +370,7 @@ one lands.
 | **M8** | SelfHostedMerge — **landed 2026-09-17** | `cgitsync merge <source> --into <target>`: checkout and merge in one process, so a tree that manages its own source never runs a stale build partway through |
 | **M9** | MemoryOnboarding — **landed 2026-09-17** | The steps a person runs once per project — create the repository, mount it, push it, merge it — are commands rather than instructions |
 | **M10** | MemoryExplore — **landed 2026-09-18** | A memory a person can read: what was published, by branch, and the ledger's own order made legible |
-| **M11** | MemoryReboot | Starting a memory's history over, on purpose, without losing the chapter before it |
+| **M11** | MemoryReboot — **landed 2026-09-18** | Starting a memory's history over, on purpose, without losing the chapter before it |
 | **M12** | WorkingTransitionState — **landed 2026-09-17** | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
@@ -449,11 +449,13 @@ before `.working` exists means rebuilding it once `.working` lands.
 final layout.
 
 M6 remains the only milestone this workstream owes with no ticket
-open against it; M11 is the one still with a ticket open and no code yet.
-M10 landed 2026-09-18, without ever needing `.working`: WorkingTransitionState's
-actual landing nested the mount at `.cgitsync/.memory` instead of renaming
-`.cgitsync` itself, so `MemoryExplore` reads the same `.cgitsync`/
-`.cgitsync/.memory` split every other `memory` command already does.
+open against it — every other milestone through M12 has now landed. M10
+and M11 both landed 2026-09-18, without ever needing `.working`:
+WorkingTransitionState's actual landing nested the mount at
+`.cgitsync/.memory` instead of renaming `.cgitsync` itself, so
+`MemoryExplore` and `MemoryReboot` both read and write the same
+`.cgitsync`/`.cgitsync/.memory` split every other `memory` command already
+does.
 
 **`memory/` is a new top-level area of `src/ComplexGitSync/`**, the
 owner's own suggestion and the right one: `cli/` earned its own package

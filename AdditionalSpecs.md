@@ -873,6 +873,8 @@ digest was useless as a name two parties could agree on.
 | `.cgitsync/state/<hash>.cgs` | The spec it was built from — part of what that State was |
 | `.cgitsync/<project>.lgr` | The register, at one path. It used to be copied into every state directory before each write |
 | `.cgitsync/logs/<command>-<timestamp>.log` | A record of a run, named for the run. Two runs leaving the tree identical share one State and keep their own logs |
+| `.cgitsync/.cgs/<project>-<branch-slug>.cgs` | The stable copy of the hand-authored spec the tree was last built from — one file, overwritten on every write |
+| `.cgitsync/.memory/.cgs/<project>-v<N>.cgs` | **Not** the stable copy above, and never overwritten: `memory reboot`'s export of the tree's *current shape* (`to_cgs()` against the loaded `.gts`, not a hand-authored file), one file per reboot, `N` incrementing from the implicit, never-written `v1`. A permanent, ordered record of every shape this project's memory has ever described — the one thing a reboot's own "clear this branch's tracked content" step does not clear (`memory-dev_1-4_MemoryReboot_DevPlanTicket.md` §1.4, §2) |
 
 Writing a State goes through a temporary file in the same directory and one
 rename, so a reader never sees a half-written snapshot.
