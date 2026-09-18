@@ -5,10 +5,12 @@
 *Branch: main*
 
 > **Ticket review — 2026-09-18.** Moved from `1-1` to `1-2`: the original
-> order reflected filing date, not severity.
-> [CheckoutForkGuard](main_1-1_CheckoutForkGuard_DevPlanTicket.md) is a
-> live, repeat-offender bug; this incident is already found, recovered
-> from, and has a smaller fix, so it goes second.
+> order reflected filing date, not severity, and
+> [CheckoutForkGuard](../archive/20260918_CheckoutForkGuard_DevPlanTicket.md)
+> — a live, repeat-offender bug versus this already-recovered-from incident
+> — took the first slot instead. Back to `1-1` the same day, after
+> CheckoutForkGuard's own implementation archived it and left this pile
+> with a gap to compact, not because the severity comparison changed.
 
 > **Incident ticket.** Written the day it happened, 2026-09-16, from a real
 > breakage in the developer workspace: every `cgitsync` command failed with
