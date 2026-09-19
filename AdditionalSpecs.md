@@ -1244,18 +1244,30 @@ CLI display requirements:
 | Workstream | Branch | Ticket filename prefix |
 |---|---|---|
 | Everything else | `main` | `main_` |
-| Memory — `.cgitsync/`, the state area, the register/ledger, `memory/` and the distant reference ledger | `memory-dev` | `memory-dev_` |
+| Memory — a change that **migrates a stored memory format**: the state area's layout, the register/ledger schema, or the distant reference ledger | `memory-dev` | `memory-dev_` |
 | Data — the `DataManager` layer, the DVC backend, `data_backend`/`data_paths`, and data materialisation and publication | `data-repo` | `data-repo_` |
 
-**Every change to a project's memory is developed on `memory-dev`.** The
-memory work is seven dependent milestones — see the MemoryArchitecture
-ticket in [DevTickets/openTickets/](DevTickets/openTickets/) — that between them rename the state
-area, rewrite the register, move code into a new `memory/` package and add
-a network protocol. Interleaving those with releases on `main` would put a
-half-migrated memory format in front of users, and the one thing this
-project cannot afford to corrupt by accident is the record of what it
-synchronised. `memory-dev` merges into `main` when a milestone is finished
-and `pixi run lint` and `pixi run test` both pass.
+**A change that migrates a stored memory format is developed on
+`memory-dev`.** The memory work was seven dependent milestones — see the
+MemoryArchitecture ticket in [DevTickets/openTickets/](DevTickets/openTickets/) — that between them renamed
+the state area, rewrote the register, moved code into a new `memory/`
+package and added a network protocol. Interleaving those with releases on
+`main` would put a half-migrated memory format in front of users, and the
+one thing this project cannot afford to corrupt by accident is the record
+of what it synchronised. `memory-dev` merges into `main` when a milestone
+is finished and `pixi run lint` and `pixi run test` both pass.
+
+**The test is migration, not subject matter.** Touching `.cgitsync/` or
+`memory/` does not by itself send a ticket to `memory-dev`: work that only
+*adds* — a new content-addressed directory beside the State, a ledger field
+that is absent on older entries and so leaves every chain already written
+verifying byte for byte — puts no half-migrated format in front of anyone,
+and lands on `main`. That is the rule the 2026-09-18 review applied when it
+moved MemoryArchitecture and StateLocking onto `main`, and the 2026-09-19
+one when it opened
+[TreeEnvironment](DevTickets/openTickets/main_1-1_TreeEnvironment_DevPlanTicket.md)
+there. This paragraph records the narrowing those reviews already made, so
+the rule and the filing agree.
 
 `memory-dev` and `data-repo` are this project's branches other than
 `main`, so those three are the only ticket filename prefixes it has. An

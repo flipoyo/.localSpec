@@ -361,6 +361,15 @@ Two sub-questions remain open, and M3 needs them:
 
 With those two settled, D6 is closed.
 
+**D6 answers how much toolchain a *ledger entry* carries, and nothing
+more.** The wider question the owner asked on 2026-09-19 — the OS, the
+interpreter, the platform, the provider CLI, and what it takes to rebuild
+an environment rather than describe one — is
+[TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md)'s, and
+its answer sits beside the State rather than inside an entry. The five
+strings D6 settled stay exactly as they are: they are what lets one entry,
+cut out of its chain, still say what made it.
+
 ## 4. The milestone map
 
 Eight tickets, this one included. Each is a milestone: something that
@@ -382,6 +391,7 @@ one lands.
 | **M10** | MemoryExplore — **landed 2026-09-18** | A memory a person can read: what was published, by branch, and the ledger's own order made legible |
 | **M11** | MemoryReboot — **landed 2026-09-18** | Starting a memory's history over, on purpose, without losing the chapter before it |
 | **M12** | WorkingTransitionState — **landed 2026-09-17** | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded |
+| **M13** | [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) — **prioritary** | A memory says what machine it ran on, not only what tree it saw: an Environment record beside each State, naming the platform, the interpreter and the tools a restore needs |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing

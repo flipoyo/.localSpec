@@ -4,6 +4,17 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-19.** Rank unchanged — the priority-1 and
+> priority-2 piles are numbered independently — but
+> [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) now sits
+> ahead of this in the queue, and it should. This ticket removes Pixi as
+> the only route in, which means an installed `cgitsync` runs under a
+> Python nothing in this project pinned; today no record says which
+> interpreter ran a command at all. Recording it before the installs
+> diversify is much cheaper than reconstructing it afterwards. Its
+> `cgitsync env` command is also the diagnostic §5's clean-environment
+> check wants to print, so adopt it there once WP1 lands.
+
 > **Ticket review — 2026-09-18.** Renumbered from `main_2-1` to `main_2-2`:
 > [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md) moved
 > onto `main` in the same pass and keeps first place in this pile because

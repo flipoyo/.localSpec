@@ -4,6 +4,16 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-19.** Still last, and now behind
+> [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) as well.
+> That ticket's WP3 adds a third member to the state area,
+> `.cgitsync/env/`, so a concurrency design written before it would be
+> written against a layout about to change. The new writes are the least
+> race-prone kind this project has — content-addressed and write-once, so
+> two processes observing one machine produce one file with one name,
+> rather than two runs racing to publish under one — but §1's inventory of
+> what races should cover them once they exist.
+
 > **Ticket review — 2026-09-18.** Moved from `memory-dev_2-2` to
 > `main_2-3`: [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md)
 > moved onto `main` in the same pass, and this ticket's own concurrency
