@@ -5,7 +5,7 @@
 *Branch: main*
 
 > **This blocks every commit in the repository, including
-> [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md).**
+> [TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md).**
 > CLAUDE.md's before-committing checklist requires `pixi run test` to
 > pass, and it does not. Filed at rank 1-2 because TICKETLIFECYCLE §2.1
 > appends a new ticket to the end of its pile and re-ranking is the

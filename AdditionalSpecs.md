@@ -1265,7 +1265,7 @@ verifying byte for byte — puts no half-migrated format in front of anyone,
 and lands on `main`. That is the rule the 2026-09-18 review applied when it
 moved MemoryArchitecture and StateLocking onto `main`, and the 2026-09-19
 one when it opened
-[TreeEnvironment](DevTickets/openTickets/main_1-1_TreeEnvironment_DevPlanTicket.md)
+[TreeEnvironment](DevTickets/openTickets/main_1-2_TreeEnvironment_DevPlanTicket.md)
 there. This paragraph records the narrowing those reviews already made, so
 the rule and the filing agree.
 

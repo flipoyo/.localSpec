@@ -65,7 +65,7 @@ should be corrected in the same pass.
 
 **`main_1-1_CheckoutForkGuard` is the sharper one.** That path is not
 merely dead: as of 2026-09-19 it names a *different live ticket*,
-[TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md), because
+[TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md), because
 rank `1-1` on `main` was reused the moment the pile changed. A reader
 following that citation lands on a real, current document about something
 else entirely. A dead link is an inconvenience; a link that silently

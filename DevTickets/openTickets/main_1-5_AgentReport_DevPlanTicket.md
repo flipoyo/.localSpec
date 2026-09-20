@@ -112,6 +112,7 @@ orchestration and implementation of a Ticket". It documents a
 | `state_before` / `state_after` | The two States the work moved between | **Observed** |
 | `worker` | The agent that implemented the ticket — its role from `.localSpec/AGENT.md`'s roster (Dev, CI/CD, Editing), its vendor, its model version | Declared |
 | `orchestrator` | The independent agent that quoted the work and wrote this record — same three fields (§1.1) | Declared |
+| `contract` | The agentProvider contract in force when the work was done, cited by hash — [AgentContract](main_1-4_AgentContract_DevPlanTicket.md) | Declared |
 | `conformity` | The three scores of §3, and one line of reasoning each | §3 |
 | `repos_written` | Which repositories the work wrote to, and in which scope | **Observed** |
 | `checks` | Did `lint` pass, did `test` pass, did `status` report `errors=0` | **Observed** |
@@ -125,7 +126,12 @@ everything else is a field, not prose. `DOCSTYLE.md`'s plain-English rule
 governs both — the reader is somebody months later asking what happened,
 which is exactly the reader the commit-message rule already names.
 
-## 1.1 Two agents, never one
+## 1.1 Two agents, never one — summarised; the rule lives elsewhere
+
+> **Split out on 2026-09-20.** The pair rule and the data contract it
+> travels with are now [AgentContract](main_1-4_AgentContract_DevPlanTicket.md).
+> What stays here is what the *record* needs to know about them. That
+> ticket is authoritative; if the two disagree, it wins.
 
 > **Owner direction — 2026-09-20.** *"Actually is the orchestrator agent
 > for complex DevPlanTicket. If a ticket is implemented by one agent it
@@ -377,7 +383,7 @@ absolute path, no OS user name**, every path written against `$CGSTREE`.
 ## 6. Work packages
 
 Sequenced by dependency, not preference. **WP1 needs nothing from
-[TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md)** and can run
+[TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md)** and can run
 beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
 
 | WP | Does | Depends on |
@@ -388,7 +394,10 @@ beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
 | **WP3** | The link to state transitions: `state_before`/`state_after` resolved from the ledger, and the environment record beside them | WP2, **TreeEnvironment** |
 | **WP4** | The score: the machine-checked fields computed rather than typed, and the display (§3, D3) | WP1, D3 |
 | **WP5** | `AdditionalSpecs.md`'s record schema and the `.cgs` authoring note for the nested mount. **The `CLAUDE.md` Attribution amendment is already done** — landed 2026-09-20 with D4, ahead of the rest, because it is a rule about conduct rather than a feature and was in force the moment it was written | — |
-| **WP6** | **The two-agent rule written into `CLAUDE.md`** (§1.1): worker and orchestrator, what independence means, and the scoping note that it governs implementing a ticket rather than filing one. Like WP5's Attribution amendment this is conduct, not a feature, so it can land before anything else here and be in force immediately. Its long-term home is the general project spec `shortTickets/project-spec.md` proposes; it moves there when that short ticket is planned | — |
+**Moved out on 2026-09-20.** The two-agent rule and the data-ownership
+contract are now [AgentContract](main_1-4_AgentContract_DevPlanTicket.md).
+This ticket builds the mechanism; that one states the rules. Its WP4 —
+records citing the contract by hash — needs WP1 here to exist first.
 
 ## 7. Acceptance
 

@@ -6,7 +6,7 @@
 
 > **Ticket review — 2026-09-19.** Rank unchanged — the priority-1 and
 > priority-2 piles are numbered independently — but
-> [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) now sits
+> [TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md) now sits
 > ahead of this in the queue, and it should. This ticket removes Pixi as
 > the only route in, which means an installed `cgitsync` runs under a
 > Python nothing in this project pinned; today no record says which
