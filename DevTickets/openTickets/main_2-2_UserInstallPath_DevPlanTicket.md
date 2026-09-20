@@ -118,6 +118,19 @@ the CLI and the `.cgs` grammar have settled, and not before.
 
 ### D1. The version scheme, which publishing forces
 
+> **Moved out on 2026-09-20 — this decision now belongs to
+> [Versioning](main_1-3_Versioning_DevPlanTicket.md).** The owner's
+> `versioning.md` short ticket picks the third option below — semantic
+> versioning — and extends it far past what a packaging ticket can hold:
+> the version becomes a fusion of the tool, the agent contracts and the
+> data layer, joined by a `Patch` integer and recorded in the memory.
+>
+> **What this ticket still needs from it**: whatever scheme wins must
+> publish cleanly under PEP 440, and `pixi run bump-version` must remain
+> the only thing allowed to write a version. Both are stated in Versioning's
+> acceptance. The analysis below is kept as written, because it is where
+> the problem was first diagnosed.
+
 `pyproject.toml` reads `version = "0002.49"` at this review. Recheck the
 current value when implementing the release. `CLAUDE.md` calls this
 `YYYY.XX`, but `0002` is not a year — it is a counter. Publishing makes

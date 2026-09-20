@@ -106,7 +106,7 @@ language, want this sentence?**
 | The before-committing checklist as a *shape* (lint, test, the tool's own status, version bump) | `pixi run lint` / `pixi run test`, and the `errors=0` rule for this tree |
 | The commit-message rule: `<project><version>`, one message, plain English, three lines | That the project name is `cgitsync` |
 | Attribution: the publication rule and the accounting rule | — |
-| The two-agent rule (worker and orchestrator) — see [AgentContract](main_1-4_AgentContract_DevPlanTicket.md) | — |
+| The two-agent rule (worker and orchestrator) — see [AgentContract](main_1-5_AgentContract_DevPlanTicket.md) | — |
 | Document conventions, the `*Created:*` line, the finishing-report bar | Which files this project keeps them in |
 | Ticket lifecycle pointers | The branch table: `main` / `memory-dev` / `data-repo` |
 | — | The whole module responsibility table and the ring rules |
