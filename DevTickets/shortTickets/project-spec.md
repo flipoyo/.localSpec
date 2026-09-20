@@ -1,0 +1,3 @@
+From claude.md separated what are general projectSpec for a cgitsync further project and what is ComplexGitSync 
+
+It will be a private-distant repo. More generally, the agentic may be better organised as a parent-repo .agent that auto-discover itself with an appropriate agent-mount.cgs. It will be easier to clearely separate Private distant and private-local that way with .agent/.local and .agent/.distant

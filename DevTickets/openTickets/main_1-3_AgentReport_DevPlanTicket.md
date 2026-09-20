@@ -20,11 +20,21 @@
 >   resolves.
 > - **D1 — `.self-history` is a repository**, nested inside `.memory`,
 >   with `nested_config = "config-memory.cgs"` naming its spec explicitly
->   rather than `auto`. This overrides §5's fold-subdirectory
->   recommendation; §2's *What changes in the `.cgs`* is the settled form.
->   The recommendation and its reasoning are kept in D1's row, because a
->   decision without the alternative it beat is a decision that gets
->   reopened.
+>   rather than `auto`.
+>
+> **And, later the same day, the pipeline that makes D1 safe:**
+> `.self-history` is managed exactly like `.memory` — a pending area at
+> `.cgitsync/.self-history` that `memory push` folds into the mount. That
+> resolves the objection the fold-subdirectory alternative was raised
+> against: the mount stays clean between folds, so `merge`/`checkout`/`tag`
+> reconcile it like any other private/local repository. §2 is the settled
+> design.
+>
+> **D7 and D8 answered 2026-09-20.** `memory reboot` reboots the memory's
+> branch only and leaves `.self-history` alone. `memory clone` brings back
+> both, on the owner's principle: ***"a project state must be
+> Replicable"*** — which makes the accounting record part of what a second
+> machine must receive, not an optional extra.
 
 > **Owner ticket — `shortTickets/agent-report.md`, 2026-09-20:** *"In
 > memory, every agentic orchestration and implementation of a Ticket must
@@ -61,10 +71,11 @@ is currently answerable only by reading the diff and remembering the
 rules. A record that states it — and that can be checked against what
 actually happened — turns a vague impression into evidence.
 
-**What you will find.** §1 what one record holds. §2 where it lives and
-why `.memory` becomes a parent. §3 the score, and the part of it a machine
-can check. §4 the two rules this collides with. §5 the decisions. §6 work
-packages. §7 acceptance. §8 what this refuses.
+**What you will find.** §1 what one record holds. §1.1 the two agents
+every task needs, and why the worker never scores itself. §2 where it
+lives and why `.memory` becomes a parent. §3 the score, and the part of it
+a machine can check. §4 the two rules this collides with. §5 the
+decisions. §6 work packages. §7 acceptance. §8 what this refuses.
 
 **Who it is for.** The owner, validating the draft. Every decision in §5
 is theirs.
@@ -99,9 +110,8 @@ orchestration and implementation of a Ticket". It documents a
 | `goal` | The ticket's main objective, three lines of plain English | Written by the agent |
 | `action` | The main action taken, in plain English | Written by the agent |
 | `state_before` / `state_after` | The two States the work moved between | **Observed** |
-| `agent` | Which agent role acted — `.localSpec/AGENT.md`'s roster: Orchestration, Dev, CI/CD, Editing | Declared |
-| `vendor` | The company the agent belongs to | Declared |
-| `model` | The LLM and its version | Declared |
+| `worker` | The agent that implemented the ticket — its role from `.localSpec/AGENT.md`'s roster (Dev, CI/CD, Editing), its vendor, its model version | Declared |
+| `orchestrator` | The independent agent that quoted the work and wrote this record — same three fields (§1.1) | Declared |
 | `conformity` | The three scores of §3, and one line of reasoning each | §3 |
 | `repos_written` | Which repositories the work wrote to, and in which scope | **Observed** |
 | `checks` | Did `lint` pass, did `test` pass, did `status` report `errors=0` | **Observed** |
@@ -115,29 +125,103 @@ everything else is a field, not prose. `DOCSTYLE.md`'s plain-English rule
 governs both — the reader is somebody months later asking what happened,
 which is exactly the reader the commit-message rule already names.
 
+## 1.1 Two agents, never one
+
+> **Owner direction — 2026-09-20.** *"Actually is the orchestrator agent
+> for complex DevPlanTicket. If a ticket is implemented by one agent it
+> must call an independent orchestrator to quote the work. The
+> orchestrator writes the report. The logical conclusion is that a task
+> always involves at least two agents: orchestrator and worker."*
+
+**A task involves at least two agents.** One implements; a second,
+independent one quotes the work and writes the report. The worker never
+scores itself, and never writes the record of its own conformity.
+
+| Role | Does | Appears in the record as |
+|---|---|---|
+| **Worker** | Implements the ticket | `worker` — role, vendor, model version |
+| **Orchestrator** | Quotes the work against the three criteria and writes the report | `orchestrator` — role, vendor, model version |
+
+So the short ticket's *"by whom"* has two answers, and the record carries
+both. `.localSpec/AGENT.md`'s roster already names Orchestration as the
+role that owns specs and planning tickets, which is the same role wearing
+this hat.
+
+**What "independent" has to mean, minimally:** the orchestrator is not the
+process that did the work. It reads the diff, the ticket and the checks,
+and forms its own view. It does not inherit the worker's account of what
+happened as fact — that account is a claim about the work, and the
+orchestrator is there precisely to test it.
+
+**Where the rule belongs.** This is a rule about how *any* cgitsync
+project runs agentic work, not about ComplexGitSync specifically, so its
+long-term home is the general project spec that
+`shortTickets/project-spec.md` proposes splitting out of `CLAUDE.md` —
+"a private-distant repo", possibly under an `.agent` parent. That short
+ticket has not been planned yet. **Until it is, the rule goes in
+`CLAUDE.md`**, and moves when the split happens. WP6 carries it.
+
+**One scoping note for whoever writes it.** The rule as stated governs
+*implementing a ticket*. Drafting, ranking and closing tickets is
+orchestration work already, and does not call for a second orchestrator to
+quote the first. Whoever writes WP6 should say so explicitly, or the rule
+reads as requiring two agents to file a one-line short ticket.
+
 ## 2. Where it lives, and `.memory` as a parent
 
-The owner gives two paths, and they are the two halves of one thing —
-the frontier WorkingTransitionState already drew:
+> **Owner direction — 2026-09-20.** *"sync the management of
+> `.memory/.self-history` with the same pipeline than `.memory` and the
+> memory commands that folds `.working` in `.memory`. You just have to
+> replicate `.self-history` in `.working`."*
+>
+> `.working` is the owner's name for the pending area; on disk it is
+> `.cgitsync` (see the WorkingAreaRename ticket, which holds the rename
+> question). Everything below reads `.cgitsync` and means the same place.
 
-| Path | Which half |
-|---|---|
-| `.cgitsync/.self-history/<hash>.toml` | **Pending** — written as the work happens |
-| `.cgitsync/.memory/.self-history/<hash>.toml` | **Folded** — what `memory push` committed |
+**It is both**, and the two answers fit together rather than competing.
+`.self-history` is a **repository** at `.cgitsync/.memory/.self-history`
+(D1), and it gets a **pending area** at `.cgitsync/.self-history` that
+folds into it — the same frontier, the same commands, one level deeper.
 
-So `.self-history` joins `lgr/`, `state/`, `logs/`, `commit-logs/` and
-`.cgs/` as a sixth fold subdirectory (`orchestre.py`'s `_FOLD_SUBDIRS`),
-and `memory/pending.py` composes both halves the way it already composes
-the other five.
+| Path | Which half | Is it a repository? |
+|---|---|---|
+| `.cgitsync/.self-history/<hash>.toml` | **Pending** — written as the work happens | No. An ordinary directory, gitignored, exactly like `.cgitsync/lgr/` |
+| `.cgitsync/.memory/.self-history/<hash>.toml` | **Folded** — what `memory push` committed | **Yes** — a private/local mount with its own branch and push |
 
-**D1 settled this on 2026-09-20: `.self-history` is a repository of its
-own**, nested inside `.memory`, not a sixth fold subdirectory. So the two
-paths above are not pending-and-folded halves of one directory — they are
-the mount point and its own pending area, and WP2 owes them the same
-frontier WorkingTransitionState built one level up. A mount has its own
-history, its own branch and its own push, and `merge`/`checkout`/`tag`
-expect its worktree to be clean; a record written mid-command must
-therefore land on the pending side, exactly as a ledger entry does.
+This is what settles the worry D1 raised. A nested repository's worktree
+has to be clean when `merge`/`checkout`/`tag` reconcile the tree, and a
+record written mid-command would dirty it — which is the exact bug
+WorkingTransitionState was opened for. Giving `.self-history` a pending
+area of its own means nothing is ever written *into* the mount except
+during a fold, so it is clean between folds like every other mount.
+
+### The pipeline, step by step
+
+`memory push` gains one fold and one publish, and the publish is
+**leaf-first** — the nested repository before its parent, the order
+`operations.py` already uses for every tree-wide command:
+
+1. Fold `.cgitsync/{lgr,state,logs,.cgs}` and `commit-logs/` into
+   `.cgitsync/.memory/` — unchanged.
+2. **Fold `.cgitsync/.self-history/` into
+   `.cgitsync/.memory/.self-history/`** — new. A plain move is safe for
+   the same reason it is safe for States: a record is named by its own
+   content hash, so a name that repeats is identical content.
+3. **Commit and push `.self-history`** — the leaf.
+4. Commit and push `.memory` — the parent, which now records the leaf's
+   new commit rather than its contents.
+
+Two consequences worth stating, because both are easy to miss:
+
+- **`.memory/.gitignore` must list `.self-history/`.** That is the
+  ordinary rule for every child mount — the same line that keeps
+  `.cgitsync/` out of the tree root's index — and `git_tree.sync_gitignore`
+  writes it once `.self-history` is a real entry in the tree.
+- **`_FOLD_SUBDIRS` is not simply extended.** The existing five fold into
+  a directory of `.memory`; `.self-history` folds into a *different
+  repository*. Adding it to that tuple and expecting step 4 to commit it
+  would commit nothing — the parent does not track the leaf's files.
+  Step 3 exists for that reason.
 
 ### What changes in the `.cgs`
 
@@ -175,16 +259,30 @@ The owner's weighting, unchanged:
 | Integrity of the `.PUBLIC`/`.PRIVATE` gating | 33 |
 | Quality of production | 34 |
 
-### The problem worth naming
+### The problem, and the owner's answer to it
 
-**An agent scoring its own conformity is self-reported evidence.** The
-project already draws this line for the ledger — `AdditionalSpecs.md`
-calls it "tamper-evident, not tamper-proof". A self-assessment is weaker
-than that: nothing about it is even evident. An agent that ignored a spec
-is precisely the agent least likely to score itself down for it.
+**The draft's objection was that an agent scoring its own conformity is
+self-reported evidence.** The project already draws that line for the
+ledger — `AdditionalSpecs.md` calls it "tamper-evident, not
+tamper-proof" — and a self-assessment is weaker still: nothing about it
+is even evident. An agent that ignored a spec is precisely the agent
+least likely to mark itself down for it.
 
-That is not a reason to drop the score. It is a reason to **build it out
-of facts that can be checked**, and to mark clearly which parts are not.
+**The owner answered it on 2026-09-20 by separating the two roles** (§2.1):
+the worker implements, and an independent orchestrator quotes the work
+and writes the report. That turns a self-assessment into a **second-party
+assessment**, which is a different and much stronger thing. The agent with
+the motive to score generously is no longer the agent holding the pen.
+
+It is not a third-party audit, and the ticket should not claim to be one:
+the orchestrator is another agent, commissioned by the same owner, often
+the same model family. What it removes is the *direct* conflict of
+interest, which is the one that would have made the score worthless.
+
+So the two mitigations stack rather than compete. The role split removes
+the conflict; building the score out of checkable facts — below — keeps
+the remaining judgement honest, and lets the owner check a quote they did
+not watch being made.
 
 ### So each criterion splits in two
 
@@ -267,12 +365,14 @@ absolute path, no OS user name**, every path written against `$CGSTREE`.
 
 | D | Question | Recommendation |
 |---|---|---|
-| **D1** | Is `.self-history` a **nested repository** or a **sixth fold subdirectory** of `.memory`? The short ticket says both | **ANSWERED 2026-09-20: a nested repository**, with `nested_config = "config-memory.cgs"`. *The alternative, kept:* a fold subdirectory first, a repository only if it must be shared separately — a repository buys one thing, being cloned without the rest of the memory, and everything else it brings (a branch, a push, a merge, a clean-worktree rule) is cost. **What the answer therefore obliges**: `.self-history` gets its own branch and push, and its worktree must be clean when `merge`/`checkout`/`tag` reconcile the tree — the exact problem WorkingTransitionState solved for `.memory`. WP2 must apply the same folded/pending frontier one level deeper, not rediscover it |
-| **D2** | Does the score display go at the top of the **record**, or at the top of **every `.md` an agent writes**? | The short ticket reads both ways. **Recommend: the record and the agent's finishing report.** Putting a conformity banner atop every spec and tutorial would put process metadata in a user's way, and `DOCSTYLE.md` gives the abstract that position |
+| **D1** | Is `.self-history` a **nested repository** or a **sixth fold subdirectory** of `.memory`? The short ticket says both | **ANSWERED 2026-09-20: a nested repository**, with `nested_config = "config-memory.cgs"`. *The alternative, kept:* a fold subdirectory first, a repository only if it must be shared separately — a repository buys one thing, being cloned without the rest of the memory, and everything else it brings (a branch, a push, a merge, a clean-worktree rule) is cost. **How the cost is paid**: the owner's follow-up the same day gives `.self-history` the same pending/folded pipeline as `.memory` (§2), so the mount is clean between folds and `merge`/`checkout`/`tag` reconcile it like any other private/local repository. The frontier is reused one level deeper, not rediscovered |
+| **D2** | Does the score display go at the top of the **record**, or at the top of **every `.md` an agent writes**? | **ANSWERED 2026-09-20: the agent's finishing report only.** Not every `.md` — a conformity banner atop each spec and tutorial would put process metadata in the reader's way, and `DOCSTYLE.md` gives the abstract that position. The finishing report is written by the orchestrator (§1.1), so the display sits at the top of the document whose whole subject is the quote |
 | **D3** | Does the gating criterion cover repository scope only, or the product/workshop separation too? | **Both** (§3). The second is the one that leaks, and it is checkable |
 | **D4** | Amend `CLAUDE.md`'s "nowhere else"? | **ANSWERED 2026-09-20: yes, and done.** Split into a publication rule (public, `README.md` only) and an accounting rule (private, `.cgitsync/.memory/.self-history`, never published). `CLAUDE.md`'s *Attribution* section carries both, and states that neither licenses the other |
-| **D5** | Who writes the record — the agent, or the tool at the end of a command? | **The agent, through a `cgitsync` command that fills in the observed fields itself.** An agent writing the whole file by hand can write anything in the fact fields too, and the facts are the half worth trusting |
+| **D5** | Who writes the record — the agent, or the tool at the end of a command? | **Half-answered by §1.1: the orchestrator writes it, not the worker.** What remains is *how*: recommend a `cgitsync` command that fills the observed fields itself, so the orchestrator supplies judgement and the tool supplies facts. An agent writing the whole file by hand can write anything into the fact fields too, and the facts are what make a quote checkable |
 | **D6** | What happens when no record is written for a piece of work? | **Nothing enforces it at first.** A gate that blocks a commit for a missing report gets bypassed. Report the gap in `memory status` and let it be visible |
+| **D7** | What does `memory reboot` do with `.self-history`? | **ANSWERED 2026-09-20: reboot the memory's branch only; leave `.self-history` alone.** A reboot says "this project's shape changed, start the memory over"; the record of who did what to get there is exactly the thing that should survive it, and it is the only half that can answer "what happened across the reboot". So reboot touches one branch, as it does today, and `.self-history` carries across unbroken |
+| **D8** | What does `memory clone` bring back on a new machine? | **ANSWERED 2026-09-20: both**, on the owner's principle that **a project state must be replicable**. A clone that omitted the accounting record would make a second machine look compliant when it is merely uninformed, and would give two machines two different answers to "what was done here" — the same failure the State's content-addressed name exists to prevent. `nested_config = "config-memory.cgs"` already makes `initialise` descend; `memory clone` is a separate path and must be taught it |
 
 ## 6. Work packages
 
@@ -283,10 +383,12 @@ beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
 | WP | Does | Depends on |
 |---|---|---|
 | **WP1** | The record format and its fields (§1), and `cgitsync self-history add` writing one to the pending half, filling the observed fields itself | D1, D2, D5 |
-| **WP2** | `.self-history` as a repository nested in `.memory`: its `config-memory.cgs`, `.memory`'s entry moving from `nested_config = "disabled"` to `"config-memory.cgs"`, and its own pending/folded frontier so `merge`/`checkout`/`tag` find a clean worktree. `memory show`/`explore` read it | WP1 |
+| **WP2** | `.self-history` as a repository nested in `.memory`, with the §2 pipeline: `config-memory.cgs`; `.memory`'s entry moving from `nested_config = "disabled"` to `"config-memory.cgs"`; the pending area at `.cgitsync/.self-history`; the fold; the leaf-first commit and push; `.memory/.gitignore` listing the mount. `memory/pending.py` composes both halves, as it already does for the other five. `memory show`/`explore` read it | WP1 |
+| **WP2b** | `memory reboot` and `memory clone` taught about the second mount: reboot leaves `.self-history` alone (D7), clone brings it back (D8). Separable from WP2 and easy to forget — both commands assume one mount today, and neither fails loudly when it meets two | WP2 |
 | **WP3** | The link to state transitions: `state_before`/`state_after` resolved from the ledger, and the environment record beside them | WP2, **TreeEnvironment** |
 | **WP4** | The score: the machine-checked fields computed rather than typed, and the display (§3, D3) | WP1, D3 |
 | **WP5** | `AdditionalSpecs.md`'s record schema and the `.cgs` authoring note for the nested mount. **The `CLAUDE.md` Attribution amendment is already done** — landed 2026-09-20 with D4, ahead of the rest, because it is a rule about conduct rather than a feature and was in force the moment it was written | — |
+| **WP6** | **The two-agent rule written into `CLAUDE.md`** (§1.1): worker and orchestrator, what independence means, and the scoping note that it governs implementing a ticket rather than filing one. Like WP5's Attribution amendment this is conduct, not a feature, so it can land before anything else here and be in force immediately. Its long-term home is the general project spec `shortTickets/project-spec.md` proposes; it moves there when that short ticket is planned | — |
 
 ## 7. Acceptance
 
@@ -299,6 +401,20 @@ beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
   in the ledger.
 - No record contains an absolute path outside `$CGSTREE`, an OS user name,
   or any credential.
+- **`.cgitsync/.memory/.self-history`'s worktree is clean except while a
+  fold is running**, and `cgitsync status` reports it as an ordinary
+  private/local repository. This is the test that proves the pipeline
+  works; it is the bug WorkingTransitionState was opened for, one level
+  deeper.
+- `memory push` publishes the leaf before the parent, and a tree checked
+  out afterwards has both.
+- **A second machine cloning this project gets the same accounting record
+  as the first, and the two agree.** This is D8's replicability test, and
+  it is the one an omission would fail silently — an uninformed machine
+  looks exactly like a compliant one.
+- A reboot leaves `.self-history` intact and readable across the
+  boundary: the records written before the reboot and after it sit in one
+  unbroken history (D7).
 - A workspace with no self-history still runs every command normally — this
   is additive, and a tree that never used it must not notice it exists.
 - `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
