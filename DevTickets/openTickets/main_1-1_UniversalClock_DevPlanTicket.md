@@ -310,9 +310,9 @@ and `user_guide.tex` updated).
 | **D1** | Module under `src/ComplexGitSync/`, or a `scripts/` program? | **A module** (§2.2). `scripts/` is not importable by the package, and every caller in §1 is inside it | **Owner** |
 | **D2** | Does `ClockProtocol` move out of `memory/ledger_entry.py`? | Yes — the interface belongs with the clock, not with the ledger. `ledger_entry.py` is Ring 0 and self-contained by rule, so it keeps a structurally identical Protocol of its own or imports the Ring-0 half. Protocols are structural; nothing breaks either way | Implementer |
 | **D3** | All nine call sites at once, or only the ones that matter? | **All nine.** They are one-line changes, and the point of a universal clock is that there is no tenth. A module named "universal" that owns six of nine reads is worse than none | Implementer |
-| **D4** | What happens to the TIME-L0 anchor code (§3)? | **Decide, do not inherit.** Either it becomes this module's attestation primitive — and §3.1 is fixed by retaining the pre-image, §3.2 by giving it its own id form — or it is deleted as a tested-but-unused leftover. Carrying it forward unchanged is the one option that helps nobody | **Owner** |
+| **D4** | What happens to the TIME-L0 anchor code (§3)? | **ANSWERED 2026-09-20: delete it** (WP4, landed). *The reasoning, kept:* decide, do not inherit — Either it becomes this module's attestation primitive — and §3.1 is fixed by retaining the pre-image, §3.2 by giving it its own id form — or it is deleted as a tested-but-unused leftover. Carrying it forward unchanged is the one option that helps nobody | **Owner** |
 | **D5** | How far does time anchoring go (§4)? | **Not a question of whether — the owner settled that on 2026-09-20.** Properties 1 and 2 are required and land here; they are local, cheap and need no network. Property 3 splits: the **push anchor** stays here, as the witness a project has when it has nothing else, and the **universal reference and the lag against it belong to [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md)** §1.1 — a project mounting no omniscience uses its internal clock and stops at property 2 | **Owner** |
-| **D7** | Does a time regression fail `verify`, or only report? | **Report as a finding, exit non-zero like any other** — `verify`'s contract is that "corrupt" means the chain does not hold, and a backwards timestamp is the chain disagreeing with itself. But it must be its own finding (`TIME_REGRESSION`), never folded into `BROKEN_LINK`: the two have different causes and different fixes, and a clock correction is not history rewriting | **Owner** |
+| **D7** | Does a time regression fail `verify`, or only report? | **ANSWERED 2026-09-20: its own verdict, `time-inconsistent`, exit 1** (WP3, landed) — not folded into `corrupt`, because the chain did hold. *The reasoning, kept:* report as a finding, exit non-zero like any other — `verify`'s contract is that "corrupt" means the chain does not hold, and a backwards timestamp is the chain disagreeing with itself. But it must be its own finding (`TIME_REGRESSION`), never folded into `BROKEN_LINK`: the two have different causes and different fixes, and a clock correction is not history rewriting | **Owner** |
 | **D6** | Is the attestation part of the State file, or beside it? | **Beside it**, cited by hash. `generated_at` may stay in the `.gts` as the unverified local claim it already is; the attestation is a separate record that points at `state(<hash>)`. Nothing time-related enters the canonical payload, ever (§4.1) | Implementer |
 
 ## 6. Work packages
@@ -323,8 +323,8 @@ and `user_guide.tex` updated).
 |---|---|---|
 | **WP1 — landed** | `universal_clock.py` at Ring 1, holding the real implementation moved out of `orchestre.py`. `ClockProtocol`/`SystemClock` defined there; `memory/ledger_entry.py` keeps its own structurally identical Protocol, Ring-0-self-contained, per D2. `AdditionalSpecs.md`'s ring table (now five import rules, not four) and `CLAUDE.md`'s module table updated in the same change | D1, D2 |
 | **WP2 — landed** | All nine direct reads (§1) go through it, each via an injected `clock: ClockProtocol` — required where a test asserts on the exact value (`memory_reboot`'s archive name, `commit_message`'s moment, from ClockSeam), optional-and-defaulted elsewhere, following that ticket's own precedent for sites nothing asserts on. `pixi run check-ceilings` gained a fourth check, unconditional across every module rather than tied to a declared Ring-0 subset — proven to actually fail (not just report) on both an existing module regressing and a brand-new module born with a violation, which needed a small fix to `run_check`'s own logic (§WP2 note below) | WP1, D3 |
-| **WP3** | **Monotonic time (§4.2)**: `TIME_REGRESSION` added to `Finding`, checked by `verify_chain`, reported by `verify`, and written into `AdditionalSpecs.md`'s register taxonomy. Local, cheap, no network — and the piece that makes every later one mean something | WP1, D7 |
-| **WP4** | The TIME-L0 decision (D4) carried out: fixed and adopted, or deleted with its tests | D4 |
+| **WP3 — landed** | **Monotonic time (§4.2)**: `TIME_REGRESSION` on `Finding`, `TIME_INCONSISTENT` on `HistoryState` as a fifth `verify` answer (D7), `_check_time_monotonic` in `verify_chain`, and `resolve_state()` — one authority on which findings mean which verdict, replacing the rule `orchestre.verify` used to keep its own copy of. Documented in `AdditionalSpecs.md` (taxonomy + the five answers + why it is not `corrupt`), `README.md`, `user_guide.tex`, `api_python.tex` | WP1, D7 |
+| **WP4 — landed** | D4 answered **delete**: `TimeL0State`, `new_time_l0_anchor`, `hash_time_l0_anchor`, their re-exports and their tests are gone; `ledger_entry.py` shrank 220 → 201 LOC and the ratchet locked that in. Its module docstring records what was removed and why, so the next person reaching for an attestation primitive knows to write one that keeps its pre-image | D4 |
 | **WP5** | Attestation: a record binding `state(<hash>)` to a moment, beside the State, never inside it (D6) | WP1, WP4 |
 | **WP6** | **As-of retrieval (§4.4)**: "what was this tree at time *T*", built on `memory_timeline`, as a client method with a thin CLI pair | WP3 |
 | **WP7** | The push anchor (§4.3): record which push carried which State, so the remote's receipt is citable | WP5, D5 |
@@ -343,14 +343,16 @@ gap in the script, not introduced by WP2; fixed here because WP2's own
 acceptance criterion ("a check fails if a tenth call site appears") is the
 first thing that would have silently failed to hold.
 
-**WP3–WP7 are gated on D4 and D7 — both marked Owner in §5, and neither
-forced the way D1 effectively was** (a `scripts/` program genuinely cannot
-be imported, so there was only one real answer). D4 forks two ways with
-different amounts of code and a different outcome for two tested classes
-already on disk (adopt-and-fix the TIME-L0 anchor vs. delete it); D7
-changes `verify`'s exit-code contract. Neither is something to decide by
-proceeding — D1/D2/D3/D6 were implementer calls or mechanically forced and
-are acted on above; D4 and D7 are left open.
+**D4 and D7 answered by the owner, 2026-09-20**, after being put with
+their alternatives: **delete** the TIME-L0 anchor, and **give a time
+regression its own verdict at exit 1** rather than calling it `corrupt`.
+WP3 and WP4 landed the same day.
+
+**WP5–WP7 remain.** WP5 (attestation) and WP7 (the push anchor) are the
+external-witness half — property 3 of §4.1, the one this ticket always
+said it shares with Omniscience. WP6 (as-of retrieval) needs no further
+decision: it is buildable now that WP3 makes a timestamp answerable, and
+is the natural next piece.
 
 ## 7. Acceptance
 

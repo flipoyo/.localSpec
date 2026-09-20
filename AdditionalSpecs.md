@@ -282,7 +282,7 @@ human-readable summary.
 | `state_store.py` | 1 | The one place that composes a State's path: `.cgitsync/state/<hash>.gts`, where the hash is the document's own content digest (`state_path`). Still reads the older `state(<hash>)_n/` directories, so a workspace written before the flat layout resolves without being rewritten — and `snapshot_resolver.py` imports that grammar from here rather than carrying the copy it used to. Formerly content-addressed directory allocation — the general mechanism every lifecycle command uses (not related to the deleted Memory transport, despite the class name). |
 | `settings.py` | 1 | Where ComplexGitSync keeps its own workspaces, answered before any workspace is open — which is what separates it from `master.py`, whose `.cgitsync/master.toml` cannot be read until one has been found. Owns the root (`$CGSPATH`, else `$HOME/.cgs`), the **default workspace** that `snapshot_resolver.py` falls back to when none of its three inputs finds one, the `$HOME/.cgs/default` pointer that makes that workspace minted-once-then-reused, the empty but valid `.gts` written into it (`UNLOADED`, `is_ready = false` — an empty tree must never claim to be ready), the list of other workspaces under the root that the CLI prints as a hint and never selects from, and the `UseCase` (`STANDALONE`/`NESTED`) derived from whether the running installation sits inside the resolved CGSHOME. Derived, never stored: two callers in one process cannot disagree. See `.localSpec/DevTickets/archive/20260916_CgshomeDefault_DevPlanTicket.md`. |
 | `snapshot_resolver.py` | 1 | Resolves which `.gts` snapshot the CLI defaults to when a command omits one explicitly — and, when none of its three inputs finds a workspace at all, falls back to `settings.py`'s default workspace rather than raising (`CGSHOME_ORIGIN_DEFAULT`), except under an explicit `--search-dir`, where a directory the user named is never silently replaced, and — through its `describe_*` functions — reports *which input decided it*: `--search-dir`, `$CGSHOME`, or the current directory, in that order of precedence. The precedence is deliberate (the documented bootstrap tells users to export `$CGSHOME`), which is exactly why the reason has to travel with the answer: a stale export silently retargets every command at another workspace that holds the same repositories. This module never prints — `cli/_shared.py` turns a `CgshomeResolution`/`SnapshotResolution` into the `cgshome=`/`source=` lines and the mismatch warning. |
-| `memory/` | 1 | **Everything a workspace remembers, in one package.** `repository.py` says what it takes for a memory to *be* a repository — the `.cgs` entry that mounts it at `.cgitsync/.memory` (`MOUNT_PATH`; `memory_pending_path` answers the sibling question, "where does the not-yet-folded content sit" — `.cgitsync` itself, the mount's own parent, `memory-dev_WorkingTransitionState`), which branch of the shared `.memory` repository this project uses, and the message its own commit carries — while running no Git itself: `orchestre.py` asks `git_runner.py`, as it does for every other repository. `states.py` (where a State is written and how its path is spelled), `ledger_entry.py` (one chain entry and the hash over it), `ledger_store.py` (one file per entry, atomically, with an untrusted `HEAD`), `commit_log.py` (what each `commit` wrote and what each `push` published, one file per State — `published_commits` is the one query already filtered to what was published, for `memory explore`'s "by branch" view), `integrity.py` (whether a chain holds, and the four answers `verify` owes), `store.py` (the State writer, plus the single-file register that predates the chain — read-only, and written by nothing). None of these six know about the fold or the pending/folded split — each is handed one directory and answers about it; `pending.py`'s merge helpers (`read_ledger_entries`, `memory_state_files`, `memory_state_path`, `memory_commit_log_rows`, `memory_published_commits`, `memory_timeline`, `memory_state_hashes_with_logs`, `memory_read_commit_log`, `memory_unpublished_commits`, imported into `orchestre.py` under a leading underscore) call each of them twice — once against `.cgitsync/.memory` (folded), once against `.cgitsync` (pending) — and merge the answers, so `memory_status`/`memory_list`/`memory_show`/`memory_explore`/`verify`/`push` never need to know which half a given entry or State currently sits in. `__init__.py` is the surface everything outside imports. **No Git, ever**: a memory becoming a repository is `operations.py`/`git_runner.py`'s work, driven *by* this package, never done inside it. `snapshot_resolver.py` stays outside — it answers which workspace and snapshot a command line meant, not what is remembered. |
+| `memory/` | 1 | **Everything a workspace remembers, in one package.** `repository.py` says what it takes for a memory to *be* a repository — the `.cgs` entry that mounts it at `.cgitsync/.memory` (`MOUNT_PATH`; `memory_pending_path` answers the sibling question, "where does the not-yet-folded content sit" — `.cgitsync` itself, the mount's own parent, `memory-dev_WorkingTransitionState`), which branch of the shared `.memory` repository this project uses, and the message its own commit carries — while running no Git itself: `orchestre.py` asks `git_runner.py`, as it does for every other repository. `states.py` (where a State is written and how its path is spelled), `ledger_entry.py` (one chain entry and the hash over it), `ledger_store.py` (one file per entry, atomically, with an untrusted `HEAD`), `commit_log.py` (what each `commit` wrote and what each `push` published, one file per State — `published_commits` is the one query already filtered to what was published, for `memory explore`'s "by branch" view), `integrity.py` (whether a chain holds, and the five answers `verify` owes), `store.py` (the State writer, plus the single-file register that predates the chain — read-only, and written by nothing). None of these six know about the fold or the pending/folded split — each is handed one directory and answers about it; `pending.py`'s merge helpers (`read_ledger_entries`, `memory_state_files`, `memory_state_path`, `memory_commit_log_rows`, `memory_published_commits`, `memory_timeline`, `memory_state_hashes_with_logs`, `memory_read_commit_log`, `memory_unpublished_commits`, imported into `orchestre.py` under a leading underscore) call each of them twice — once against `.cgitsync/.memory` (folded), once against `.cgitsync` (pending) — and merge the answers, so `memory_status`/`memory_list`/`memory_show`/`memory_explore`/`verify`/`push` never need to know which half a given entry or State currently sits in. `__init__.py` is the surface everything outside imports. **No Git, ever**: a memory becoming a repository is `operations.py`/`git_runner.py`'s work, driven *by* this package, never done inside it. `snapshot_resolver.py` stays outside — it answers which workspace and snapshot a command line meant, not what is remembered. |
 | `discovery.py` | 1 | Nested `.cgs` auto-discovery and `.gitmodules` parsing. |
 | `git_tree.py` | 1 | `GitTree`/`WorkingGitTree` structures, traversal, lifecycle state; `to_cgs()` delegates to `cgs_format.py`; `.gitignore` maintenance across the tree (`sync_gitignore`) — the reason this is Ring 1, not 0. Also the single rule for "which repo sits inside which": `resolve_repo_for_path` for a live tree, `innermost_containing_path` for plain paths before one exists. Owns privacy *state* as well: `propagate_privacy` pushes each parent's `private`/`writable` onto everything nested inside it (a parent defines its leaves; a leaf may restrict itself further, never open itself wider) and records the answer in `WorkingRepo.propagated_private`/`propagated_writable`. Every build path calls it beside `normalize_node_types`. |
 | `git_tree_branch.py` | 2 | The tree's branch *state*, and the counterpart to `git_branch.py`'s *rule*: which branch the tree is on (the root's — what `status` prints as `cgitsync_branch`), which branch each repository targets when the tree moves (`target`, a pass to `git_branch.resolve_propagated_ref` with the project's name filled in), which branch Git says each is on (`observed`, read once per repository and cached so one `status` costs one call per repository instead of two), and where the two disagree (`deviations`). Also holds `tree_project_name`, moved here from `operations.py` because the project's name exists in that code path only to name a private/local branch. Restates no rule: every answer it gives comes from `git_branch.py`. Four call sites computed all of this separately before it existed — `validate_branch_topology`, `_collect_branch_alignment_diagnostics`, `_branch_incoherence`, and the root read in `_restart_tree_common` — and the three that asked the same question disagreed about a detached root. `deviations(ignore_unreadable=...)` keeps the one difference that is real: a report skips a repository Git cannot answer for, a preflight gate must not. An instance is a snapshot — build a new one after a checkout or a pull. See `.localSpec/DevTickets/archive/20260916_StatusCurrentBranch_DevPlanTicket.md`. |
@@ -1147,7 +1147,7 @@ snapshot — the two rules that serve workspaces written before the chain
 existed. Deciding from a filesystem timestamp is what the register used to
 do to pick a parent, and it is what the chain exists to stop.
 
-### The four answers `verify` owes
+### The five answers `verify` owes
 
 A verification pass ends in exactly one of these, never a blur of two:
 
@@ -1157,12 +1157,49 @@ A verification pass ends in exactly one of these, never a blur of two:
 | **no history** | Nothing has been recorded here yet. A new workspace is not a broken one | `0` |
 | **legacy** | History exists only in the single-file `.lgr` format, which carries no chain: readable, not verifiable | `1` |
 | **corrupt** | A chain was read and it does not hold | `1` |
+| **time-inconsistent** | The chain holds — every link checked out — and its own timestamps move backwards somewhere | `1` |
 
 `Finding` enumerates what "does not hold" can mean: `BROKEN_LINK`,
 `BAD_ENTRY_HASH`, `SEQ_GAP`, `SEQ_DUPLICATE` and `HEAD_STALE` for the chain
 and its cache, plus `MISSING_STATE`, `ORPHAN_STATE` and
 `STATE_DIGEST_MISMATCH`, reserved for the store-level pass that becomes
-possible once a State is named by its content.
+possible once a State is named by its content, and `TIME_REGRESSION`
+below.
+
+#### `time-inconsistent`, and why it is not `corrupt`
+
+**The chain fixes the order of entries; each entry also says when it was
+written. Put those together and each checks the other**: entry *N+1* was
+written after entry *N*, which the hash chain proves, so `recorded_at`
+moving backwards is a detected fault rather than a difference of opinion.
+That is what turns a local clock reading from an unchecked claim into a
+checked one, with no network, no signature and no third party.
+
+It catches a clock corrected mid-session, a restored VM snapshot, a
+dual-boot machine disagreeing about the hour — and a **backdated entry**,
+which is the tampering case: a date cannot be forged downwards without
+contradicting the chain around it.
+
+**It is a verdict of its own, and never folded into `corrupt`.** The
+history *did* hold; only the clock that stamped it did not, and the two
+send a reader to look at completely different things. Calling an intact
+chain corrupt is the specific false alarm this project has already paid
+for once — see *What a State's name is computed from*, where a perfectly
+good snapshot was reported as corrupt and the note that this "is the worst
+possible answer, because it is not true and it invites deleting the one
+thing that was fine". It still exits `1`: the history holds, but something
+is wrong that a build gating on `verify` should not sail past.
+
+**What it does not claim.** That the dates are *true*. A machine whose
+clock was wrong from the start, consistently, produces a perfectly
+monotonic chain of wrong timestamps. Absolute time needs a witness outside
+the machine, which is the Omniscience layer's business, not this one's.
+
+`integrity.resolve_state()` is the single authority on which findings mean
+which verdict — structural findings beat `TIME_REGRESSION`, which beats
+`ORPHAN_STATE` (reported, never fatal). Both the chain pass and the
+store-level pass call it, so a finding cannot mean one thing to one of
+them and something else to the other.
 
 ---
 
