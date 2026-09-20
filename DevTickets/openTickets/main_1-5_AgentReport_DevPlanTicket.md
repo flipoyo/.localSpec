@@ -383,7 +383,7 @@ absolute path, no OS user name**, every path written against `$CGSTREE`.
 ## 6. Work packages
 
 Sequenced by dependency, not preference. **WP1 needs nothing from
-[TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md)** and can run
+[TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md)** and can run
 beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
 
 | WP | Does | Depends on |

@@ -8,7 +8,7 @@
 > *"universal-clock.py must be an independent script that will be the one
 > in charge of timestamping too. For now it serves to securise the gts."*
 
-> **Ranked 1-1, ahead of [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md),
+> **Ranked 1-1, ahead of [TreeEnvironment](20260920_TreeEnvironment_DevPlanTicket.md),
 > which the owner had called very high.** Not a demotion of that ticket —
 > a dependency claim, and the owner should overrule it if they disagree.
 > Everything queued behind this writes timestamped records: an environment

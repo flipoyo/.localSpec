@@ -8,8 +8,8 @@
 > `memory-dev_1-1` to `main_1-1` on the owner's decision, and it is now
 > the only prioritary ticket in the tree. Two reasons it belongs on
 > `main`. First, precedent: the 2026-09-18 review already moved
-> [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md) and
-> [StateLocking](main_2-3_StateLocking_DevPlanTicket.md) onto `main`
+> [MemoryArchitecture](../openTickets/main_2-1_MemoryArchitecture_DevPlanTicket.md) and
+> [StateLocking](../openTickets/main_2-3_StateLocking_DevPlanTicket.md) onto `main`
 > because their work is "scoped to the State area and ledger, not to
 > anything still exclusive to `memory-dev`" — this ticket is the same kind
 > of work. Second, the reason `memory-dev` exists at all is to keep a
@@ -242,7 +242,7 @@ upgrade would rename every State in the workspace.
 
 Size. The five version strings cost about a hundred bytes and are written
 by every command, which is why D6 of
-[MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md) could
+[MemoryArchitecture](../openTickets/main_2-1_MemoryArchitecture_DevPlanTicket.md) could
 say "all five, every time". A record carrying a per-repository manifest
 table is kilobytes. Content-addressing collapses a hundred identical
 observations into one file and one repeated hash — the same trick, and the
@@ -321,19 +321,19 @@ imports it.
 | **WP6** | `rebuild_plan()` — the self env builder. **Stand-by**, its own ticket when WP5 has run for a while | WP5 |
 
 **No longer waits on anything.** UniversalClock's WP1–WP4 landed
-2026-09-20 ([archived](../archive/20260920_UniversalClock_DevPlanTicket.md)):
+2026-09-20 ([archived](20260920_UniversalClock_DevPlanTicket.md)):
 `universal_clock.py` exists, so an Environment record can be written
 through it from its first line, as it was always meant to be. Nothing
 here needs that ticket's attestation half — only its clock, which is
 already there.
 
-[Versioning](main_1-2_Versioning_DevPlanTicket.md) waits on WP3 too, and
+[Versioning](../openTickets/main_1-2_Versioning_DevPlanTicket.md) waits on WP3 too, and
 for the same reason: a version record is provenance about a State, the
 same shape of thing as an Environment record, and it should reuse this
 ticket's content-addressed store and additive ledger field rather than
 build a parallel one.
 
-[AgentReport](main_1-5_AgentReport_DevPlanTicket.md) waits on WP3 of this
+[AgentReport](../openTickets/main_1-5_AgentReport_DevPlanTicket.md) waits on WP3 of this
 ticket: it records which agent moved a project between two States, and the
 owner's own framing is that the link becomes possible "once 1-1 is
 implemented". Its WP1 needs nothing from here and can run alongside.
@@ -353,9 +353,9 @@ waiting.
 
 | Ticket | Relationship | Order |
 |---|---|---|
-| [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md) | **Neither blocks the other.** Since the 2026-09-18 review it is the architecture reference the landed code implements, not open build work. This ticket cites it — for the identity/metadata rule and for D6 — the way any memory ticket does | Independent |
-| [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) | **This one first, and it helps.** UserInstallPath removes Pixi as the only route in, which means an installed `cgitsync` runs under some Python nothing in this project pinned — it makes Group B's unrecorded-interpreter gap wider, not narrower. Recording the interpreter before the installs diversify is the cheap order. `cgitsync env` (WP1) is also exactly the diagnostic UserInstallPath's §5 clean-environment check wants to print | Before |
-| [StateLocking](main_2-3_StateLocking_DevPlanTicket.md) | **This one first, so locking covers the final shape.** WP3 adds `.cgitsync/env/` to the state area. A concurrency design written now would be written against a directory layout about to grow a third member. The new writes are the least race-prone kind — content-addressed and write-once, so two processes observing one machine produce one file with one name — but they are still surface, and StateLocking should scope it | Before |
+| [MemoryArchitecture](../openTickets/main_2-1_MemoryArchitecture_DevPlanTicket.md) | **Neither blocks the other.** Since the 2026-09-18 review it is the architecture reference the landed code implements, not open build work. This ticket cites it — for the identity/metadata rule and for D6 — the way any memory ticket does | Independent |
+| [UserInstallPath](../openTickets/main_2-2_UserInstallPath_DevPlanTicket.md) | **This one first, and it helps.** UserInstallPath removes Pixi as the only route in, which means an installed `cgitsync` runs under some Python nothing in this project pinned — it makes Group B's unrecorded-interpreter gap wider, not narrower. Recording the interpreter before the installs diversify is the cheap order. `cgitsync env` (WP1) is also exactly the diagnostic UserInstallPath's §5 clean-environment check wants to print | Before |
+| [StateLocking](../openTickets/main_2-3_StateLocking_DevPlanTicket.md) | **This one first, so locking covers the final shape.** WP3 adds `.cgitsync/env/` to the state area. A concurrency design written now would be written against a directory layout about to grow a third member. The new writes are the least race-prone kind — content-addressed and write-once, so two processes observing one machine produce one file with one name — but they are still surface, and StateLocking should scope it | Before |
 
 Specs to update when each lands, per CLAUDE.md's before-committing
 checklist: `AdditionalSpecs.md`'s entry-schema table and ring table (WP3),

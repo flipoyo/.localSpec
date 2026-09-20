@@ -5,7 +5,7 @@
 *Branch: main*
 
 > **Ticket review — 2026-09-19.** Still last, and now behind
-> [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) as well.
+> [TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md) as well.
 > That ticket's WP3 adds a third member to the state area,
 > `.cgitsync/env/`, so a concurrency design written before it would be
 > written against a layout about to change. The new writes are the least

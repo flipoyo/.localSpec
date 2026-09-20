@@ -274,7 +274,7 @@ that settles, and should not claim more in the meantime.
 
 If the artefact set grows past a handful of fields, it becomes a
 content-addressed record cited by hash from the entry — the pattern
-[TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) is already
+[TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md) is already
 building for environment records. Start inline, because a release row is
 small and rare; move it out only if it stops being either.
 
