@@ -30,7 +30,7 @@ takes two of them, and everything they touch belongs to the person who
 commissioned it.
 
 **What this document is.** The conduct half of the agent work, split out
-of [AgentReport](main_1-6_AgentReport_DevPlanTicket.md) so that one ticket
+of [AgentReport](main_1-5_AgentReport_DevPlanTicket.md) so that one ticket
 builds a mechanism and this one states rules. Mostly documents and one
 signed record; almost no code.
 
@@ -80,7 +80,7 @@ scores itself.
 | **Orchestrator** | Quotes the work against the three criteria, writes the record, and **cuts the release** — see below |
 
 **The orchestrator also owns the version bump.**
-[Versioning](main_1-3_Versioning_DevPlanTicket.md) §5.2 settles that CI
+[Versioning](main_1-2_Versioning_DevPlanTicket.md) §5.2 settles that CI
 never bumps and the local orchestrator agent does. That is the same role
 for a good reason rather than by accident: choosing MAJOR over MINOR means
 judging what a change did to the public contract, which *is* a conformity
@@ -108,7 +108,7 @@ spec must say so, or it reads as requiring two agents to file a one-line
 short ticket.
 
 **Where it lands.** The general project spec, since it is a rule for any
-cgitsync project — see [ProjectSpecSplit](main_1-4_ProjectSpecSplit_DevPlanTicket.md).
+cgitsync project — see [ProjectSpecSplit](main_1-3_ProjectSpecSplit_DevPlanTicket.md).
 Until that split happens, `CLAUDE.md`.
 
 ## 2. The data contract

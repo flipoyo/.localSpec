@@ -1234,6 +1234,15 @@ CLI display requirements:
 - Install dev extras: `pixi install`
 - Run suite: `pixi run test` from the repository root
 - Tests must not depend on network access or live git remotes.
+- **A test that asserts on a date injects the date.** Every dated fact a
+  command writes goes through `ClockProtocol`
+  (`memory/ledger_entry.py`) — real by default (`orchestre.SystemClock`),
+  fake by injection — so a test asserting on one supplies a fixed clock
+  rather than reaching for `monkeypatch` on the real one. A test that
+  patches only part of a scenario and lets the rest read the real
+  calendar is green only until the two happen to agree, which is not
+  really green at all — see
+  `.localSpec/DevTickets/archive/20260920_ClockSeam_DevPlanTicket.md`.
 
 ---
 
@@ -1265,7 +1274,7 @@ verifying byte for byte — puts no half-migrated format in front of anyone,
 and lands on `main`. That is the rule the 2026-09-18 review applied when it
 moved MemoryArchitecture and StateLocking onto `main`, and the 2026-09-19
 one when it opened
-[TreeEnvironment](DevTickets/openTickets/main_1-2_TreeEnvironment_DevPlanTicket.md)
+[TreeEnvironment](DevTickets/openTickets/main_1-1_TreeEnvironment_DevPlanTicket.md)
 there. This paragraph records the narrowing those reviews already made, so
 the rule and the filing agree.
 

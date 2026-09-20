@@ -6,7 +6,7 @@
 
 > **Ticket review — 2026-09-19.** Rank unchanged — the priority-1 and
 > priority-2 piles are numbered independently — but
-> [TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md) now sits
+> [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) now sits
 > ahead of this in the queue, and it should. This ticket removes Pixi as
 > the only route in, which means an installed `cgitsync` runs under a
 > Python nothing in this project pinned; today no record says which
@@ -119,7 +119,7 @@ the CLI and the `.cgs` grammar have settled, and not before.
 ### D1. The version scheme, which publishing forces
 
 > **Moved out on 2026-09-20 — this decision now belongs to
-> [Versioning](main_1-3_Versioning_DevPlanTicket.md).** The owner's
+> [Versioning](main_1-2_Versioning_DevPlanTicket.md).** The owner's
 > `versioning.md` short ticket picks the third option below — semantic
 > versioning — and extends it far past what a packaging ticket can hold:
 > the version becomes a fusion of the tool, the agent contracts and the
