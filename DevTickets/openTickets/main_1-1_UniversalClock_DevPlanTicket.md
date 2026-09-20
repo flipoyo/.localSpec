@@ -25,9 +25,10 @@
 ## Abstract — read this first
 
 **The one-line version.** Time is meant to be the backbone of a cgitsync
-memory, and today nine modules read the wall clock independently, nothing
-checks that the recorded moments make sense, and no question can be asked
-in terms of them.
+memory. `universal_clock.py` now owns every read of it (WP1/WP2, landed
+2026-09-20) — nine call sites that used to read the wall clock
+independently; what still needs building is the check that makes a
+recorded moment trustworthy and the way a State becomes findable by time.
 
 **What this document is.** The design for `universal_clock.py`: one module
 owning every read of time, the check that makes a recorded moment
@@ -316,25 +317,54 @@ and `user_guide.tex` updated).
 
 ## 6. Work packages
 
-**WP1 and WP2 depend on nothing and are the whole "one owner" half.**
+**WP1 and WP2 landed 2026-09-20.**
 
 | WP | Does | Depends on |
 |---|---|---|
-| **WP1** | `universal_clock.py` at Ring 1, holding the real implementation moved out of `orchestre.py`. `AdditionalSpecs.md`'s ring table and CLAUDE.md's module table updated in the same change, as the architecture rule requires | D1, D2 |
-| **WP2** | All nine direct reads (§1) go through it. A test asserts there is no tenth — a grep-style check in `check_module_ceilings.py`, beside the Ring-0 purity check it already runs | WP1, D3 |
+| **WP1 — landed** | `universal_clock.py` at Ring 1, holding the real implementation moved out of `orchestre.py`. `ClockProtocol`/`SystemClock` defined there; `memory/ledger_entry.py` keeps its own structurally identical Protocol, Ring-0-self-contained, per D2. `AdditionalSpecs.md`'s ring table (now five import rules, not four) and `CLAUDE.md`'s module table updated in the same change | D1, D2 |
+| **WP2 — landed** | All nine direct reads (§1) go through it, each via an injected `clock: ClockProtocol` — required where a test asserts on the exact value (`memory_reboot`'s archive name, `commit_message`'s moment, from ClockSeam), optional-and-defaulted elsewhere, following that ticket's own precedent for sites nothing asserts on. `pixi run check-ceilings` gained a fourth check, unconditional across every module rather than tied to a declared Ring-0 subset — proven to actually fail (not just report) on both an existing module regressing and a brand-new module born with a violation, which needed a small fix to `run_check`'s own logic (§WP2 note below) | WP1, D3 |
 | **WP3** | **Monotonic time (§4.2)**: `TIME_REGRESSION` added to `Finding`, checked by `verify_chain`, reported by `verify`, and written into `AdditionalSpecs.md`'s register taxonomy. Local, cheap, no network — and the piece that makes every later one mean something | WP1, D7 |
 | **WP4** | The TIME-L0 decision (D4) carried out: fixed and adopted, or deleted with its tests | D4 |
 | **WP5** | Attestation: a record binding `state(<hash>)` to a moment, beside the State, never inside it (D6) | WP1, WP4 |
 | **WP6** | **As-of retrieval (§4.4)**: "what was this tree at time *T*", built on `memory_timeline`, as a client method with a thin CLI pair | WP3 |
 | **WP7** | The push anchor (§4.3): record which push carried which State, so the remote's receipt is citable | WP5, D5 |
 
+**WP2 note, found while implementing.** `check_module_ceilings.py`'s
+`run_check` only ever checked Ring-0 purity, the clock seam, or the
+docstring/`Imports:` cross-check for a module that **already had a
+baseline entry** — a brand-new module born with a violation sailed through
+`--check` silently until someone happened to run `--write-baseline`.
+Confirmed by planting a real violation in a throwaway module before fixing
+it: the table printed `CLOCK:1` but exit stayed `0`. Restructured so those
+three absolute checks run unconditionally, and only the two ratchet
+comparisons (LOC, public-symbol count) still require a prior baseline —
+they have nothing to ratchet against otherwise. This was a pre-existing
+gap in the script, not introduced by WP2; fixed here because WP2's own
+acceptance criterion ("a check fails if a tenth call site appears") is the
+first thing that would have silently failed to hold.
+
+**WP3–WP7 are gated on D4 and D7 — both marked Owner in §5, and neither
+forced the way D1 effectively was** (a `scripts/` program genuinely cannot
+be imported, so there was only one real answer). D4 forks two ways with
+different amounts of code and a different outcome for two tested classes
+already on disk (adopt-and-fix the TIME-L0 anchor vs. delete it); D7
+changes `verify`'s exit-code contract. Neither is something to decide by
+proceeding — D1/D2/D3/D6 were implementer calls or mechanically forced and
+are acted on above; D4 and D7 are left open.
+
 ## 7. Acceptance
 
-- **`datetime.now`, `time.time_ns`, `os.getpid` and `secrets.token_hex`
-  appear in exactly one module** of `src/ComplexGitSync/`, and a check
-  fails if a tenth call site appears.
-- A test can run the whole suite at any fixed instant by injecting one
-  clock, with no `monkeypatch` of a module-level `datetime` anywhere.
+- **MET (WP1/WP2, 2026-09-20).** `datetime.now`, `time.time_ns`,
+  `os.getpid` and `secrets.token_hex` appear in exactly one module of
+  `src/ComplexGitSync/`, and a check fails if a tenth call site appears —
+  proven by planting a real one and watching `pixi run check-ceilings`
+  fail, in both an existing module and a brand-new one.
+- **MET.** A test can run the whole suite at any fixed instant by
+  injecting one clock, with no `monkeypatch` of a module-level `datetime`
+  anywhere — the one test that still did this
+  (`test_a_second_reboot_the_next_day_writes_v3`, which broke the moment
+  `orchestre.py` stopped importing `datetime` at all) now injects a fixed
+  clock through `ComplexGitSyncClient(clock=...)` instead.
 - Two machines holding the same tree at different moments still compute
   **the same State hash** — the attestation never touched the name.
 - An attestation names the State it attests, and a reader can tell an

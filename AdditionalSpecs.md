@@ -356,10 +356,10 @@ ring, never a higher one.
 | 4 — ADAPTER | `cli/` package (`_shared.py`, `minimalist.py`, `expert.py`, `configuration.py`, `suggest.py`, `__init__.py` assembling them) |
 | 3 — ORCHESTRATION | `orchestre.py` (`Orchestre`, `ComplexGitSyncClient`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operations.py`, `registry.py`, `toolchain.py` |
-| 1 — FILESYSTEM | `paths.py`, `memory/` (`states`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
+| 1 — FILESYSTEM | `paths.py`, `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `main_1-1_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
 | 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `ledger_entry.py`, `integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
-### The four import rules (machine-checked)
+### The five import rules (machine-checked)
 
 1. **No upward imports.** Ring *n* imports from rings `< n` only.
 2. **`import subprocess` appears in exactly one module** — `git_runner.py`.
@@ -368,6 +368,18 @@ ring, never a higher one.
    listed in `scripts/ceiling_baseline.json`'s `ring0_modules` by
    `pixi run check-ceilings`; extend that list as more modules earn it.
 4. **Ring 1 performs no `subprocess`.** Filesystem only.
+5. **`datetime.now`/`datetime.utcnow`/`time.time_ns`/`os.getpid`/
+   `secrets.token_hex` appear in exactly one module** — `universal_clock.py`
+   (Ring 1), which defines `ClockProtocol` and `SystemClock`, the real
+   implementation. Every other module injects a `ClockProtocol` rather than
+   reading the wall clock, PID or entropy source itself — the same shape as
+   rule 2, and enforced the same way, unconditionally, by
+   `pixi run check-ceilings` (not tied to a declared subset the way rule 3
+   is). `memory/ledger_entry.py` keeps a structurally identical
+   `ClockProtocol` of its own — Ring 0 must be self-contained, so it cannot
+   import Ring 1's — which Python's structural typing makes interchangeable
+   with the canonical one at every call site. See
+   `.localSpec/DevTickets/openTickets/main_1-1_UniversalClock_DevPlanTicket.md`.
 
 ### Ceilings
 
