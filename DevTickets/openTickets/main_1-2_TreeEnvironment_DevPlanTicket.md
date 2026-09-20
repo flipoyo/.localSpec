@@ -320,13 +320,19 @@ imports it.
 | **WP5** | Group E: the `.cgs` `[environment]` table and `environment_root`; `compare()`; `cgitsync env check` with D8's exit rule | WP4, D6, D8 |
 | **WP6** | `rebuild_plan()` — the self env builder. **Stand-by**, its own ticket when WP5 has run for a while | WP5 |
 
-[Versioning](main_1-2_Versioning_DevPlanTicket.md) waits on WP3 too, and
+[UniversalClock](main_1-1_UniversalClock_DevPlanTicket.md) now sits ahead
+of this ticket: an Environment record is a timestamped record, and it
+should be written through the clock module from its first line rather than
+migrated onto it afterwards. Nothing here needs that module's attestation
+half — only its clock.
+
+[Versioning](main_1-3_Versioning_DevPlanTicket.md) waits on WP3 too, and
 for the same reason: a version record is provenance about a State, the
 same shape of thing as an Environment record, and it should reuse this
 ticket's content-addressed store and additive ledger field rather than
 build a parallel one.
 
-[AgentReport](main_1-5_AgentReport_DevPlanTicket.md) waits on WP3 of this
+[AgentReport](main_1-6_AgentReport_DevPlanTicket.md) waits on WP3 of this
 ticket: it records which agent moved a project between two States, and the
 owner's own framing is that the link becomes possible "once 1-1 is
 implemented". Its WP1 needs nothing from here and can run alongside.
