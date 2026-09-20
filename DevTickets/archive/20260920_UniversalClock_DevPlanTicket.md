@@ -8,7 +8,7 @@
 > *"universal-clock.py must be an independent script that will be the one
 > in charge of timestamping too. For now it serves to securise the gts."*
 
-> **Ranked 1-1, ahead of [TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md),
+> **Ranked 1-1, ahead of [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md),
 > which the owner had called very high.** Not a demotion of that ticket —
 > a dependency claim, and the owner should overrule it if they disagree.
 > Everything queued behind this writes timestamped records: an environment
@@ -21,6 +21,43 @@
 > started and deliberately left: that ticket fixed the two sites a test had
 > an opinion about and listed the rest *"so that the next person adding a
 > dated assertion knows the seam exists"*. This is that next person.
+
+> **Closed 2026-09-20 — WP1–WP4 landed, WP5–WP7 split out.** The owner's
+> instruction: *"enqueue what remains at the end of the reorder priority1
+> if consistent with the other DevPlan, maybe it should land after
+> memory-dev Omniscience, or even in it."*
+>
+> The two remaining halves are not one piece, so they split two ways:
+>
+> - **WP6 (as-of retrieval, §4.4)** touches no external witness at all —
+>   it is a query over the local chain, correct only because WP3 already
+>   landed. It travels with the rest of "what remains" to the end of the
+>   `main` priority-1 pile: see
+>   [AsOfRetrieval](main_1-6_AsOfRetrieval_DevPlanTicket.md).
+> - **WP5 (attestation) and WP7 (the push anchor)** are property 3 — the
+>   external-witness half — and D5 already said they meet Omniscience
+>   there: *"the universal reference and the lag against it belong to
+>   Omniscience §1.1."* Reading Omniscience's own §2 record format closed
+>   the gap further than expected: `[local] state = "state(<hash>)"`
+>   *already is* the attestation WP5 asked for, and falsifiable via
+>   `git ls-remote` rather than merely asserted — strictly stronger than
+>   what this ticket had planned to build alone. They land **in**
+>   Omniscience, not merely after it — see that ticket's §1.2.
+>
+> **One thing worth being explicit about, since it is a real design
+> tension and not a formality.** D5 kept the push anchor *here*, on
+> `main`, specifically because it is "the witness a project has when it
+> has nothing else" — the fallback for a project that never mounts
+> Omniscience. Folding it into a `memory-dev` ticket must not make that
+> fallback depend on Omniscience's shared-register machinery landing
+> first; Omniscience §1.2 keeps it as an independent, no-omniscience-
+> required milestone for exactly that reason. See that ticket's §1.2 and
+> its D10.
+
+Everything below this point is the design record as it stood when the
+ticket was open. §1–§4 remain accurate; §6's WP5–WP7 rows and part of §7's
+acceptance list describe work that continued elsewhere — see the pointers
+above rather than this ticket for their current status.
 
 ## Abstract — read this first
 
@@ -325,9 +362,9 @@ and `user_guide.tex` updated).
 | **WP2 — landed** | All nine direct reads (§1) go through it, each via an injected `clock: ClockProtocol` — required where a test asserts on the exact value (`memory_reboot`'s archive name, `commit_message`'s moment, from ClockSeam), optional-and-defaulted elsewhere, following that ticket's own precedent for sites nothing asserts on. `pixi run check-ceilings` gained a fourth check, unconditional across every module rather than tied to a declared Ring-0 subset — proven to actually fail (not just report) on both an existing module regressing and a brand-new module born with a violation, which needed a small fix to `run_check`'s own logic (§WP2 note below) | WP1, D3 |
 | **WP3 — landed** | **Monotonic time (§4.2)**: `TIME_REGRESSION` on `Finding`, `TIME_INCONSISTENT` on `HistoryState` as a fifth `verify` answer (D7), `_check_time_monotonic` in `verify_chain`, and `resolve_state()` — one authority on which findings mean which verdict, replacing the rule `orchestre.verify` used to keep its own copy of. Documented in `AdditionalSpecs.md` (taxonomy + the five answers + why it is not `corrupt`), `README.md`, `user_guide.tex`, `api_python.tex` | WP1, D7 |
 | **WP4 — landed** | D4 answered **delete**: `TimeL0State`, `new_time_l0_anchor`, `hash_time_l0_anchor`, their re-exports and their tests are gone; `ledger_entry.py` shrank 220 → 201 LOC and the ratchet locked that in. Its module docstring records what was removed and why, so the next person reaching for an attestation primitive knows to write one that keeps its pre-image | D4 |
-| **WP5** | Attestation: a record binding `state(<hash>)` to a moment, beside the State, never inside it (D6) | WP1, WP4 |
-| **WP6** | **As-of retrieval (§4.4)**: "what was this tree at time *T*", built on `memory_timeline`, as a client method with a thin CLI pair | WP3 |
-| **WP7** | The push anchor (§4.3): record which push carried which State, so the remote's receipt is citable | WP5, D5 |
+| **WP5 — moved** | Attestation: a record binding `state(<hash>)` to a moment, beside the State, never inside it (D6). Superseded by Omniscience §2's own record, which already does this and does it falsifiably | Omniscience O1 |
+| **WP6 — moved** | **As-of retrieval (§4.4)**: "what was this tree at time *T*", built on `memory_timeline`, as a client method with a thin CLI pair | [AsOfRetrieval](main_1-6_AsOfRetrieval_DevPlanTicket.md) |
+| **WP7 — moved** | The push anchor (§4.3): record which push carried which State, so the remote's receipt is citable | Omniscience §1.2 |
 
 **WP2 note, found while implementing.** `check_module_ceilings.py`'s
 `run_check` only ever checked Ring-0 purity, the clock seam, or the
@@ -367,19 +404,19 @@ is the natural next piece.
   (`test_a_second_reboot_the_next_day_writes_v3`, which broke the moment
   `orchestre.py` stopped importing `datetime` at all) now injects a fixed
   clock through `ComplexGitSyncClient(clock=...)` instead.
-- Two machines holding the same tree at different moments still compute
-  **the same State hash** — the attestation never touched the name.
-- An attestation names the State it attests, and a reader can tell an
-  attestation id from a State id at a glance (§3.2).
-- **A chain whose timestamps move backwards is reported as
+- **MET.** A chain whose timestamps move backwards is reported as
   `TIME_REGRESSION`, by name, and is not confused with a rewritten
-  history** (§4.2, D7). Set the clock back mid-session and `verify` says
-  so.
-- **"What was this tree at time *T*?" is answerable** from the memory
-  alone, and the answer is a State hash (§4.4).
-- The documentation says what each layer proves: order and consistency
-  from the chain, absolute time only where something outside the machine
-  witnessed it (§4.3).
+  history (§4.2, D7). Set the clock back mid-session and `verify` says so.
+- **MET.** The documentation says what each layer proves: order and
+  consistency from the chain, absolute time only where something outside
+  the machine witnessed it (§4.3).
+- **Moved to Omniscience O1.** Two machines holding the same tree at
+  different moments still compute the same State hash, and an attestation
+  names the State it attests without being mistaken for one (§3.2) —
+  Omniscience's own record already satisfies both, more strongly than
+  planned here.
+- **Moved to AsOfRetrieval.** "What was this tree at time *T*?" is
+  answerable from the memory alone, and the answer is a State hash (§4.4).
 - `pixi run lint`, `pixi run test` and `pixi run check-ceilings` pass;
   `cgitsync status` shows `errors=0`.
 

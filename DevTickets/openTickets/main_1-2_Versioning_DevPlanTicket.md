@@ -184,7 +184,7 @@ the build counter needs a home of its own.
 > agent worker job, the worker that works on src."*
 
 **So versioning divides three ways, along the roles that already exist**
-([AgentContract](main_1-5_AgentContract_DevPlanTicket.md) §1):
+([AgentContract](main_1-4_AgentContract_DevPlanTicket.md) §1):
 
 | Who | Does | Because |
 |---|---|---|
@@ -261,17 +261,20 @@ that point on. Nothing new has to be built to protect it.
 
 **One limit worth carrying over.** The chain proves the *order* of
 releases, not the date on any of them — a `released_at` is whatever the
-local clock said.
-[UniversalClock](main_1-1_UniversalClock_DevPlanTicket.md) §4 is where
-that distinction is argued and where an external witness is decided; a
-release row inherits whatever it settles, and should not claim more in the
-meantime.
+local clock said, monotonic-checked but not externally witnessed
+(`verify`'s `time-inconsistent` answer covers the first half; nothing yet
+covers the second). See
+[UniversalClock](../archive/20260920_UniversalClock_DevPlanTicket.md) §4.3
+for where that distinction is argued, and
+[Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) §1.2 for where
+the external-witness half of it landed. A release row inherits whatever
+that settles, and should not claim more in the meantime.
 
 ### The one thing it still takes from TreeEnvironment
 
 If the artefact set grows past a handful of fields, it becomes a
 content-addressed record cited by hash from the entry — the pattern
-[TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md) is already
+[TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) is already
 building for environment records. Start inline, because a release row is
 small and rare; move it out only if it stops being either.
 
@@ -294,7 +297,7 @@ disagreeing — the same property the State and the ledger already have.
 publicly under Apache-2, at which SemVer, from which State. That makes the
 public boundary a matter of record rather than recollection — *"this
 artefact was never public"* becomes provable. Paired with
-[AgentContract](main_1-5_AgentContract_DevPlanTicket.md)'s contract
+[AgentContract](main_1-4_AgentContract_DevPlanTicket.md)'s contract
 record, a `.self-history` entry can name both the terms in force and the
 public version in force.
 
@@ -337,7 +340,7 @@ act, so there is nothing for an orchestrator to check and nothing the
 worker can be said to have done well or badly. A counter the worker bumps
 is an act that leaves a trace in the diff — and whether it happened is a
 **machine-checkable fact**, exactly the kind
-[AgentReport](main_1-6_AgentReport_DevPlanTicket.md) §3 puts on the
+[AgentReport](main_1-5_AgentReport_DevPlanTicket.md) §3 puts on the
 checked side of its *Spec respect* criterion.
 
 So the loop closes: the worker bumps, the orchestrator checks it bumped,
@@ -359,7 +362,7 @@ not."* Today that is a sentence people are asked to respect. Move
 becomes a fact — a public-only checkout has no release tooling, so it
 cannot cut a release by accident. Versioning discipline is also
 project-agnostic, which is precisely the test
-[ProjectSpecSplit](main_1-4_ProjectSpecSplit_DevPlanTicket.md) §2 applies
+[ProjectSpecSplit](main_1-3_ProjectSpecSplit_DevPlanTicket.md) §2 applies
 to decide what is general.
 
 ### 5.2 The frontier: CI verifies, the orchestrator releases
@@ -385,7 +388,7 @@ So the three sides divide by what each is capable of and present for
 | **CI** | Verifies: lint, tests, and that the tree still reconstitutes | Judge what a change did to the public interface — and it is present at the push, not at the change |
 
 This lands the release on the **orchestrator** role that
-[AgentContract](main_1-5_AgentContract_DevPlanTicket.md) §1 already
+[AgentContract](main_1-4_AgentContract_DevPlanTicket.md) §1 already
 defines — the independent agent that quotes the work and writes the
 record. The same accountable party cuts the version and writes the
 `.self-history` entry for it, which is the coherent outcome rather than a
@@ -421,7 +424,7 @@ orchestrator bumps and CI does not.
 makes no CI claim. It still needs revisiting, because this project is
 leaving `YYYY.XX`, but that is a change to a **shared** spec affecting
 other projects and belongs with
-[ProjectSpecSplit](main_1-4_ProjectSpecSplit_DevPlanTicket.md) rather than
+[ProjectSpecSplit](main_1-3_ProjectSpecSplit_DevPlanTicket.md) rather than
 being done quietly here.
 
 ## 6. Work packages

@@ -365,7 +365,7 @@ With those two settled, D6 is closed.
 more.** The wider question the owner asked on 2026-09-19 — the OS, the
 interpreter, the platform, the provider CLI, and what it takes to rebuild
 an environment rather than describe one — is
-[TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md)'s, and
+[TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md)'s, and
 its answer sits beside the State rather than inside an entry. The five
 strings D6 settled stay exactly as they are: they are what lets one entry,
 cut out of its chain, still say what made it.
@@ -391,7 +391,7 @@ one lands.
 | **M10** | MemoryExplore — **landed 2026-09-18** | A memory a person can read: what was published, by branch, and the ledger's own order made legible |
 | **M11** | MemoryReboot — **landed 2026-09-18** | Starting a memory's history over, on purpose, without losing the chapter before it |
 | **M12** | WorkingTransitionState — **landed 2026-09-17**, name deferred | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded. The frontier landed; the owner's name for it did not — `.cgitsync` keeps its name and [WorkingAreaRename](memory-dev_2-2_WorkingAreaRename_DevPlanTicket.md) holds that question |
-| **M13** | [TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md) — **prioritary** | A memory says what machine it ran on, not only what tree it saw: an Environment record beside each State, naming the platform, the interpreter and the tools a restore needs |
+| **M13** | [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) — **prioritary** | A memory says what machine it ran on, not only what tree it saw: an Environment record beside each State, naming the platform, the interpreter and the tools a restore needs |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing

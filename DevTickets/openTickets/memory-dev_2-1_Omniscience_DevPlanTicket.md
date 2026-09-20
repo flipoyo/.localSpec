@@ -41,11 +41,15 @@ each memory is true, none is complete, and a chain cannot merge with
 another chain. The register is where the project's own history lives, and
 what makes it worth anything is that it cannot be edited quietly.
 
-**What you will find.** §1 what omniscience is and how it is mounted. §2
-what one record holds. §3 append-only — what Git can and cannot promise,
-which is the heart of this ticket. §4 how two people appending at once do
-not collide. §5 the decisions. §6 what verification means here. §7 the
-milestones. §8 what this refuses.
+**What you will find.** §1 what omniscience is and how it is mounted, and
+§1.1–§1.2 the two jobs the owner's 2026-09-20 direction gave it: measuring
+each participant's lag against a universal clock, and inheriting
+UniversalClock's leftover work packages when that ticket closed the same
+day. §2 what one record holds. §3 append-only — what Git can and cannot
+promise, which is the heart of this ticket. §4 how two people appending at
+once do not collide. §5 the decisions, including D10, the one that lets
+O0 start now. §6 what verification means here. §7 the milestones — six of
+them, O0 first and ungated. §8 what this refuses.
 
 **Who it is for.** The owner first, for §5. Then whoever builds it.
 
@@ -112,7 +116,7 @@ terms after the fact.
 
 | Layer | Clock | Who has it |
 |---|---|---|
-| Local | The machine's own, owned by [UniversalClock](main_1-1_UniversalClock_DevPlanTicket.md) | Every project. **A public-only project uses this and nothing else**, by the owner's words |
+| Local | The machine's own, owned by [UniversalClock](../archive/20260920_UniversalClock_DevPlanTicket.md) | Every project. **A public-only project uses this and nothing else**, by the owner's words |
 | Universal | A reference omniscience measures against | Only a project that mounts omniscience |
 
 That layering is what keeps the tool offline-safe: a project with no
@@ -153,7 +157,8 @@ truth; one that picks a winner is inventing one.
 ### 1.1.3 The naming hazard
 
 The owner writes `universal-time.py` here and `universal-clock.py` in the
-short ticket that became [UniversalClock](main_1-1_UniversalClock_DevPlanTicket.md).
+short ticket that became
+[UniversalClock](../archive/20260920_UniversalClock_DevPlanTicket.md).
 **Two modules whose names differ by one word, doing different jobs, is a
 collision waiting to happen** — this project has already paid for that
 twice, with "register" meaning three things and with a time anchor's id
@@ -162,6 +167,54 @@ being shaped exactly like a State's.
 They are genuinely different: one owns *this machine's* clock and belongs
 to every project; the other owns the *shared reference* and belongs only
 to omniscience. D9 names them apart before either is written.
+
+## 1.2 What UniversalClock handed off, 2026-09-20
+
+> **Owner direction — 2026-09-20:** *"enqueue what remains at the end of
+> the reorder priority1 if consistent with the other DevPlan, maybe it
+> should land after memory-dev Omniscience, or even in it."* It lands
+> here: property 3 — the external witness — was always going to meet
+> Omniscience at §1.1, and reading this ticket's own §2 record format
+> closed the gap further than either ticket had planned for separately.
+
+UniversalClock closed with WP1–WP4 landed (the clock module, all nine
+call sites, monotonic-time verification, the TIME-L0 deletion) and two
+work packages still open: **WP5**, an attestation record binding
+`state(<hash>)` to a moment, and **WP7**, a push anchor — recording which
+push carried which State, so the remote's receipt is a witness.
+
+**WP5 turns out to already be built.** §2's record format —
+
+```toml
+[local]
+state       = "state(2acdc98…)"                 # the local State this attests
+memory_ref  = "refs/heads/ComplexGitSync"
+ledger_head = "sha256:…"
+```
+
+— binds a State to a moment (`[record] recorded_at`) exactly as WP5 asked,
+and does it strictly better than a standalone attestation would have:
+`published_state` is falsifiable by `git ls-remote`, not merely asserted.
+A local attestation says "I claim this was true"; an omniscience record
+says "and here is how you check." WP5 needs no separate implementation —
+it is O1 (§7) under a different name.
+
+**WP7 does not fold in wholesale, and that is deliberate.** UniversalClock
+D5 kept the push anchor on `main`, not here, specifically because it is
+*"the witness a project has when it has nothing else"* — the fallback for
+a project that never mounts omniscience at all. Making that fallback
+depend on this ticket's shared-register machinery (D1's append-only
+design, branch protection, O1–O5) would defeat its own purpose: a project
+with nothing else would then have nothing, until omniscience's harder
+design questions were settled.
+
+So WP7 lands here as its **own, independent milestone** — call it **O0**,
+below — decoupled from D1 and from every other milestone. It needs no
+shared register, no multi-party append-only DAG, no branch protection: one
+project, its own private memory, recording which push carried which
+State. A project that later mounts omniscience gets the falsifiable O1
+record for free and keeps O0's; a project that never does keeps exactly
+the fallback D5 promised it. Whether O0 can start now is D10, in §5.
 
 ## 2. What one record holds
 
@@ -383,9 +436,10 @@ options differ in what they cost rather than in what they mean:
 
 NTP is the one that matches the job: the job is measuring an offset, and
 measuring offsets is what NTP is for. A TSA answers a different question
-(*prove this existed by then*), which is
-[UniversalClock](main_1-1_UniversalClock_DevPlanTicket.md) §4.3's
-territory, not this one.
+(*prove this existed by then*), which was
+[UniversalClock](../archive/20260920_UniversalClock_DevPlanTicket.md)
+§4.3's territory, not this one — and O0 above (§1.2) is its narrower,
+no-omniscience-required cousin: a push receipt rather than a signed token.
 
 ### D9. Two modules, two names
 
@@ -394,6 +448,21 @@ one word apart and do different jobs (§1.1.3). Name them apart before
 either exists — for instance the local one `universal_clock.py` and this
 one `time_reference.py`, or any pair a reader cannot mistake. Underscores
 either way; Python cannot import a hyphen.
+
+**Half-settled, 2026-09-20**: the local half landed as `universal_clock.py`,
+exactly the suggested form. The shared-reference module this ticket owns
+is still unbuilt and still needs its own name, distinct from that one.
+
+### D10. Does O0 (§1.2) block on D1, or on anything else in this ticket?
+
+**No — deliberately.** O0 is local-only, private/local scope, and answers
+a narrower question (`git ls-remote origin <ref>` against the memory's own
+remote, not a shared omniscience repository) than O1 does. Building it
+first is not premature: it is the same design as O1's `published_state`
+row, one contributor and one repository instead of many, and getting the
+narrow case right first is what a wider design should build on rather than
+the reverse. **Owner**, though the recommendation above needs no different
+answer to act on.
 
 ## 6. What verification means here
 
@@ -412,11 +481,13 @@ edited back into looking clean is evidence of nothing.
 
 ## 7. Milestones
 
-Each is a ticket of its own, opened when D1 is answered:
+O1–O5 are each a ticket of their own, opened when D1 is answered. **O0 is
+not gated on D1** (§1.2, D10) and can be opened now.
 
 | # | Milestone | Delivers |
 |---|---|---|
-| **O1** | The register format | `register/<hash>.toml`, the published state, and the spec section that fixes both |
+| **O0** | The push anchor, from [UniversalClock](../archive/20260920_UniversalClock_DevPlanTicket.md) WP7 | A private/local record: which push carried which State, checked against the memory's own remote via `git ls-remote`. No shared register, no D1 — the fallback witness a project has even if it never mounts omniscience |
+| **O1** | The register format | `register/<hash>.toml`, the published state, and the spec section that fixes both — this is where UniversalClock WP5's attestation lands, subsumed rather than rebuilt (§1.2) |
 | **O2** | `omniscience init` / `clone` | The mount, the branch rule, and the branch-protection instructions a person applies once |
 | **O3** | `omniscience announce` | One record per announce, from `ls-remote`, committed and pushed, with the non-fast-forward retry of §4 |
 | **O4** | `omniscience verify` | §6's three answers, including *rewritten* |

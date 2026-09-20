@@ -356,7 +356,7 @@ ring, never a higher one.
 | 4 — ADAPTER | `cli/` package (`_shared.py`, `minimalist.py`, `expert.py`, `configuration.py`, `suggest.py`, `__init__.py` assembling them) |
 | 3 — ORCHESTRATION | `orchestre.py` (`Orchestre`, `ComplexGitSyncClient`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operations.py`, `registry.py`, `toolchain.py` |
-| 1 — FILESYSTEM | `paths.py`, `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `main_1-1_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
+| 1 — FILESYSTEM | `paths.py`, `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.localSpec/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
 | 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `ledger_entry.py`, `integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The five import rules (machine-checked)
@@ -379,7 +379,7 @@ ring, never a higher one.
    `ClockProtocol` of its own — Ring 0 must be self-contained, so it cannot
    import Ring 1's — which Python's structural typing makes interchangeable
    with the canonical one at every call site. See
-   `.localSpec/DevTickets/openTickets/main_1-1_UniversalClock_DevPlanTicket.md`.
+   `.localSpec/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`.
 
 ### Ceilings
 
@@ -1323,7 +1323,7 @@ verifying byte for byte — puts no half-migrated format in front of anyone,
 and lands on `main`. That is the rule the 2026-09-18 review applied when it
 moved MemoryArchitecture and StateLocking onto `main`, and the 2026-09-19
 one when it opened
-[TreeEnvironment](DevTickets/openTickets/main_1-2_TreeEnvironment_DevPlanTicket.md)
+[TreeEnvironment](DevTickets/openTickets/main_1-1_TreeEnvironment_DevPlanTicket.md)
 there. This paragraph records the narrowing those reviews already made, so
 the rule and the filing agree.
 
