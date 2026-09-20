@@ -63,6 +63,14 @@ Three open tickets cite the same two stale paths in prose —
 `main_2-1_MemoryArchitecture` (twice) and `main_2-3_StateLocking` — and
 should be corrected in the same pass.
 
+**A third archived ticket, found 2026-09-20**, cited the same way:
+`openTickets/memory-dev_1-2_MemoryOnboarding_DevPlanTicket.md`, now
+`archive/20260917_MemoryOnboarding_DevPlanTicket.md`, cited from
+`main_2-1_MemoryArchitecture`. Note that both it and
+`WorkingTransitionState` were filed at `memory-dev_1-2` — the rank was
+reused after the first was archived, which is §1's retargeting hazard
+happening a second time in the same pile.
+
 **`main_1-1_CheckoutForkGuard` is the sharper one.** That path is not
 merely dead: as of 2026-09-19 it names a *different live ticket*,
 [TreeEnvironment](main_1-2_TreeEnvironment_DevPlanTicket.md), because

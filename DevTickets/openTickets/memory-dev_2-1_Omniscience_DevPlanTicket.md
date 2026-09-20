@@ -90,6 +90,79 @@ The two are layers, not alternatives. A memory is complete and local; the
 register is partial by nature — it holds what people chose to announce —
 and shared.
 
+## 1.1 Omniscience owns universal time
+
+> **Owner ticket — `shortTickets/omniscience-timeAnchor.md`, 2026-09-20:**
+> *"omniscience that is a DAG will have to record the lag between
+> universal time and local time to append the global DAG register with
+> local ones. Therefore universal-time.py should be held by omniscience. a
+> public-only complexgitsync project uses its internal clock. Omniscience
+> mesures the lag with a universal clock to be defined. The mechanism
+> should be a gitRepo PRIVATE-DISTANT."*
+
+**This gives omniscience a second job, and it is the one that makes the
+first one work.** Merging several people's local histories into one global
+DAG needs their timestamps to be comparable, and they are not: each was
+written by a different machine's clock. So omniscience measures each
+participant's **lag** — the offset between its local clock and a universal
+reference — and records it, so a local moment can be read in universal
+terms after the fact.
+
+**Two layers, and a project may have only the first:**
+
+| Layer | Clock | Who has it |
+|---|---|---|
+| Local | The machine's own, owned by [UniversalClock](main_1-1_UniversalClock_DevPlanTicket.md) | Every project. **A public-only project uses this and nothing else**, by the owner's words |
+| Universal | A reference omniscience measures against | Only a project that mounts omniscience |
+
+That layering is what keeps the tool offline-safe: a project with no
+omniscience still records, verifies and orders its own history — it simply
+cannot say how its clock compared to anyone else's, which is a question
+only a multi-party register can ask.
+
+### 1.1.1 Lag is a measurement, so it needs a measurement's fields
+
+An offset recorded as a bare number is not usable later. Clocks drift, so
+the offset that was true this morning is not true tonight, and a
+correction applied from the wrong moment is worse than none.
+
+| Field | Why |
+|---|---|
+| `measured_at` (local) | Which local reading the offset belongs to |
+| `offset` | Universal minus local |
+| `uncertainty` | The round-trip window the measurement could not see inside. NTP reports this; a measurement without it claims a precision it does not have |
+| `source` | Which reference answered (D8) |
+
+### 1.1.2 Causality first, time second — the rule this must not break
+
+**Where the DAG already says A precedes B, that wins, and no timestamp
+overrides it.** Git's parent edges are causal fact; corrected times are
+estimates with an error bar. Sorting a DAG by wall clock and getting an
+order that contradicts its own edges is the classic way this goes wrong,
+and it is silent when it does.
+
+Time's job here is narrower and still worth having: **ordering the events
+the DAG leaves unordered** — concurrent branches, which is most of what a
+multi-person register contains.
+
+And when two events fall inside each other's uncertainty window, the
+honest answer is that their order is **unknown**, not whichever number is
+smaller. A register that reports "concurrent, within 200ms" is telling the
+truth; one that picks a winner is inventing one.
+
+### 1.1.3 The naming hazard
+
+The owner writes `universal-time.py` here and `universal-clock.py` in the
+short ticket that became [UniversalClock](main_1-1_UniversalClock_DevPlanTicket.md).
+**Two modules whose names differ by one word, doing different jobs, is a
+collision waiting to happen** — this project has already paid for that
+twice, with "register" meaning three things and with a time anchor's id
+being shaped exactly like a State's.
+
+They are genuinely different: one owns *this machine's* clock and belongs
+to every project; the other owns the *shared reference* and belongs only
+to omniscience. D9 names them apart before either is written.
+
 ## 2. What one record holds
 
 One file per record, named by its own content hash:
@@ -270,6 +343,57 @@ lives in someone's `.memory`; copying it into the register makes the
 register a second store with a second copy to keep in step. The `[local]`
 block names where it lives, which is enough for anyone with access to fetch
 it.
+
+### D7. `PRIVATE-DISTANT` for the time mechanism — but omniscience is writable
+
+The short ticket says *"The mechanism should be a gitRepo
+PRIVATE-DISTANT"*. §1's entry mounts omniscience as `private = true,
+writable = true`, because §3's whole design is that **everyone appends to
+it**. Those two cannot both describe one repository: private/distant means
+read-only (`private` without `writable`), which is the opposite of
+append-by-everyone.
+
+They describe two different things, and separating them resolves it
+cleanly — and improves both:
+
+| Repository | Scope | Holds | Why that scope |
+|---|---|---|---|
+| The time reference | **private/distant** — read-only, shared across every project | What the universal clock is, and how to reach it | A reference is consulted, never written by a participant. Read-only is exactly right, and `propagate_privacy` makes it so for anything nested in it |
+| `omniscience` | private/**writable** | The DAG register, including each participant's measured lag | Appending is the point (§3) |
+
+So the *reference* is distant and the *measurements against it* are
+appended to the register. **Recommendation: two entries.** The alternative
+— one repository carrying both — would have to be writable, which makes
+the shared time reference writable by every participant, and a reference
+anyone can edit is not a reference.
+
+**Owner's call**, since it reads their sentence more narrowly than it was
+written.
+
+### D8. What is the universal clock?
+
+*"A universal clock to be defined"* — deliberately left open, and the
+options differ in what they cost rather than in what they mean:
+
+| Source | Gives | Costs |
+|---|---|---|
+| **NTP** — recommended first | An offset and a real uncertainty, which is exactly §1.1.1's shape, from infrastructure every machine already has | A network read. Trusts the NTP pool |
+| An RFC 3161 timestamp authority | A signed token a third party will vouch for | A network dependency and a trust choice; more than a lag measurement needs |
+| The forge's own clock | Free — a push receipt is already dated | Coarse, and only at push time |
+
+NTP is the one that matches the job: the job is measuring an offset, and
+measuring offsets is what NTP is for. A TSA answers a different question
+(*prove this existed by then*), which is
+[UniversalClock](main_1-1_UniversalClock_DevPlanTicket.md) §4.3's
+territory, not this one.
+
+### D9. Two modules, two names
+
+`universal-time.py` (here) and `universal-clock.py` (UniversalClock) are
+one word apart and do different jobs (§1.1.3). Name them apart before
+either exists — for instance the local one `universal_clock.py` and this
+one `time_reference.py`, or any pair a reader cannot mistake. Underscores
+either way; Python cannot import a hyphen.
 
 ## 6. What verification means here
 

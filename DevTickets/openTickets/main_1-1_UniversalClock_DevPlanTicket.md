@@ -180,15 +180,28 @@ distinct form.
 
 Three separate properties, usually collapsed into one word:
 
-| # | Property | Status today |
-|---|---|---|
-| 1 | **Order** — this State came before that one | **Have it.** The hash chain proves it outright |
-| 2 | **A time that cannot silently go backwards** — the recorded moments agree with that order | **Missing.** Nothing checks, and §4.2 says why that bites |
-| 3 | **An outside witness** — the date means something to someone who does not trust the machine | Missing. §4.3 |
+| # | Property | Status today | Whose |
+|---|---|---|---|
+| 1 | **Order** — this State came before that one | **Have it.** The hash chain proves it outright | — |
+| 2 | **A time that cannot silently go backwards** — the recorded moments agree with that order | **Missing.** Nothing checks, and §4.2 says why that bites | **This ticket** |
+| 3 | **An outside witness** — the date means something to someone who does not trust the machine | Missing. §4.3 | Mostly [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) |
 
 A backbone needs all three, and they are independent: the chain can be
 perfect while every timestamp on it is nonsense, which is exactly the
 state the project is in now.
+
+**The boundary with omniscience, set by the owner on 2026-09-20.** This
+module owns **the local clock** — every read of *this machine's* time, for
+every project. The **universal reference**, and the lag between it and
+each machine, belong to omniscience, which is the only thing that needs
+them: comparing clocks is a question you can only ask once there is more
+than one participant.
+
+*"A public-only complexgitsync project uses its internal clock"* — so
+properties 1 and 2 must stand alone, with no omniscience, no network and
+no reference. They do: both are computed from the chain the workspace
+already has. That is what keeps this ticket implementable now and keeps
+the tool offline-safe.
 
 ### 4.2 The local half: the chain and the clock check each other
 
@@ -297,7 +310,7 @@ and `user_guide.tex` updated).
 | **D2** | Does `ClockProtocol` move out of `memory/ledger_entry.py`? | Yes — the interface belongs with the clock, not with the ledger. `ledger_entry.py` is Ring 0 and self-contained by rule, so it keeps a structurally identical Protocol of its own or imports the Ring-0 half. Protocols are structural; nothing breaks either way | Implementer |
 | **D3** | All nine call sites at once, or only the ones that matter? | **All nine.** They are one-line changes, and the point of a universal clock is that there is no tenth. A module named "universal" that owns six of nine reads is worse than none | Implementer |
 | **D4** | What happens to the TIME-L0 anchor code (§3)? | **Decide, do not inherit.** Either it becomes this module's attestation primitive — and §3.1 is fixed by retaining the pre-image, §3.2 by giving it its own id form — or it is deleted as a tested-but-unused leftover. Carrying it forward unchanged is the one option that helps nobody | **Owner** |
-| **D5** | How far does time anchoring go (§4)? | **Not a question of whether — the owner settled that on 2026-09-20.** Properties 1 and 2 (order, monotonicity) are required and land in this ticket; they are local and cheap. Property 3's first anchor is the push, for the same reason. **What is still open is only whether a TSA follows**, and that is a roadmap call, not a scoping one | **Owner** |
+| **D5** | How far does time anchoring go (§4)? | **Not a question of whether — the owner settled that on 2026-09-20.** Properties 1 and 2 are required and land here; they are local, cheap and need no network. Property 3 splits: the **push anchor** stays here, as the witness a project has when it has nothing else, and the **universal reference and the lag against it belong to [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md)** §1.1 — a project mounting no omniscience uses its internal clock and stops at property 2 | **Owner** |
 | **D7** | Does a time regression fail `verify`, or only report? | **Report as a finding, exit non-zero like any other** — `verify`'s contract is that "corrupt" means the chain does not hold, and a backwards timestamp is the chain disagreeing with itself. But it must be its own finding (`TIME_REGRESSION`), never folded into `BROKEN_LINK`: the two have different causes and different fixes, and a clock correction is not history rewriting | **Owner** |
 | **D6** | Is the attestation part of the State file, or beside it? | **Beside it**, cited by hash. `generated_at` may stay in the `.gts` as the unverified local claim it already is; the attestation is a separate record that points at `state(<hash>)`. Nothing time-related enters the canonical payload, ever (§4.1) | Implementer |
 
@@ -347,4 +360,7 @@ and `user_guide.tex` updated).
 - **It does not add a network dependency to an offline path.** Anchoring
   happens when something is already going to the network — a push — or not
   at all until a TSA is chosen deliberately (D5).
+- **It does not define or reach a universal clock.** That is omniscience's,
+  along with the lag between it and this machine. A project with no
+  omniscience uses its internal clock and is complete without one.
 - **It does not keep the TIME-L0 code merely because it exists** (D4).
