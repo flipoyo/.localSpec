@@ -390,7 +390,7 @@ one lands.
 | **M9** | MemoryOnboarding — **landed 2026-09-17** | The steps a person runs once per project — create the repository, mount it, push it, merge it — are commands rather than instructions |
 | **M10** | MemoryExplore — **landed 2026-09-18** | A memory a person can read: what was published, by branch, and the ledger's own order made legible |
 | **M11** | MemoryReboot — **landed 2026-09-18** | Starting a memory's history over, on purpose, without losing the chapter before it |
-| **M12** | WorkingTransitionState — **landed 2026-09-17** | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded |
+| **M12** | WorkingTransitionState — **landed 2026-09-17**, name deferred | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded. The frontier landed; the owner's name for it did not — `.cgitsync` keeps its name and [WorkingAreaRename](memory-dev_2-2_WorkingAreaRename_DevPlanTicket.md) holds that question |
 | **M13** | [TreeEnvironment](main_1-1_TreeEnvironment_DevPlanTicket.md) — **prioritary** | A memory says what machine it ran on, not only what tree it saw: an Environment record beside each State, naming the platform, the interpreter and the tools a restore needs |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
