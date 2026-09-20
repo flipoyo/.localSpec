@@ -320,6 +320,11 @@ imports it.
 | **WP5** | Group E: the `.cgs` `[environment]` table and `environment_root`; `compare()`; `cgitsync env check` with D8's exit rule | WP4, D6, D8 |
 | **WP6** | `rebuild_plan()` — the self env builder. **Stand-by**, its own ticket when WP5 has run for a while | WP5 |
 
+[AgentReport](main_1-3_AgentReport_DevPlanTicket.md) waits on WP3 of this
+ticket: it records which agent moved a project between two States, and the
+owner's own framing is that the link becomes possible "once 1-1 is
+implemented". Its WP1 needs nothing from here and can run alongside.
+
 ### 6.1 Why this goes before the three priority-2 tickets on `main`
 
 It supersedes none of them — they are about three different things — but
