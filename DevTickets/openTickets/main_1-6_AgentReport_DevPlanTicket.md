@@ -294,7 +294,7 @@ not watch being made.
 
 | Criterion | Machine-checked | Agent-asserted |
 |---|---|---|
-| **Spec respect** (33) | `lint` passed; `test` passed; `status` reported `errors=0`; the ticket was stamped and moved per TICKETLIFECYCLE; `bump-version` was run; every new CLI command appears in the README table (a test already enforces this) | Whether the *substance* of `AdditionalSpecs.md` — ring rules, one-parser rules, responsibility boundaries — was respected |
+| **Spec respect** (33) | `lint` passed; `test` passed; `status` reported `errors=0`; the ticket was stamped and moved per TICKETLIFECYCLE; **the worker incremented `__build__`** ([Versioning](main_1-3_Versioning_DevPlanTicket.md) §5.0 — a change that touched `src` and left the counter alone is a miss the diff shows plainly); every new CLI command appears in the README table (a test already enforces this) | Whether the *substance* of `AdditionalSpecs.md` — ring rules, one-parser rules, responsibility boundaries — was respected |
 | **`.PUBLIC`/`.PRIVATE` gating** (33) | Which repositories were written, against their declared scope; whether anything private-read-only was written; whether a push happened and whether it was asked for; whether private planning content appears in a public repository | Almost nothing — **this criterion is nearly all checkable**, which is what makes it the most trustworthy third of the score |
 | **Quality of production** (34) | Very little | Almost all of it |
 

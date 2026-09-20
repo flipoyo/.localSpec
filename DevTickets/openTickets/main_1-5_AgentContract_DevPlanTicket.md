@@ -77,7 +77,16 @@ scores itself.
 | Role | Does |
 |---|---|
 | **Worker** | Implements the ticket |
-| **Orchestrator** | Quotes the work against the three criteria and writes the record |
+| **Orchestrator** | Quotes the work against the three criteria, writes the record, and **cuts the release** — see below |
+
+**The orchestrator also owns the version bump.**
+[Versioning](main_1-3_Versioning_DevPlanTicket.md) §5.2 settles that CI
+never bumps and the local orchestrator agent does. That is the same role
+for a good reason rather than by accident: choosing MAJOR over MINOR means
+judging what a change did to the public contract, which *is* a conformity
+judgement — the same kind this ticket already asks the orchestrator to
+make. A machine cannot do it, because no diff distinguishes a renamed flag
+from a new one.
 
 **What "independent" must mean, minimally:** the orchestrator is not the
 process that did the work. It reads the diff, the ticket and the checks
