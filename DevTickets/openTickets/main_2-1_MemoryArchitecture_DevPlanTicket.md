@@ -4,6 +4,24 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22.** Considered and left at `main_2-1`
+> (unchanged) during the backlog reorganisation that promoted
+> [ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md),
+> [AgentContract](main_1-2_AgentContract_DevPlanTicket.md),
+> [AgentReport](main_1-3_AgentReport_DevPlanTicket.md),
+> [DiscoverRoundTrip](main_1-4_DiscoverRoundTrip_DevPlanTicket.md) and
+> [CitationRot](main_1-5_CitationRot_DevPlanTicket.md) to priority 1. This
+> ticket, [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
+> [StateLocking](main_2-3_StateLocking_DevPlanTicket.md) are real,
+> analysed work — priority 2's own definition — but none is a prerequisite
+> for `data-repo` starting, and each says so in its own words: this one is
+> "now the architecture reference the landed code implements," not open
+> design; StateLocking wants "a real concurrent workload" to prompt it,
+> not this review. They keep their existing order and stay ahead of
+> `data-repo`/`memory-dev`'s own priority-2 piles only in the sense that
+> `main` is read first — nothing in the naming scheme ranks across
+> branches.
+
 > **Owner direction — 2026-09-12.** From
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260912_memorySpecs.md`. This ticket is the design the
 > six that follow implement; it is priority 1-1 because every one of them
@@ -356,7 +374,7 @@ Two sub-questions remain open, and M3 needs them:
   per command and the answer reused, and a data backend is asked only when
   the command actually touched a repository that uses it. A Git-only
   workspace never pays to record that it has no DVC. The data workstream's
-  [DataBackendContract](data-repo_2-5_DataBackendContract_DevPlanTicket.md)
+  [DataBackendContract](data-repo_2-3_DataBackendContract_DevPlanTicket.md)
   owns the discovery itself.
 
 With those two settled, D6 is closed.

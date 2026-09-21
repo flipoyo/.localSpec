@@ -4,6 +4,16 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22.** Promoted from `main_2-5` (stand-by) to
+> `main_1-4` (pick up now), on the owner's request to reorganise the
+> backlog into: finalize the agentic, then what's important before
+> data-repo, then data-repo, then Omniscience. This ticket is squarely
+> "important before data-repo": data-repo will add new `.cgs` entries and
+> repository/branch relationships of exactly the kind §1's defects get
+> wrong, `examples/molonari.cgs` ships broken today with `validate` calling
+> it `ok`, and priority 1's own definition — "a wrong answer the user acts
+> on" — already fit before this review; the pile assignment was just stale.
+
 > **Owner ticket — `shortTickets/discover.md`, 2026-09-21:** adopting a
 > project that sat on a branch other than `main`. `discover --write` did
 > not record that branch the way the owner expected; the tree came back

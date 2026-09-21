@@ -4,6 +4,17 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22.** Filename unchanged — `main`'s
+> priority-1 pile happens to still run 1..6 after this review — but three
+> tickets ahead of it changed: [ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md),
+> [AgentContract](main_1-2_AgentContract_DevPlanTicket.md) and
+> [AgentReport](main_1-3_AgentReport_DevPlanTicket.md) now lead as
+> "finalize the agentic," and [DiscoverRoundTrip](main_1-4_DiscoverRoundTrip_DevPlanTicket.md)/
+> [CitationRot](main_1-5_CitationRot_DevPlanTicket.md) were promoted ahead
+> of this one. This ticket stays last in the pile: still ready, no owner
+> decision needed, but nothing else is waiting on it the way the five
+> ahead of it are waited on.
+
 > **Split out of [UniversalClock](../archive/20260920_UniversalClock_DevPlanTicket.md)
 > §4.4 on 2026-09-20**, when that ticket closed with WP1–WP4 landed. This
 > is its WP6, unchanged, given a ticket of its own because it is the one

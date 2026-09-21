@@ -4,9 +4,9 @@
 
 *Branch: data-repo*
 
-> **Milestone M3** of [DataArchitecture](data-repo_2-3_DataArchitecture_DevPlanTicket.md).
-> Needs [DataBackendContract](data-repo_2-5_DataBackendContract_DevPlanTicket.md);
-> independent of [DataMaterialisation](data-repo_2-7_DataMaterialisation_DevPlanTicket.md).
+> **Milestone M3** of [DataArchitecture](data-repo_2-1_DataArchitecture_DevPlanTicket.md).
+> Needs [DataBackendContract](data-repo_2-3_DataBackendContract_DevPlanTicket.md);
+> independent of [DataMaterialisation](data-repo_2-5_DataMaterialisation_DevPlanTicket.md).
 > Analysed from §4 and §9/P3 of the owner's short ticket,
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260916_DevPlanTicket_DataManager_DVC.md`.
 

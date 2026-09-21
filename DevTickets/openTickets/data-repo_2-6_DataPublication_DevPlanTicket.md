@@ -4,9 +4,9 @@
 
 *Branch: data-repo*
 
-> **Milestone M5** of [DataArchitecture](data-repo_2-3_DataArchitecture_DevPlanTicket.md).
-> Needs [DataAuthoring](data-repo_2-6_DataAuthoring_DevPlanTicket.md) and
-> [DataMaterialisation](data-repo_2-7_DataMaterialisation_DevPlanTicket.md).
+> **Milestone M5** of [DataArchitecture](data-repo_2-1_DataArchitecture_DevPlanTicket.md).
+> Needs [DataAuthoring](data-repo_2-4_DataAuthoring_DevPlanTicket.md) and
+> [DataMaterialisation](data-repo_2-5_DataMaterialisation_DevPlanTicket.md).
 > Analysed from §6 and §9/P5 of the owner's short ticket,
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260916_DevPlanTicket_DataManager_DVC.md`.
 

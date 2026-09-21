@@ -4,6 +4,15 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22.** Renumbered from `main_1-4` to `main_1-2`
+> — still priority 1, moved up two places — on the owner's request to
+> reorganise the backlog with "finalize the agentic" leading the queue.
+> This ticket is agentic-conduct rules, so it sits second, right behind
+> [ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md) (the
+> layout half of the same theme) and ahead of
+> [AgentReport](main_1-3_AgentReport_DevPlanTicket.md), which depends on
+> it settling who writes and owns a self-history record.
+
 > **Owner direction — 2026-09-20, two requests in one.**
 >
 > **The pair rule:** *"If a ticket is implemented by one agent it must
@@ -30,7 +39,7 @@ takes two of them, and everything they touch belongs to the person who
 commissioned it.
 
 **What this document is.** The conduct half of the agent work, split out
-of [AgentReport](main_1-5_AgentReport_DevPlanTicket.md) so that one ticket
+of [AgentReport](main_1-3_AgentReport_DevPlanTicket.md) so that one ticket
 builds a mechanism and this one states rules. Mostly documents and one
 signed record; almost no code.
 
@@ -108,7 +117,7 @@ spec must say so, or it reads as requiring two agents to file a one-line
 short ticket.
 
 **Where it lands.** The general project spec, since it is a rule for any
-cgitsync project — see [ProjectSpecSplit](main_2-6_ProjectSpecSplit_DevPlanTicket.md).
+cgitsync project — see [ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md).
 Until that split happens, `CLAUDE.md`.
 
 ## 2. The data contract

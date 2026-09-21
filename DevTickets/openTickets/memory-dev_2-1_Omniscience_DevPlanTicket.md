@@ -4,6 +4,18 @@
 
 *Branch: memory-dev*
 
+> **Ticket review — 2026-09-22.** Rank unchanged — `memory-dev`'s
+> priority-2 pile is numbered independently of `main`'s and `data-repo`'s —
+> but confirmed last in reading order across the whole backlog, on the
+> owner's request to reorganise it as: finalize the agentic, then what's
+> important before data-repo, then
+> [data-repo](data-repo_2-1_DataArchitecture_DevPlanTicket.md), then
+> Omniscience. It stays behind data-repo because that workstream is
+> further along (seven analysed tickets against an owner-approved
+> architecture) and because Omniscience's own §1.1 already ties its first
+> milestone to a universal clock this project only finished landing this
+> month — there is less here yet to start against.
+
 > **Ticket review — 2026-09-18.** Renumbered from `2-10` to `2-1`: it is
 > now the only open ticket left on `memory-dev`, the rest of that pile
 > (`MemoryArchitecture`, `StateLocking`) having moved to `main` in the

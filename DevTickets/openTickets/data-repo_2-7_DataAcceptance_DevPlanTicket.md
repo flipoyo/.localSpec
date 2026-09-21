@@ -4,9 +4,9 @@
 
 *Branch: data-repo*
 
-> **Milestone M6** of [DataArchitecture](data-repo_2-3_DataArchitecture_DevPlanTicket.md),
+> **Milestone M6** of [DataArchitecture](data-repo_2-1_DataArchitecture_DevPlanTicket.md),
 > and the gate the workstream merges through. Needs
-> [DataPublication](data-repo_2-8_DataPublication_DevPlanTicket.md).
+> [DataPublication](data-repo_2-6_DataPublication_DevPlanTicket.md).
 > Analysed from §9/P6 and §11 of the owner's short ticket,
 > `.localSpec/DevTickets/archive/.closedUserTicket/20260916_DevPlanTicket_DataManager_DVC.md`.
 

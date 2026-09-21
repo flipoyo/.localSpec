@@ -4,6 +4,19 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22.** Promoted from `main_2-4` (stand-by) to
+> `main_1-5` (pick up now), on the owner's request to reorganise the
+> backlog into: finalize the agentic, then what's important before
+> data-repo, then data-repo, then Omniscience. Worth doing before
+> data-repo specifically because that workstream is about to add seven
+> more tickets that will themselves get archived and renamed over time —
+> exactly the churn this rot check exists to catch — and because this
+> same review already found a fresh instance of it:
+> `universal_clock.py` still cites
+> `.agent/.local/.localSpec/DevTickets/openTickets/main_1-1_UniversalClock_DevPlanTicket.md`,
+> which is archived as `archive/20260920_UniversalClock_DevPlanTicket.md`.
+> Add it to §1's table.
+
 > **Found while auditing the planning surface on 2026-09-19.** Not
 > reported by anyone: it was found by checking every ticket path cited in
 > `src/` against the filesystem, which nothing does today.
@@ -78,6 +91,15 @@ rank `1-1` on `main` was reused the moment the pile changed. A reader
 following that citation lands on a real, current document about something
 else entirely. A dead link is an inconvenience; a link that silently
 retargets is a wrong answer.
+
+**A fourth instance, found during the 2026-09-22 ticket review that
+promoted this ticket:** `universal_clock.py` cites
+`openTickets/main_1-1_UniversalClock_DevPlanTicket.md`, archived as
+`archive/20260920_UniversalClock_DevPlanTicket.md`. That same rank,
+`main_1-1`, was reused again in this very review — it now names
+[ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md), a
+different ticket again — the retargeting hazard recurring for a third
+time on the same rank.
 
 ## 2. Why it recurs by design
 
