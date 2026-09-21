@@ -80,7 +80,7 @@ scores itself.
 | **Orchestrator** | Quotes the work against the three criteria, writes the record, and **cuts the release** — see below |
 
 **The orchestrator also owns the version bump.**
-[Versioning](main_1-2_Versioning_DevPlanTicket.md) §5.2 settles that CI
+[Versioning](../archive/20260921_Versioning_DevPlanTicket.md) §5.2 settles that CI
 never bumps and the local orchestrator agent does. That is the same role
 for a good reason rather than by accident: choosing MAJOR over MINOR means
 judging what a change did to the public contract, which *is* a conformity
@@ -207,6 +207,7 @@ tree.
 | **WP2** | The contract text itself (§2.1), with §2.2's limits stated *in* it rather than only in this ticket. A contract that overstates its own reach is the failure mode | D1, D3, D5 |
 | **WP3** | The contract record: content-addressed, stored private/distant, with provider, terms version and date | WP2, D2 |
 | **WP4** | `.self-history` records cite the contract by hash; a missing citation is reported rather than fatal (D4). **This is the one piece that needs AgentReport's record to exist first** | WP3, AgentReport WP1 |
+| **WP5** | The contract record's terms version joins a release row as `artefact:agent_contract`, the same way `artefact:src` already does — [Versioning](../archive/20260921_Versioning_DevPlanTicket.md) §3 designed the `release` field on the ledger entry with exactly this artefact in mind (`.localSpec/AdditionalSpecs.md`'s entry-schema table already reserves the key) but left it unfilled pending this ticket's contract record. `ComplexGitSyncClient.freeze_release()` gains the pair once WP3 exists to read a terms version from | WP3, Versioning (done) |
 
 ## 6. Acceptance
 
@@ -219,6 +220,9 @@ tree.
   record written earlier still cites the earlier terms.
 - The contract text says what it cannot do (§2.2). A reader finishes it
   knowing where the real obligation lives.
+- A `freeze_release()` release row carries `artefact:agent_contract`
+  alongside `artefact:src`, naming the terms version in force for that
+  release (WP5).
 - `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
   `errors=0`.
 

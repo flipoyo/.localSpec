@@ -154,6 +154,7 @@ repository at a time, and keep the tree bootstrapping after each step.
 | **WP1** | The content split (§2): general rules moved to their home, `CLAUDE.md` keeping this project's own and pointing at the general one. No directory moves | D1 |
 | **WP2** | `.agent` created and populated, mounts moved one at a time, `agent-mount.cgs`, the spec updated last. Tree bootstraps after every step | D2, D3, WP1 |
 | **WP3** | The path sweep: every `.localSpec/`, `.agentSpec/`, `.claude/` reference in specs, tickets and docstrings. Pairs naturally with [CitationRot](main_2-4_CitationRot_DevPlanTicket.md), which is building the check that would catch what this breaks | WP2 |
+| **WP4** | Move `scripts/bump_version.py` to the private/distant spec repository (`.agent/.distant` once WP2 lands, `.agentSpec` until then), so a public-only checkout of ComplexGitSync structurally cannot cut a release — carried over from Versioning's own §5.1, which stated the case but left the move to this ticket. `pixi.toml`'s `bump-version` task, `tests/unit/test_bump_version.py`, and the `bump_version` import path in that test all move or update with it. Versioning's other half of this item — the false "CI auto-increments" claim in `AdditionalSpecs.md` and `CLAUDE.md` — is already fixed as of Versioning's own implementation; this WP is the relocation alone | WP2 |
 
 ## 6. Acceptance
 
@@ -165,5 +166,8 @@ repository at a time, and keep the tree bootstrapping after each step.
   branch. If it does, it was not general.
 - No path in `src/`, the specs or the tickets points at a directory that
   moved.
+- A checkout of the public `ComplexGitSync` repository alone has no
+  `bump_version.py` and no `bump-version` task that resolves, and says so
+  clearly rather than failing obscurely (WP4).
 - `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
   `errors=0` on a freshly bootstrapped tree.

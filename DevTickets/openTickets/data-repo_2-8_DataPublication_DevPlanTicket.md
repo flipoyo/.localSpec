@@ -155,6 +155,7 @@ half-finished release, and that state is a new thing to get wrong.
 | **WP-P5** | D3, D4 | `orchestre.py`, `cli/expert.py` | The partial-failure report and the idempotent retry path |
 | **WP-P6** | all | `tests/` | §6, against the fake backend and against DVC with a temporary filesystem remote |
 | **WP-P7** | all | `README.md`, `docs/Text/user_guide.tex` | What a release promises, what it refuses, and what to do after a partial failure |
+| **WP-P8** | WP-P3 | `orchestre.py` | The data layer's own version joins a `freeze_release()` release row as `artefact:data`, the same way `artefact:src` already does — [Versioning](../archive/20260921_Versioning_DevPlanTicket.md) §3 designed the `release` field on the ledger entry with this artefact in mind (`.localSpec/AdditionalSpecs.md`'s entry-schema table already reserves the key) but left it unfilled: at the time it landed, this milestone had no version concept yet for the key to name. What "the data layer's own version" means — one number for the whole backend, or one per repository — is this milestone's decision to make, not Versioning's |
 
 ## 6. Acceptance
 
@@ -175,6 +176,8 @@ half-finished release, and that state is a new thing to get wrong.
   `private/distant` repository.
 - No credential, token, signed URL or content hash appears in `.cgs`,
   `.gts`, `.cgitsync` or any log.
+- A `freeze_release()` release row carries `artefact:data` alongside
+  `artefact:src` (WP-P8).
 - `pixi run lint`, `pixi run test` and `pixi run check-ceilings` pass.
 
 ## 7. What this milestone does not cover

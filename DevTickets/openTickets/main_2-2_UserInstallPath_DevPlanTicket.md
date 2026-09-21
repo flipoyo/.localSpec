@@ -118,17 +118,32 @@ the CLI and the `.cgs` grammar have settled, and not before.
 
 ### D1. The version scheme, which publishing forces
 
-> **Moved out on 2026-09-20 — this decision now belongs to
-> [Versioning](main_1-2_Versioning_DevPlanTicket.md).** The owner's
-> `versioning.md` short ticket picks the third option below — semantic
-> versioning — and extends it far past what a packaging ticket can hold:
-> the version becomes a fusion of the tool, the agent contracts and the
-> data layer, joined by a `Patch` integer and recorded in the memory.
+> **Moved out on 2026-09-20 — this decision now belonged to
+> [Versioning](../archive/20260921_Versioning_DevPlanTicket.md).** The
+> owner's `versioning.md` short ticket picked the third option below —
+> semantic versioning — and originally extended it far past what a
+> packaging ticket can hold: the version as a fusion of the tool, the
+> agent contracts and the data layer, joined by a `Patch` integer and
+> recorded in the memory.
 >
-> **What this ticket still needs from it**: whatever scheme wins must
-> publish cleanly under PEP 440, and `pixi run bump-version` must remain
-> the only thing allowed to write a version. Both are stated in Versioning's
-> acceptance. The analysis below is kept as written, because it is where
+> **Settled, 2026-09-21 — real SemVer, no `Patch` integer.** Versioning
+> §2.3 dropped the linking integer on the owner's own direction: SemVer's
+> `PATCH` resets on a `MINOR` bump, so it cannot be a stable join key, and
+> the job it was meant to do — naming which artefact set a release was cut
+> from — is done instead by an additive `release` field on the ledger
+> entry (§3), keyed by SemVer, not by `Patch`. `pixi run bump-version
+> {major,minor,patch} [--pre <stage>|--release]` is the one thing allowed
+> to write `pyproject.toml`'s `[project].version`, exactly as this ticket
+> asked.
+>
+> **PEP 440 is still this ticket's own open item, not Versioning's.** A
+> plain `X.Y.Z` release version is already PEP 440-compatible. A
+> pre-release version is not: SemVer's `3.1.0-alpha.1` and PEP 440's
+> `3.1.0a1` are different grammars, and nothing built here translates
+> between them. If this ticket still means to publish to PyPI, resolving
+> that translation (at publish time, or by restricting published releases
+> to non-pre-release SemVer) is unresolved work for whoever picks this
+> ticket up. The analysis below is kept as written, because it is where
 > the problem was first diagnosed.
 
 `pyproject.toml` reads `version = "0002.49"` at this review. Recheck the
