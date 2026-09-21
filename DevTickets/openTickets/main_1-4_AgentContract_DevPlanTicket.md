@@ -108,7 +108,7 @@ spec must say so, or it reads as requiring two agents to file a one-line
 short ticket.
 
 **Where it lands.** The general project spec, since it is a rule for any
-cgitsync project — see [ProjectSpecSplit](main_1-3_ProjectSpecSplit_DevPlanTicket.md).
+cgitsync project — see [ProjectSpecSplit](main_2-6_ProjectSpecSplit_DevPlanTicket.md).
 Until that split happens, `CLAUDE.md`.
 
 ## 2. The data contract

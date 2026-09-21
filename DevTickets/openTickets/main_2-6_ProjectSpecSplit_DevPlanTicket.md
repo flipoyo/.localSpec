@@ -4,6 +4,20 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-21.** Re-ranked from priority 1 to priority
+> 2. WP1 and WP4 — the whole of the active, un-deferred scope — are
+> verified done: `AgentConduct.md` exists and reads as designed,
+> `.localSpec/scripts/bump_version.py` and every path that points at it
+> (`pixi.toml`, `tests/unit/test_bump_version.py`) agree, and
+> `DevSpecs.md`'s *Versioning* section carries the fix. `pixi run lint`
+> and `pixi run test` pass (1632 passed, 4 skipped, all four
+> environment-only); `cgitsync status` shows `errors=0`. What is left —
+> WP2/WP3, the `.agent` layout move — is exactly what D2 already called
+> "not now": real, analysed work that nothing is waiting on, which is
+> priority 2's own definition. This ticket stays open rather than moving
+> to `archive/` because D2 says so explicitly ("stays open, to revisit");
+> archiving it would have discarded that decision, not honoured it.
+
 > **Owner ticket — `shortTickets/project-spec.md`, 2026-09-20:** *"From
 > claude.md separated what are general projectSpec for a cgitsync further
 > project and what is ComplexGitSync. It will be a private-distant repo.
@@ -170,8 +184,10 @@ repository at a time, and keep the tree bootstrapping after each step.
   `.localSpec/scripts/bump_version.py`; `pixi run bump-version` fails with
   Python's own file-not-found error rather than silently doing nothing
   (WP4).
-- ✅ `pixi run lint` and `pixi run test` pass (1634 passed, 2 skipped);
-  `cgitsync status` shows `errors=0`.
+- ✅ `pixi run lint` and `pixi run test` pass (1632 passed, 4 skipped —
+  the 4 are environment-only: a missing `yaml` module and a missing
+  French locale, neither touched by this ticket; re-verified 2026-09-21
+  closing this ticket); `cgitsync status` shows `errors=0`.
 - **Still open, with WP2/WP3**: `pixi run cgitsync bootstrap
   examples/complexgitsync4dev.cgs` producing a working tree after **each**
   work package — only meaningful once WP2 exists to test.
