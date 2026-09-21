@@ -143,7 +143,7 @@ repository at a time, and keep the tree bootstrapping after each step.
 | D | Question | Recommendation | Whose call |
 |---|---|---|---|
 | **D1** | Does the general spec need a new repository, or a new file in `DevSpec`? | **A file in `DevSpec`.** It is already private/distant, already shared across projects, and already holds the project-agnostic philosophy this would sit beside. A new repository is a new thing to create, mount, brand and keep in sync, for content that has a natural home | **Owner** |
-| **D2** | Is the `.agent` layout move worth its cost? | **Separable, and not first.** The content split delivers most of the value — knowing which rules are general — and carries none of the bootstrap risk. Do §2, live with it, then decide whether the directory move still feels necessary | **Owner** |
+| **D2** | Is the `.agent` layout move worth its cost? | **Confirmed by the owner, 2026-09-21: not now.** The content split (WP1) shipped and carries none of the bootstrap risk; the directory move (WP2/WP3) stays open, to revisit once living with WP1 shows whether it still feels necessary | **Owner** |
 | **D3** | If the move happens: one `.agent` repository holding mounts, or a plain directory? | A repository, per the owner's words, so `agent-mount.cgs` travels with it and a project mounts one thing instead of four | Owner |
 | **D4** | What happens to `CLAUDE.md`'s name and location? | Keep the root symlink working, whatever it points at. It is what every agent reads first, and a project whose entry point moved is a project agents stop reading | Implementer |
 
@@ -151,23 +151,27 @@ repository at a time, and keep the tree bootstrapping after each step.
 
 | WP | Does | Depends on |
 |---|---|---|
-| **WP1** | The content split (§2): general rules moved to their home, `CLAUDE.md` keeping this project's own and pointing at the general one. No directory moves | D1 |
-| **WP2** | `.agent` created and populated, mounts moved one at a time, `agent-mount.cgs`, the spec updated last. Tree bootstraps after every step | D2, D3, WP1 |
-| **WP3** | The path sweep: every `.localSpec/`, `.agentSpec/`, `.claude/` reference in specs, tickets and docstrings. Pairs naturally with [CitationRot](main_2-4_CitationRot_DevPlanTicket.md), which is building the check that would catch what this breaks | WP2 |
-| **WP4** | Move `scripts/bump_version.py` to the private/distant spec repository (`.agent/.distant` once WP2 lands, `.agentSpec` until then), so a public-only checkout of ComplexGitSync structurally cannot cut a release — carried over from Versioning's own §5.1, which stated the case but left the move to this ticket. `pixi.toml`'s `bump-version` task, `tests/unit/test_bump_version.py`, and the `bump_version` import path in that test all move or update with it. Versioning's other half of this item — the false "CI auto-increments" claim in `AdditionalSpecs.md` and `CLAUDE.md` — is already fixed as of Versioning's own implementation; this WP is the relocation alone | WP2 |
+| **WP1 — DONE, 2026-09-21** | The content split (§2): general rules moved to [AgentConduct.md](../../.agentSpec/DevSpec/AgentConduct.md) (a new DevSpec file, per D1), `CLAUDE.md` trimmed to point at it and keep only ComplexGitSync's own fill-ins. `DevSpecs.md`'s own stale *Versioning* section (CI-auto-increment claim, `YYYY.XX`-only) fixed in the same pass — it was blocking on exactly this ticket, per Versioning §5.3. No directory moves | D1 |
+| **WP2** | `.agent` created and populated, mounts moved one at a time, `agent-mount.cgs`, the spec updated last. Tree bootstraps after every step. **Deferred, 2026-09-21**, per D2's own recommendation — owner confirmed not now | D2, D3, WP1 |
+| **WP3** | The path sweep: every `.localSpec/`, `.agentSpec/`, `.claude/` reference in specs, tickets and docstrings. Pairs naturally with [CitationRot](main_2-4_CitationRot_DevPlanTicket.md), which is building the check that would catch what this breaks. **Blocked on WP2**, deferred with it | WP2 |
+| **WP4 — DONE, 2026-09-21** | Moved `scripts/bump_version.py` to **`.localSpec/scripts/`**, not `.agentSpec`/`DevSpec` as first drafted here — every path it touches (`pyproject.toml`, `src/ComplexGitSync/__init__.py`, `docs/Setup/`, ...) is specific to this one project, so it fails the general/specific test (§2) for the *shared* spec repository just as much as it needs to be out of the *public* one. `.agent/.distant` was never going to be right either, since that would still be shared. `pixi.toml`'s `bump-version` task, `REPO_ROOT` inside the script (now three levels up, not two), and `tests/unit/test_bump_version.py` (module-level `pytest.skip` when `.localSpec` isn't mounted, mirroring the existing docs-absent skip) all moved or updated with it. Versioning's other half of this item — the false "CI auto-increments" claim — was already fixed as of Versioning's own implementation | — |
 
 ## 6. Acceptance
 
-- `pixi run cgitsync bootstrap examples/complexgitsync4dev.cgs` produces a
-  working tree after **each** work package, not only at the end.
-- `CLAUDE.md` at the tree root still resolves and still reads as the first
-  thing an agent should open.
-- A rule in the general spec names no ComplexGitSync module, command or
-  branch. If it does, it was not general.
-- No path in `src/`, the specs or the tickets points at a directory that
-  moved.
-- A checkout of the public `ComplexGitSync` repository alone has no
-  `bump_version.py` and no `bump-version` task that resolves, and says so
-  clearly rather than failing obscurely (WP4).
-- `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
-  `errors=0` on a freshly bootstrapped tree.
+- ✅ `CLAUDE.md` at the tree root still resolves and still reads as the
+  first thing an agent should open.
+- ✅ A rule in the general spec names no ComplexGitSync module, command or
+  branch. If it does, it was not general. (Checked by hand across
+  `AgentConduct.md` and the `DevSpecs.md` edit; no CI check for this yet.)
+- ✅ No path in `src/`, the specs or the tickets points at a directory
+  that moved — WP1/WP4 moved no directory, only one file, and every
+  reference to it was swept.
+- ✅ A checkout of the public `ComplexGitSync` repository alone has no
+  `.localSpec/scripts/bump_version.py`; `pixi run bump-version` fails with
+  Python's own file-not-found error rather than silently doing nothing
+  (WP4).
+- ✅ `pixi run lint` and `pixi run test` pass (1634 passed, 2 skipped);
+  `cgitsync status` shows `errors=0`.
+- **Still open, with WP2/WP3**: `pixi run cgitsync bootstrap
+  examples/complexgitsync4dev.cgs` producing a working tree after **each**
+  work package — only meaningful once WP2 exists to test.

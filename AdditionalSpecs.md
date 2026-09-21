@@ -1393,12 +1393,17 @@ own repository.
 
 ## Versioning
 
-The project takes real SemVer (`MAJOR.MINOR.PATCH`, with an optional
-`-<stage>.<N>` pre-release suffix), authoritative in `pyproject.toml`.
-**No workflow writes it.** `.github/workflows/ci.yml` has never
-auto-incremented anything — it installs, reconstitutes the tree, lints, and
-tests, and nothing more. A version bump is a release decision, made by a
-reader, not a byproduct of a push.
+`DevSpecs.md`'s *Versioning* section leaves the choice between calendar
+`YYYY.XX` and SemVer to each project, against a stability promise. This
+project chooses **real SemVer** (`MAJOR.MINOR.PATCH`, with an optional
+`-<stage>.<N>` pre-release suffix), authoritative in `pyproject.toml` —
+because it publishes a package under exactly the promise SemVer exists to
+state (see *What SemVer measures here*, below). **No workflow writes it.**
+`.github/workflows/ci.yml` has never auto-incremented anything — it
+installs, reconstitutes the tree, lints, and tests, and nothing more. A
+version bump is a release decision, made by a reader, not a byproduct of a
+push — the general rule `DevSpecs.md`'s *Versioning* section and
+[AgentConduct.md](../.agentSpec/DevSpec/AgentConduct.md) §1.3 both state.
 
 ### What SemVer measures here
 
@@ -1443,7 +1448,7 @@ a State's hash. See *What a State's name is computed from*, below.
 | Who | Does | With |
 |---|---|---|
 | **Worker** — the agent changing `src/` | Bumps `__build__`, as part of that change | `pixi run bump-build` (`scripts/bump_build.py`) — writes one file |
-| **Orchestrator** — independent, quotes the work | Decides MAJOR/MINOR/PATCH, runs `bump-version`, tags, writes the release row | `pixi run bump-version {major,minor,patch} [--pre <stage>] [--release]` (`scripts/bump_version.py`) |
+| **Orchestrator** — independent, quotes the work | Decides MAJOR/MINOR/PATCH, runs `bump-version`, tags, writes the release row | `pixi run bump-version {major,minor,patch} [--pre <stage>] [--release]` (`.localSpec/scripts/bump_version.py` — private, see ProjectSpecSplit) |
 | **CI** | Verifies: lint, tests, tree reconstitution | Never writes a version; needs no credentials to |
 
 **CI cannot make the MAJOR/MINOR/PATCH judgement** — no diff distinguishes
@@ -1505,10 +1510,12 @@ embed the version on their title pages, so rebuild them (`cd docs &&
 latexmk -pdf MASTER.tex`, plus each `c_*.tex`) and commit the result in the
 same change.
 
-`bump_version.py` is orchestrator tooling and stays public (`scripts/`) for
-now; moving it to the private/distant spec repository, so a public-only
-checkout structurally cannot cut a release, is future work tracked by
-ProjectSpecSplit.
+`bump_version.py` is orchestrator tooling and lives in `.localSpec/scripts/`
+— private, not in the public `ComplexGitSync` repository — so a public-only
+checkout structurally cannot cut a release (ProjectSpecSplit). It is not in
+the shared `.agentSpec/DevSpec` either: every target path it touches
+(`pyproject.toml`, `src/ComplexGitSync/__init__.py`, `docs/Setup/`, ...) is
+specific to this project.
 
 ### `bump-build`
 

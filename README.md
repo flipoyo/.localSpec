@@ -19,3 +19,9 @@ the project, holding:
   ones. It is here rather than in the project's own repository because how
   the work is decided is private; `DevTickets/README.md` explains the loop,
   and `.agentSpec/TICKETLIFECYCLE.md` the naming.
+- `scripts/` — release tooling specific to that project (e.g.
+  ComplexGitSync's own `bump_version.py`), kept out of the project's public
+  repository so a checkout of it alone cannot cut a release. Each target
+  path it touches is project-specific, which is also why it lives here
+  rather than in the shared `.agentSpec/DevSpec` — see ProjectSpecSplit,
+  archived in that project's `DevTickets/`.
