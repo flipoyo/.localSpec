@@ -1,4 +1,4 @@
-# Autofix — a class that reads the error `cgitsync` just gave you, then repairs the situation
+# Autofix — a package of one-repair-per-file classes, dispatched from the error `cgitsync` just gave you
 
 *Created: 2026-09-22*
 
@@ -39,6 +39,24 @@
 > error gets diagnosed and fixed, `Autofix` is where that fix's diagnosis
 > and repair sequence get added, not a one-off script.**
 
+> **Owner direction — 2026-09-23.** *"autofix may rather be a directory
+> in src. I am afraid it will grow to much otherwise and become a melting
+> pot. inside autofix, the .py must be organised around repair-xxx.py,
+> xxx must fit to the purpose and be integrated into a class. The autofix
+> i proposed was repair-fromCLI.py, the first bug was another incident for
+> instance repair-divergentUser.py. It is related to the distant repo for
+> diagnosis and repair, maybe not the first one."* §7 is rewritten
+> end-to-end: `autofix.py` becomes the `autofix/` package;
+> `repair_from_cli.py` (the module-name spelling Python requires — no
+> hyphens in an importable filename) holds the dispatcher class that reads
+> the former error and finds a matching repair; `repair_divergent_user.py`
+> holds this incident's own fix, as one repair among what the package
+> expects to grow into, not the class itself. §8's D5 records the one
+> point in the owner's words this ticket could not resolve on its own:
+> whether `repair_divergent_user.py` — which needs the distant repo's refs
+> to diagnose, not only the local one — should be the first repair module
+> actually built, or whether a simpler one should go first.
+
 ## Abstract — read this first
 
 **The one-line version.** `cgitsync`'s only answer to a diverged private
@@ -46,15 +64,17 @@ repository is `pull-force` — a hard reset to the remote's tip. That is
 free for a repository whose commits are prose (`.localSpec`, which merges
 away the divergence for free); for `.memory`, whose commits are a
 hash-chained, sequence-numbered ledger, `pull-force` silently discards
-every local-only entry. `Autofix` is the class that tells the two apart
-and runs the right sequence instead, starting from the error `cgitsync`
-already produced.
+every local-only entry. `autofix/` is the package that tells the two
+apart and runs the right sequence instead, starting from the error
+`cgitsync` already produced — one small module per repair, not one class
+that keeps growing.
 
 **What this document is.** One real incident (§1-§3), why nothing already
 in this codebase or its tickets solves it generically (§4), what the
-hand-run fix proved (§5), and the design of `autofix.py`: one class,
-`Autofix`, whose `check()` classifies an error and whose `repair()` acts
-on the classification (§6-§7).
+hand-run fix proved (§5), and the design of the `autofix/` package: a
+dispatcher (`repair_from_cli.py`) that reads the error and finds a
+matching repair, and one file per repair purpose — today,
+`repair_divergent_user.py` (§6-§7).
 
 **Why it exists.** `cgitsync status`'s `SYNC` column distinguishes
 `ahead`/`behind`/`diverged`, and the tool already has a safe path
@@ -62,22 +82,22 @@ on the classification (§6-§7).
 aware, and nothing routes a `.memory` (or any future content-addressed
 private repository — `omniscience`'s register is the next one) away from
 the destructive path when the safe one would corrupt it just the same.
-`Autofix` is also meant to *grow*: every future incident this project's
-owner asks to have fixed from a `cgitsync` error is a candidate
-`Diagnosis` this class should learn, not a rescue script that gets
-written once and forgotten.
+The package is also meant to *grow*: every future incident this project's
+owner asks to have fixed from a `cgitsync` error is a candidate new
+`repair_*.py` module, each named and shaped for what it actually fixes —
+not one class accumulating branches, which is exactly the "melting pot"
+the owner asked this design to avoid.
 
 **What you will find.** §1-§3 the incident: what happened, why the two
 repositories needed opposite answers, and what `pull-force` actually does
 (read from the code) that makes its own hint dangerous here. §4 the two
 existing tickets this could be mistaken for, and why neither is it. §5
-what the hand-run rescue proved. §6 the shape of a general fix. §7
-`Autofix`'s design: the class, where "the former error" comes from, the
-algorithm, and where it refuses rather than guesses. §8 decisions. §9
-work packages. §10 acceptance.
+what the hand-run rescue proved. §6 the shape of a general fix. §7 the
+`autofix/` package's design: the shared base, the dispatcher, and the
+first repair module. §8 decisions. §9 work packages. §10 acceptance.
 
-**Who it is for.** The owner, for §8. Then whoever builds `autofix.py`,
-and every future ticket that adds a `Diagnosis` to it.
+**Who it is for.** The owner, for §8. Then whoever builds each
+`repair_*.py` module, and every future ticket that adds one.
 
 **What you need to do with it.** Read §1-§3 for the concrete example, §7
 for the design it generalises into. This ticket is queued first in
@@ -86,15 +106,15 @@ for the design it generalises into. This ticket is queued first in
 ```mermaid
 graph TD
     CMD["a cgitsync command fails"] -->|"CommandRunLogger writes"| LOG[".cgitsync/logs/*.log<br/>command_end, status=error"]
-    LOG -->|"cgitsync autofix<br/>(no args — reads the last one)"| CHECK["Autofix.check()<br/>YOU ARE HERE"]
-    CHECK -->|"classifies the error text"| SIT["a known Diagnosis,<br/>or refuses: unrecognised"]
-    SIT -->|"diverged, chain-shaped"| REPAIR["Autofix.repair()<br/>merge, chronological splice,<br/>recompute, verify_chain"]
-    SIT -->|"diverged, plain"| PLAIN["Autofix.repair()<br/>ordinary git_runner merge"]
-    REPAIR --> CLEAN["HistoryState.VERIFIED,<br/>one real merge commit,<br/>nothing dropped"]
-    NEXT["the next CLI-output issue<br/>the owner asks to fix"] -.->|"enriches"| CHECK
+    LOG -->|"cgitsync autofix<br/>(no args — reads the last one)"| DISP["repair_from_cli.py<br/>FromCliRepair<br/>YOU ARE HERE"]
+    DISP -->|"tries each registered repair's<br/>.matches(error, repo)"| REG["autofix/ package registry"]
+    REG -->|"matched"| DU["repair_divergent_user.py<br/>DivergentUserRepair<br/>merge, chronological splice,<br/>recompute, verify_chain"]
+    REG -->|"none matched"| UNREC["refuses: unrecognised,<br/>nothing written"]
+    DU --> CLEAN["HistoryState.VERIFIED,<br/>one real merge commit,<br/>nothing dropped"]
+    NEXT["the next CLI-output issue<br/>the owner asks to fix"] -.->|"a new repair_*.py,<br/>registered once"| REG
 
     classDef here fill:#1565C0,color:#fff,stroke:#111,stroke-width:2px;
-    class CHECK here;
+    class DISP here;
 ```
 
 ---
@@ -187,9 +207,9 @@ and the chain forks."* **A lock cannot fix this ticket's problem, because
 a lock only protects processes that can see each other.** Two machines
 pushing to the same `.memory` branch between pulls are never in the same
 lock domain; by the time either would take a local lock, the other has
-already finished and pushed. Locking and `Autofix` are complementary:
-`StateLocking` stops a fork from happening on one machine; `Autofix`
-fixes one that already happened across two.
+already finished and pushed. Locking and this ticket's package are
+complementary: `StateLocking` stops a fork from happening on one machine;
+`autofix/` fixes one that already happened across two.
 
 **`Omniscience`** §4, "two people appending at once", looks like the same
 question and answers it completely differently: *"the two records are two
@@ -229,7 +249,7 @@ ledger seq 16-19 after ancestor seq 15; origin's session "cgsDbg" wrote a
    force-anything.
 
 Saved as [scripts/rescue_20260922_memory_ledger_splice.py](../../scripts/rescue_20260922_memory_ledger_splice.py)
-— **what it hardcoded, and is exactly what `Autofix` must not**:
+— **what it hardcoded, and is exactly what `repair_divergent_user.py` must not**:
 `_LOCAL_TIP`, `_ORIGIN_TIP`, `_ANCESTOR_HEAD_HASH` as module-level
 constants naming this one incident. The conflict-file list was also read
 by eye, not computed.
@@ -250,52 +270,83 @@ The right shape is a command that runs *instead of* (or immediately
 after) a failed `pull`/`merge`, operating on the whole `lgr/` directory
 across both refs.
 
-## 7. `Autofix`'s design
+## 7. The `autofix/` package's design
 
 **Where it lives, and why not inside `memory/`.** `memory/`'s own module
-contract is explicit: *"Nothing here runs Git."* This fix has to run
-`git merge-base`, read blobs from two refs, and complete a merge commit —
-real Git operations, which by this project's own rule (`git_runner.py` is
-"the sole `import subprocess` module") must go through `git_runner.py`,
-never a new subprocess call of this module's own. That makes
-`src/ComplexGitSync/autofix.py` a peer of `operations.py`: it orchestrates
-`git_runner.py` calls for the Git half and `memory.ledger_entry`/
-`memory.ledger_store`/`memory.integrity` calls for the chain half. It
-does not become part of `memory/`, and it does not give `memory/` a
-reason to import `subprocess`.
+contract is explicit: *"Nothing here runs Git."* The `.memory` repair has
+to run `git merge-base`, read blobs from two refs, and complete a merge
+commit — real Git operations, which by this project's own rule
+(`git_runner.py` is "the sole `import subprocess` module") must go
+through `git_runner.py`, never a new subprocess call of the package's
+own. That makes `src/ComplexGitSync/autofix/` a peer of `operations.py`:
+it orchestrates `git_runner.py` calls for the Git half and, where a
+specific repair needs it, `memory.ledger_entry`/`memory.ledger_store`/
+`memory.integrity` calls for the chain half. It does not become part of
+`memory/`, and it does not give `memory/` a reason to import `subprocess`.
 
-**One class, `Autofix`, two responsibilities — check, then repair.**
+**A package, not a class, organised by repair purpose — the owner's own
+correction, 2026-09-23.** `autofix.py` was going to grow one `Diagnosis`
+member and one `repair()` branch per incident forever, in one file. The
+package fixes that shape directly:
+
+```
+src/ComplexGitSync/autofix/
+    __init__.py
+    base.py                    # Repair protocol, Situation, RepairOutcome — shared by every module below
+    repair_from_cli.py          # the dispatcher: reads the former error, finds the matching repair
+    repair_divergent_user.py    # this incident's own fix — one repair among what the package will grow into
+```
+
+`repair-xxx.py` becomes `repair_xxx.py` on disk — Python module names
+cannot contain a hyphen and still be `import`able — but the naming
+principle is exactly the owner's: `xxx` names what the file fixes, one
+purpose, one class.
 
 ```python
-class Diagnosis(Enum):
-    """What Autofix.check() found, or why it found nothing actionable.
-
-    Grows with every future incident this project fixes from a cgitsync
-    error — a new member here and a new branch in repair(), not a new
-    one-off script."""
-    NON_FF_REJECTED = auto()   # push refused: "fetch first"
-    DIVERGED_PLAIN = auto()    # pull refused: diverged, content is plain text
-    DIVERGED_CHAINED = auto()  # pull refused: diverged, content is a seq/prev chain
-    UNRECOGNISED = auto()      # a real error, but not one this class repairs yet
+# base.py — the shared shape every repair_*.py module implements
+class RepairOutcome:
+    ...  # what changed, or why nothing did — same spirit as RepoOutcome elsewhere
 
 @dataclass(frozen=True, slots=True)
 class Situation:
-    diagnosis: Diagnosis
     repo: GitRepo
-    source_error: str          # the exact text Autofix.check() classified
+    source_error: str
 
-class Autofix:
-    def __init__(self, registry: WorkingGitTree, runner: GitRunner) -> None: ...
+class Repair(Protocol):
+    """What every repair_*.py module's class implements. `name` is what a
+    Situation and a log message call this repair by."""
+    name: str
 
-    def check(self, error: str, *, repo_name: str | None = None) -> Situation:
-        """Classify one already-raised error into a Situation. Pure
-        pattern-matching over `error`'s text plus the named repo's mounted
-        content shape — runs no Git itself."""
+    def matches(self, error: str, repo: GitRepo) -> bool:
+        """Does this repair know how to handle this error, for this repo?
+        Pure pattern-matching plus a look at the repo's mounted content
+        shape — runs no Git itself."""
 
-    def repair(self, situation: Situation) -> RepairOutcome:
-        """Execute the sequence Situation.diagnosis calls for. Raises
-        rather than guesses if a precondition (the disjointness check, for
-        DIVERGED_CHAINED) fails."""
+    def repair(self, repo: GitRepo, runner: GitRunner) -> RepairOutcome:
+        """Perform the fix. Only ever called after matches() returned
+        True. Raises rather than guesses if a precondition specific to
+        this repair fails."""
+```
+
+```python
+# repair_from_cli.py
+class FromCliRepair:
+    """Reads 'the former error' and finds the registered repair that
+    matches it. The one thing cgitsync autofix calls."""
+
+    _REGISTRY: tuple[Repair, ...] = (DivergentUserRepair(),)
+    # grows one entry per new repair_*.py module — never a branch inside
+    # this class itself.
+
+    def find_last_error(self, workspace: Path) -> tuple[str, str] | None:
+        """The most recent .cgitsync/logs/*.log's command_end/status=error
+        line, as (command, error) — or None if the last run succeeded."""
+
+    def run(self, *, error: str | None = None, repo_name: str | None = None) -> RepairOutcome:
+        """error=None reads find_last_error(); otherwise uses what is
+        given (tests, or a caller that already has one in hand). Tries
+        _REGISTRY in order; the first Repair whose matches() returns True
+        runs. No match: refuses, prints why, changes nothing."""
 ```
 
 **Where "the former error" comes from.** `cgitsync` already writes one
@@ -303,104 +354,113 @@ structured JSON line per event to `.cgitsync/logs/<command>-<timestamp>.log`
 via `orchestre.CommandRunLogger` — a failed run's last line is
 `{"event": "command_end", "status": "error", "error": "...", "command":
 "..."}` (the `log_file=...` path every failing command in this incident
-already printed). `cgitsync autofix`, run with no arguments, finds the
-most recent such log under the active workspace, reads that line, and
-calls `Autofix.check(error=..., repo_name=...)` with it — the owner's own
-*"it takes the former error as an entry"* — so the normal workflow is: a
-command fails, the owner runs `cgitsync autofix` next, and nothing has to
-be typed twice. `check()` also accepts an explicit `error` string
-directly, for tests and for a caller that already has one in hand.
+already printed). `cgitsync autofix`, run with no arguments, is
+`FromCliRepair.run()` with `error=None` — the owner's own *"it takes the
+former error as an entry"* — so the normal workflow is: a command fails,
+the owner runs `cgitsync autofix` next, and nothing has to be typed
+twice.
 
-**Detection of *which* situation, given the error text.** `errors.py`'s
-own hierarchy is shallow — `push`/`pull`/`merge` failures all raise the
-same generic `GitSyncError` — so today the only way to tell "rejected,
-fetch first" apart from "diverged, cannot fast-forward" is the message
-text `git_runner.py` captured, which is exactly what `check()` pattern-
-matches on (the two literal strings already seen twice in this project's
-own incidents: `"[rejected]"` for a push, `"Diverging branches can't be
-fast-forwarded"` for a pull). Once a message is recognised as a
-divergence, a second question decides `DIVERGED_PLAIN` vs
-`DIVERGED_CHAINED`: does the named repository mount a `lgr/` directory of
-`<seq:06d>.toml` files? A short, explicit registry (repository name →
-"this one is a chain"), not content-sniffing every file — recommendation
-in D1. Today it has exactly one entry: `.memory`'s `lgr/`.
+```python
+# repair_divergent_user.py
+class DivergentUserRepair:
+    """Repairs a hash-chained private repository (today: .memory's lgr/)
+    whose branch diverged because two users or machines each wrote to it
+    independently between pulls. Needs the distant repo's refs to
+    diagnose, not only the local one — matches() fetches before comparing,
+    which none of the other repairs need to do."""
+    name = "divergent_user"
 
-**`repair()`'s `DIVERGED_CHAINED` sequence** — §5's algorithm, made
-parametric over `situation.repo` and its current tracking branch instead
-of two hardcoded commit hashes:
+    def matches(self, error: str, repo: GitRepo) -> bool:
+        """"Diverging branches can't be fast-forwarded" (or the
+        equivalent push-side "[rejected]"/"fetch first") in `error`, AND
+        `repo` is registered as chain-shaped (D1) — today, mounts a
+        `lgr/` directory of `<seq:06d>.toml` files. A plain-text
+        divergence matches the error text but not the shape check, and
+        this class correctly declines it — some other, still-unbuilt
+        repair (or a plain `git_runner.merge`, until one exists) owns
+        that case."""
 
-1. `git_runner`: compute the merge base of the local branch and its
-   upstream.
-2. Read every `lgr/<seq>.toml` that exists on either ref but not at the
-   merge base — via `git show <ref>:lgr/<seq:06d>.toml`, not by checking
-   either ref out.
-3. **Refuse, do not guess, if the two sides' new entries are not disjoint
-   at the field level** — i.e., if `recorded_at` ties, or if anything
-   beyond `seq`/`prev`/`entry_hash` differs from what a real append could
-   produce. This is the one judgement call a human, not `Autofix`, should
-   make.
-4. Sort the union of both sides' new entries by `recorded_at`.
-5. Recompute `seq`/`prev`/`entry_hash` for each, chained from the merge
-   base's tip, via `memory.ledger_entry.compute_entry_hash` — never a
-   hand-rolled hash.
-6. Write via `memory.ledger_store.write_entry`, after clearing whatever
-   stale, wrongly-numbered files the pre-fix state left.
-7. `memory.integrity.verify_chain` over the full, rebuilt chain.
-   **`HistoryState.VERIFIED` is the only passing result** — `CORRUPT`
-   aborts outright (leaves the merge conflicted, nothing written);
-   `TIME_INCONSISTENT` also aborts, even though it is "not corruption",
-   because step 4's chronological sort avoids it whenever the entries are
-   genuinely independent — reaching it anyway means step 3 was too weak.
-8. Only on `VERIFIED`: `git_runner` stages and completes the merge commit,
-   with a message naming the operation, the seq range repaired, and that
-   `verify_chain` passed — machine-generated, so it is not the
-   commit-message rule's "written by hand" case (`AgentConduct.md` §2's
-   own carve-out for tooling-generated messages).
+    def repair(self, repo: GitRepo, runner: GitRunner) -> RepairOutcome:
+        """§5's algorithm, parametric over `repo` and its current
+        tracking branch instead of two hardcoded commit hashes:
 
-**`repair()`'s `DIVERGED_PLAIN` and `NON_FF_REJECTED` sequences** are
-thin: `git_runner.merge`/`fetch`-then-`push`, no chain-specific step at
-all — the ordinary case `.localSpec` already went through by hand, now
-automated because nothing about it needed a human either.
+        1. Compute the merge base of the local branch and its upstream.
+        2. Read every `lgr/<seq>.toml` that exists on either ref but not
+           at the merge base, via `git show <ref>:lgr/<seq:06d>.toml` —
+           not by checking either ref out.
+        3. Refuse, do not guess, if the two sides' new entries are not
+           disjoint at the field level (a `recorded_at` tie, or anything
+           beyond `seq`/`prev`/`entry_hash` differing from what a real
+           append could produce) — the one judgement call a human, not
+           this class, should make.
+        4. Sort the union of both sides' new entries by `recorded_at`.
+        5. Recompute `seq`/`prev`/`entry_hash` for each, chained from the
+           merge base's tip, via `memory.ledger_entry.compute_entry_hash`
+           — never a hand-rolled hash.
+        6. Write via `memory.ledger_store.write_entry`, after clearing
+           whatever stale, wrongly-numbered files the pre-fix state left.
+        7. `memory.integrity.verify_chain` over the full, rebuilt chain.
+           `HistoryState.VERIFIED` is the only passing result — `CORRUPT`
+           aborts outright (merge stays conflicted, nothing written);
+           `TIME_INCONSISTENT` also aborts, even though it is "not
+           corruption", because step 4 already avoids it whenever the
+           entries are genuinely independent — reaching it anyway means
+           step 3 was too weak.
+        8. Only on `VERIFIED`: stage and complete the merge commit, with a
+           message naming this repair, the seq range it repaired, and
+           that `verify_chain` passed — machine-generated, so it is not
+           the commit-message rule's "written by hand" case
+           (`AgentConduct.md` §2's own carve-out for tooling-generated
+           messages)."""
+```
 
-**What it never does.** Never force-pushes (`Omniscience`'s own D5
-already settled this for the register `Autofix` will one day also serve:
-*"pull, then push again — never force, never rebase"*). Never resolves a
-genuine content conflict by picking a side — step 3 refuses instead, and
-refusing with a clear reason is `StateLocking`'s own acceptance bar
-(*"refusing is an acceptable answer"*) applied one layer up. Never runs on
-an `UNRECOGNISED` diagnosis — `check()` saying "I don't know what this
-is" is itself the safe answer.
+**What no module in this package ever does.** Never force-pushes
+(`Omniscience`'s own D5 already settled this for the register this
+package will one day also serve: *"pull, then push again — never force,
+never rebase"*). Never resolves a genuine content conflict by picking a
+side — `repair()` refuses instead, and refusing with a clear reason is
+`StateLocking`'s own acceptance bar (*"refusing is an acceptable
+answer"*) applied one layer up. `repair_from_cli.py` never runs a repair
+whose `matches()` returned `False` — "I don't know what this is" is
+itself the safe answer, and stays that way until a new `repair_*.py`
+module teaches the package a new match.
 
 ## 8. Decisions
 
 | D | Question | Recommendation | Whose call |
 |---|---|---|---|
-| **D1** | How does `Autofix` know a repository is chain-shaped? | A short, explicit registry (repository name → the directory/filename pattern to treat as a sequenced chain), not content-sniffing. Today it has exactly one entry: `.memory`'s `lgr/`. `Omniscience`'s own register never needs an entry, by its own design (§4) | Owner |
-| **D2** | CLI surface: extend `pull`/`pull-force`, or a new verb? | **Settled by the owner, 2026-09-22: a new verb, `cgitsync autofix`.** Not memory-specific by name, because `Diagnosis` isn't either. Run with no arguments, it reads the *last* error from the run log (§7); `--repo NAME` and `--error "..."` stay available for a caller that already knows what failed. Extending `pull-force` was considered and rejected: its already-destructive default behaviour would then do something conditionally different depending on file contents | Owner — decided |
-| **D3** | What happens on refusal (a `CORRUPT`/`TIME_INCONSISTENT` result, or an `UNRECOGNISED` diagnosis)? | Leave the situation exactly as found — a conflicted merge stays conflicted, nothing written — and print what was found and why it was not safe to proceed automatically. Never partially write | Owner |
-| **D4** | Does `Autofix` also cover the ledger's `HEAD` cache file? | Yes, trivially — `ledger_store.verify_and_repair_head` already recomputes it from the entry files and never trusts the cached value | Implementer |
+| **D1** | How does `repair_divergent_user.py` know a repository is chain-shaped? | A short, explicit registry (repository name → the directory/filename pattern to treat as a sequenced chain), not content-sniffing, living in `base.py` so a second chain-shaped repair (`omniscience`, one day) reads the same one. Today it has exactly one entry: `.memory`'s `lgr/`. `Omniscience`'s own register never needs an entry, by its own design (§4) | Owner |
+| **D2** | CLI surface: extend `pull`/`pull-force`, or a new verb? | **Settled by the owner, 2026-09-22: a new verb, `cgitsync autofix`.** Not memory-specific by name — it is `repair_from_cli.py`'s dispatcher, not any one repair. Run with no arguments, it reads the *last* error from the run log (§7); `--repo NAME` and `--error "..."` stay available for a caller that already knows what failed. Extending `pull-force` was considered and rejected: its already-destructive default behaviour would then do something conditionally different depending on file contents | Owner — decided |
+| **D3** | What happens on refusal (a `CORRUPT`/`TIME_INCONSISTENT` result, or no repair matching)? | Leave the situation exactly as found — a conflicted merge stays conflicted, nothing written — and print what was found and why it was not safe to proceed automatically. Never partially write | Owner |
+| **D4** | Does `repair_divergent_user.py` also cover the ledger's `HEAD` cache file? | Yes, trivially — `ledger_store.verify_and_repair_head` already recomputes it from the entry files and never trusts the cached value | Implementer |
+| **D5** | Build `repair_divergent_user.py` first, or `repair_from_cli.py`'s dispatcher skeleton (with nothing registered yet) first? | The owner's own words leave this open — *"maybe not the first one"*. Recommendation: the dispatcher first, with an empty `_REGISTRY` and a unit test asserting it refuses cleanly on any error — it is the smaller, local-only piece, and every repair after it (this one included) needs somewhere to register into. `repair_divergent_user.py` is the one that actually needs the distant repo's refs (a `git fetch` before it can compare anything), which is real, separate risk worth isolating in its own work package regardless of build order | **Owner** |
 
 ## 9. Work packages
 
 | WP | Does | Depends on |
 |---|---|---|
 | **WP1 — DONE, 2026-09-22** | Resolved the owner's live `.memory` divergence by hand, per §5. `integrity.verify_chain` over the merged, 21-entry chain returned `HistoryState.VERIFIED`, zero findings; `cgitsync status` showed `.memory` `clean ahead(+3)`, `errors=0`. Not pushed — owner's call | — |
-| **WP2** | `autofix.py`: the `Autofix` class, `Diagnosis`/`Situation`, and `check()`/`repair()` from §7, covering `NON_FF_REJECTED`, `DIVERGED_PLAIN`, and `DIVERGED_CHAINED` for `.memory`'s `lgr/` shape. Unit tests: `check()` against the real captured error strings from both halves of this incident; `repair()` against two small synthetic diverged chains (disjoint-time, and separately a case that must be refused) | D1 |
-| **WP3** | `cgitsync autofix` (D2): the run-log reader that finds "the former error" with no arguments, a `ComplexGitSyncClient.autofix(error, repo_name)` method carrying the semantics, and a thin `_handle_*`/`_execute_*` pair in `cli/` — `cli/` itself never touches `git_runner`/`memory` directly | WP2, D2 |
-| **WP4** | Re-run this ticket's own worked example against `autofix.py` (a synthetic replay of the incident, not the real one — that one is already fixed) and confirm it reaches the same `HistoryState.VERIFIED` result the hand-run rescue did | WP2 |
-| **WP5** | Fix `pull-force`'s failed-`pull` hint (`git_runner.py`) to name the risk when the repository has local-only commits — print `cgitsync status`'s own `ahead(+N)` count for that repository next to the suggestion | — |
-| **WP6** | **The user guide the owner originally asked for**: one document, tricky git states on the left, the safe `cgitsync` command on the right, with an explicit column for "this repository's content has no ordering invariant, plain merge is fine" versus "it does, `cgitsync autofix` handles it." Covers at minimum: ahead-only (push), behind-only (pull), diverged-mergeable (`.localSpec`-shape), diverged-chained (`.memory`/`omniscience`-shape), and what `pull-force`'s hint should have said | WP1 (worked example), WP3 (once `cgitsync autofix` exists to name) |
+| **WP2** | The `autofix/` package skeleton: `__init__.py`, `base.py` (`Repair` protocol, `Situation`, `RepairOutcome`, D1's chain-shape registry), and `repair_from_cli.py`'s `FromCliRepair` — `find_last_error()` plus `run()` dispatching over `_REGISTRY`, tested with `_REGISTRY` empty (refuses cleanly on any input) | D5 |
+| **WP3** | `repair_divergent_user.py`'s `DivergentUserRepair`: `matches()` and the eight-step `repair()` from §7, registered into `_REGISTRY`. Unit tests: `matches()` against the real captured error strings from both halves of this incident (accepts the `.memory` one, declines the `.localSpec` one); `repair()` against two small synthetic diverged chains (disjoint-time, and separately a case that must be refused) | WP2, D1 |
+| **WP4** | `cgitsync autofix` (D2): a `ComplexGitSyncClient.autofix(error, repo_name)` method wrapping `FromCliRepair.run()`, and a thin `_handle_*`/`_execute_*` pair in `cli/` — `cli/` itself never touches `git_runner`/`memory`/`autofix` internals directly, only the client method | WP2, D2 |
+| **WP5** | Re-run this ticket's own worked example against `repair_divergent_user.py` (a synthetic replay of the incident, not the real one — that one is already fixed) and confirm it reaches the same `HistoryState.VERIFIED` result the hand-run rescue did | WP3 |
+| **WP6** | Fix `pull-force`'s failed-`pull` hint (`git_runner.py`) to name the risk when the repository has local-only commits — print `cgitsync status`'s own `ahead(+N)` count for that repository next to the suggestion | — |
+| **WP7** | **The user guide the owner originally asked for**: one document, tricky git states on the left, the safe `cgitsync` command on the right, with an explicit column for "this repository's content has no ordering invariant, plain merge is fine" versus "it does, `cgitsync autofix` handles it." Covers at minimum: ahead-only (push), behind-only (pull), diverged-mergeable (`.localSpec`-shape), diverged-chained (`.memory`/`omniscience`-shape), and what `pull-force`'s hint should have said | WP1 (worked example), WP4 (once `cgitsync autofix` exists to name) |
 
 ## 10. Acceptance
 
 - ✅ **The owner's live `.memory` divergence is resolved** (WP1). Not yet
   pushed — owner's call.
-- `autofix.py` exists, imports no `subprocess` itself, and every Git
-  operation it performs goes through `git_runner.py`.
-- `Autofix.check()` correctly classifies both real captured error strings
-  this project has on file: `.localSpec`'s `"[rejected]"`/non-fast-forward
-  case (→ `DIVERGED_PLAIN`) and `.memory`'s "Diverging branches can't be
-  fast-forwarded" case (→ `DIVERGED_CHAINED`).
+- `src/ComplexGitSync/autofix/` exists as a package, not a single module;
+  no file in it imports `subprocess` directly, and every Git operation
+  any repair performs goes through `git_runner.py`.
+- `repair_from_cli.py`'s `FromCliRepair.run()` refuses cleanly (changes
+  nothing, prints why) when `_REGISTRY` is empty or nothing in it
+  matches — provable before `repair_divergent_user.py` exists at all
+  (WP2's own test).
+- `repair_divergent_user.py`'s `matches()` correctly accepts `.memory`'s
+  real captured "Diverging branches can't be fast-forwarded" error and
+  declines `.localSpec`'s real captured `"[rejected]"` one.
 - A synthetic two-branch divergence with disjoint `recorded_at` values
   reconciles automatically to a `HistoryState.VERIFIED` chain with a real
   merge commit; nothing is force-pushed, nothing is dropped.
@@ -409,8 +469,8 @@ is" is itself the safe answer.
 - `cgitsync autofix` exists as a real CLI command, runnable with no
   arguments, documented in the README's command table per this project's
   own rule, and mirrors a `ComplexGitSyncClient.autofix` method.
-- `pull-force`'s hint (WP5) names what it would discard.
-- The guide (WP6) exists and every row names the actual `cgitsync`
+- `pull-force`'s hint (WP6) names what it would discard.
+- The guide (WP7) exists and every row names the actual `cgitsync`
   command, not raw `git`.
 - `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
   `errors=0`.
