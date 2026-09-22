@@ -205,8 +205,8 @@ without yet answering it for this case.
 | WP | Does | Depends on |
 |---|---|---|
 | **WP1 — DONE, 2026-09-22** | Resolved the owner's live `.memory` divergence. `git merge origin/ComplexGitSync --no-commit` surfaced exactly the predicted add/add on `lgr/000016.toml`/`000017.toml` plus a `HEAD` cache conflict — nothing else (`state/`/`env/`/`logs/` are content-addressed and merged as a clean union on their own). Rather than "pick a side, splice the loser after," the six colliding/orphaned entries (local's old seq 16-19, origin's old seq 16-17) were re-sequenced in **`recorded_at` order** — the two sessions interleave in real time, so a pure "ours-then-theirs" splice would have reported `TIME_REGRESSION`. Every entry kept its original `command`/`argv`/`state_id`/`recorded_at`; only `seq`/`prev`/`entry_hash` were recomputed, using `ledger_entry.compute_entry_hash` — the same function a real write uses — via a saved, reusable script: [scripts/rescue_20260922_memory_ledger_splice.py](../../scripts/rescue_20260922_memory_ledger_splice.py). Result, checked before committing: `integrity.verify_chain` over all 21 entries returned `HistoryState.VERIFIED`, `is_clean=True`, zero findings; every entry's `state_id` resolves to a file that exists on disk. `cgitsync status` now shows `.memory` as `clean ahead(+3)`, `errors=0` | D3 |
-| **WP2** | The generic reconciliation primitive per D2 — a `cgitsync memory merge` (or `git_runner`-level) command that detects a same-`seq`-different-content collision and replays the losing side after the winning side, recomputing `prev`/`seq`, instead of the `merge_tree`/`pull-force` choice being the only two options | D1, D2 |
-| **WP3** | **The user guide the owner asked for**: one document, tricky git states on the left, the safe `cgitsync` command on the right, and — this is the part that makes it honest rather than a wish list — an explicit column for "this repository's content has no ordering invariant, plain merge is fine" versus "it does, do not merge or force without WP2." Covers at minimum: ahead-only (push), behind-only (pull), diverged-mergeable (`.localSpec`-shape: `git merge`), diverged-chained (`.memory`/`omniscience`-shape: WP2 or D3's manual steps), and what `pull-force`'s hint should have said instead of a bare command name | WP1 (for the worked example), WP2 (for what the chained-diverged row actually recommends once it exists) |
+| **WP2 — SUPERSEDED, 2026-09-22** | The generic reconciliation primitive per D2. Split out into its own ticket, [LedgerAutofix](memory-dev_1-2_LedgerAutofix_DevPlanTicket.md), on the owner's request, the same day WP1 shipped and proved the algorithm by hand — that ticket holds the design (`autofix.py`, detection, safety properties) this row used to hold | D1, D2 |
+| **WP3** | **The user guide the owner asked for**: one document, tricky git states on the left, the safe `cgitsync` command on the right, and — this is the part that makes it honest rather than a wish list — an explicit column for "this repository's content has no ordering invariant, plain merge is fine" versus "it does, do not merge or force without WP2." Covers at minimum: ahead-only (push), behind-only (pull), diverged-mergeable (`.localSpec`-shape: `git merge`), diverged-chained (`.memory`/`omniscience`-shape: [LedgerAutofix](memory-dev_1-2_LedgerAutofix_DevPlanTicket.md)'s `cgitsync autofix` once it ships, or WP1's hand-run steps until then), and what `pull-force`'s hint should have said instead of a bare command name | WP1 (for the worked example), LedgerAutofix (for what the chained-diverged row actually recommends once it exists) |
 | **WP4** | Fix `pull-force`'s failed-`pull` hint (`git_runner.py`) to name the risk when the repository has local-only commits — at minimum, print `cgitsync status`'s own `ahead(+N)` count for that repository next to the suggestion, so "you are about to discard N commits" is visible before it happens, not only in `--help` | — |
 
 ## 7. Acceptance
@@ -223,8 +223,9 @@ without yet answering it for this case.
   command table or `docs/Text/user_guide.tex` per this project's own
   documentation rule, and every row names the actual `cgitsync` command —
   not raw `git`.
-- **Still open**: WP2, the generic chain-aware reconciliation primitive —
-  WP1's fix was done by hand, once, precisely because WP2 does not exist
-  yet.
+- **Superseded**: WP2, the generic chain-aware reconciliation primitive —
+  WP1's fix was done by hand, once, precisely because it did not exist
+  yet. Its design now lives in
+  [LedgerAutofix](memory-dev_1-2_LedgerAutofix_DevPlanTicket.md).
 - `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
   `errors=0`.

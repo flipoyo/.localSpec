@@ -4,6 +4,21 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22.** §1's prediction happened for real: two
+> machines ("cgsN"/"cgsDbg") both wrote `.memory`'s ledger seq 16 after
+> the same ancestor, forking the chain exactly as this ticket's own words
+> called it, back on 2026-09-12 — *"two entries claim the same parent, and
+> the chain forks."* This ticket's own fix (a local advisory lock) could
+> not have prevented it: the two machines were never in the same lock
+> domain, each finished and pushed before the other could see it. What
+> actually happened and how it was fixed by hand, then generalised, is
+> [DivergedPrivateRepo](memory-dev_1-1_DivergedPrivateRepo_DevPlanTicket.md)
+> and [LedgerAutofix](memory-dev_1-2_LedgerAutofix_DevPlanTicket.md) —
+> the cure for a fork that already happened across machines, complementary
+> to this ticket's prevention of one happening on a single machine. Rank
+> and priority unchanged; still the least urgent of the three, and still
+> true regardless.
+
 > **Ticket review — 2026-09-19.** Still last, and now behind
 > [TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md) as well.
 > That ticket's WP3 adds a third member to the state area,
