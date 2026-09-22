@@ -358,7 +358,7 @@ different, still-open defect — it hand-encodes a naming rule
 (`private_local_branch`) that `resolve_declared_ref`/`discover` never
 compute, and the encoded value there has already gone stale. Out of this
 ticket's scope; tracked as
-[PrivateLocalBranchAtClone](main_1-7_PrivateLocalBranchAtClone_DevPlanTicket.md).
+[PrivateLocalBranchAtClone](main_1-6_PrivateLocalBranchAtClone_DevPlanTicket.md).
 
 ## 7. Documentation — what the owner asked for
 

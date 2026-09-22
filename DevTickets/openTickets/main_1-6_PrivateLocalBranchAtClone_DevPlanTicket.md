@@ -4,6 +4,13 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22.** Renumbered on merge, `main_1-7` →
+> `main_1-6`: this ticket was appended at `main_1-7` against the pile as it
+> stood before a parallel session archived
+> [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md)
+> and compacted `main`'s priority-1 pile down to `main_1-5`, leaving a gap
+> at `1-6` once both histories merged. No other content changed.
+
 > **Diagnosis ticket**, opened from `shortTickets/bug-cgs.md` per the
 > owner's instruction: *"Diagnosis first, then corrPlan."* §1–§2 are the
 > diagnosis; §3 is the correction plan. No code changes accompany this
