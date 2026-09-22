@@ -4,6 +4,10 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22, part 2.** Renumbered again, `main_1-4` →
+> `main_1-3`: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md)
+> finished and archived in the same pass, compacting the pile by one.
+
 > **Ticket review — 2026-09-22.** Promoted from `main_2-5` (stand-by) to
 > `main_1-4` (pick up now), on the owner's request to reorganise the
 > backlog into: finalize the agentic, then what's important before

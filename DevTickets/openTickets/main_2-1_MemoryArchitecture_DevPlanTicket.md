@@ -6,11 +6,11 @@
 
 > **Ticket review — 2026-09-22.** Considered and left at `main_2-1`
 > (unchanged) during the backlog reorganisation that promoted
-> [ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md),
-> [AgentContract](main_1-2_AgentContract_DevPlanTicket.md),
-> [AgentReport](main_1-3_AgentReport_DevPlanTicket.md),
-> [DiscoverRoundTrip](main_1-4_DiscoverRoundTrip_DevPlanTicket.md) and
-> [CitationRot](main_1-5_CitationRot_DevPlanTicket.md) to priority 1. This
+> [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
+> [AgentContract](main_1-1_AgentContract_DevPlanTicket.md),
+> [AgentReport](main_1-2_AgentReport_DevPlanTicket.md),
+> [DiscoverRoundTrip](main_1-3_DiscoverRoundTrip_DevPlanTicket.md) and
+> [CitationRot](main_1-4_CitationRot_DevPlanTicket.md) to priority 1. This
 > ticket, [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
 > [StateLocking](main_2-3_StateLocking_DevPlanTicket.md) are real,
 > analysed work — priority 2's own definition — but none is a prerequisite
@@ -519,7 +519,7 @@ whose filename opens with `main_` is `main` work — including
 [CgshomeDefault](../archive/20260916_CgshomeDefault_DevPlanTicket.md), which the
 milestones ask questions of without being memory work themselves. The
 convention is stated in
-[TICKETLIFECYCLE.md](../../../.agentSpec/TICKETLIFECYCLE.md) §3 and named for
+[TICKETLIFECYCLE.md](../../../../.distant/ticket/TICKETLIFECYCLE.md) §3 and named for
 this project in `.localSpec/AdditionalSpecs.md`.
 
 ## 5. What this architecture refuses to do

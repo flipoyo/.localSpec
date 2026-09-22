@@ -4,6 +4,17 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22, part 2.** Renumbered again, `main_1-5` →
+> `main_1-4`: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md)
+> finished and archived in the same pass, compacting the pile by one, and
+> its own WP3 path sweep corrected the `.agent/` prefix everywhere —
+> including on the `universal_clock.py` citation below. It did **not**
+> touch the citation's target, only its prefix: `universal_clock.py` still
+> points at the dead `openTickets/main_1-1_UniversalClock_DevPlanTicket.md`
+> path this ticket's §1 already names, which is this ticket's job to fix,
+> not ProjectSpecSplit's — a stale prefix and a stale target are the two
+> different defects these two tickets each own.
+
 > **Ticket review — 2026-09-22.** Promoted from `main_2-4` (stand-by) to
 > `main_1-5` (pick up now), on the owner's request to reorganise the
 > backlog into: finalize the agentic, then what's important before
@@ -97,7 +108,7 @@ promoted this ticket:** `universal_clock.py` cites
 `openTickets/main_1-1_UniversalClock_DevPlanTicket.md`, archived as
 `archive/20260920_UniversalClock_DevPlanTicket.md`. That same rank,
 `main_1-1`, was reused again in this very review — it now names
-[ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md), a
+[ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md), a
 different ticket again — the retargeting hazard recurring for a third
 time on the same rank.
 

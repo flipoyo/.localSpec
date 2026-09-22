@@ -11,7 +11,7 @@ planning ticket; the short ticket is then stamped and filed under
 there.
 
 **What this document is.** The rationale and the working rules for
-`.localSpec/DevTickets/` — the whole planning surface of ComplexGitSync:
+`.agent/.local/.localSpec/DevTickets/` — the whole planning surface of ComplexGitSync:
 what each directory holds, who writes into it, and how a request becomes a
 plan and then a closed record.
 
@@ -36,7 +36,7 @@ that is why it is private.
 
 **What you need to do with it.** Writing a request: put it in
 `shortTickets/` (§2.1). Acting on one: §2.2, then close it (§3). Opening or
-finishing a plan: [TICKETLIFECYCLE.md](../../.agentSpec/TICKETLIFECYCLE.md)
+finishing a plan: [TICKETLIFECYCLE.md](../../../.distant/ticket/TICKETLIFECYCLE.md)
 is authoritative; §4 here only says which conventions this project uses.
 
 ```mermaid
@@ -90,9 +90,9 @@ do, the agent's job is not to implement the request in code — it is to
 - read every ticket in `openTickets/`, not only the obviously related ones;
 - create, split, re-rank, rename, or retire tickets as the request implies;
 - carry the request into the specifications it changes
-  (`.localSpec/AdditionalSpecs.md`, `.claude/CLAUDE.md`,
-  `.agentSpec/TICKETLIFECYCLE.md`, `docs/`), because a rule that lives only
-  in a ticket is a rule nobody will find;
+  (`.agent/.local/.localSpec/AdditionalSpecs.md`, `.agent/.local/.claude/CLAUDE.md`,
+  `.agent/.distant/ticket/TICKETLIFECYCLE.md`, `docs/`), because a rule that
+  lives only in a ticket is a rule nobody will find;
 - repair every cross-reference the changes break.
 
 The point of doing it in one pass is consistency. A request answered in one
@@ -103,7 +103,7 @@ current.
 ### 2.3 The plans carry the work
 
 Implementation happens against `openTickets/`, one ticket at a time, under
-the rules in [TICKETLIFECYCLE.md](../../.agentSpec/TICKETLIFECYCLE.md). By
+the rules in [TICKETLIFECYCLE.md](../../../.distant/ticket/TICKETLIFECYCLE.md). By
 then the short ticket has done its job.
 
 ## 3. Closing a short ticket
@@ -112,8 +112,8 @@ When the orchestration pass is done — the plans say what the request asked
 for — the short ticket is closed:
 
 ```bash
-git mv .localSpec/DevTickets/shortTickets/<name>.md \
-       .localSpec/DevTickets/archive/.closedUserTicket/<YYYYMMDD>_<name>.md
+git mv .agent/.local/.localSpec/DevTickets/shortTickets/<name>.md \
+       .agent/.local/.localSpec/DevTickets/archive/.closedUserTicket/<YYYYMMDD>_<name>.md
 ```
 
 **Same rules as a planning ticket.** `YYYYMMDD` is the date the request was
@@ -129,7 +129,7 @@ the time — say why.
 
 ## 4. Naming: branch, priority, rank
 
-[TICKETLIFECYCLE.md](../../.agentSpec/TICKETLIFECYCLE.md) defines these and
+[TICKETLIFECYCLE.md](../../../.distant/ticket/TICKETLIFECYCLE.md) defines these and
 is authoritative; this is the short version, with what is specific to
 ComplexGitSync.
 
@@ -156,9 +156,9 @@ describes how things are and is kept true.
 
 | Belongs in | Not in `DevTickets/` |
 |---|---|
-| `.localSpec/AdditionalSpecs.md` | Architecture, rings, formats, branch policy |
-| `.localSpec/audit.md` | Findings, legacy references, open risks |
-| `.localSpec/AGENT.md` | The agent roles and how they hand off |
-| `.agentSpec/` | The project-agnostic rules: `TICKETLIFECYCLE.md`, `DevSpec/` |
+| `.agent/.local/.localSpec/AdditionalSpecs.md` | Architecture, rings, formats, branch policy |
+| `.agent/.local/.localSpec/audit.md` | Findings, legacy references, open risks |
+| `.agent/.local/.localSpec/AGENT.md` | The agent roles and how they hand off |
+| `.agent/.distant/` | The project-agnostic rules: `ticket/TICKETLIFECYCLE.md`, `dev-sync/DevSpecs.md` |
 | `docs/DevGuide/` | How the code is put together, for contributors |
 | The public repository | Anything a user of `cgitsync` needs |

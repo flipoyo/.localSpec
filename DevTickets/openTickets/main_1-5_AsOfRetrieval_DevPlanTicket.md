@@ -4,13 +4,18 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-22.** Filename unchanged — `main`'s
-> priority-1 pile happens to still run 1..6 after this review — but three
-> tickets ahead of it changed: [ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md),
-> [AgentContract](main_1-2_AgentContract_DevPlanTicket.md) and
-> [AgentReport](main_1-3_AgentReport_DevPlanTicket.md) now lead as
-> "finalize the agentic," and [DiscoverRoundTrip](main_1-4_DiscoverRoundTrip_DevPlanTicket.md)/
-> [CitationRot](main_1-5_CitationRot_DevPlanTicket.md) were promoted ahead
+> **Ticket review — 2026-09-22, part 2.** Renumbered again, `main_1-6` →
+> `main_1-5`: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md)
+> finished and archived in the same pass, compacting the pile to 1..5.
+> Still last in it, for the same reason as before.
+
+> **Ticket review — 2026-09-22.** Filename unchanged at the time of this
+> note — `main`'s priority-1 pile ran 1..6 after that review — but three
+> tickets ahead of it changed: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
+> [AgentContract](main_1-1_AgentContract_DevPlanTicket.md) and
+> [AgentReport](main_1-2_AgentReport_DevPlanTicket.md) now lead as
+> "finalize the agentic," and [DiscoverRoundTrip](main_1-3_DiscoverRoundTrip_DevPlanTicket.md)/
+> [CitationRot](main_1-4_CitationRot_DevPlanTicket.md) were promoted ahead
 > of this one. This ticket stays last in the pile: still ready, no owner
 > decision needed, but nothing else is waiting on it the way the five
 > ahead of it are waited on.

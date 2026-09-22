@@ -3,10 +3,10 @@
 *Created: 2026-05-13*
 
 This file documents project-specific constraints and refinements that apply
-**on top of** the general [DevSpecs](../.agentSpec/DevSpec/DevSpecs.md). Every rule in `DevSpecs.md`
+**on top of** the general [DevSpecs](../../.distant/dev-sync/DevSpecs.md). Every rule in `DevSpecs.md`
 applies here; this file only adds or tightens rules for `ComplexGitSync`.
 
-**Planning lives next door.** `.localSpec/DevTickets/` holds every planning
+**Planning lives next door.** `.agent/.local/.localSpec/DevTickets/` holds every planning
 ticket for this project — the owner's short tickets, the ranked open plans,
 and the archive — and [its README](DevTickets/README.md) explains the loop
 they move through. It is in this private repository, not in the public
@@ -257,10 +257,10 @@ Tier and a Ring needs spelling out precisely.
 ## Responsibility boundaries
 
 Rewritten 2026-08-30 against the post-isolation-Wave-2 module set
-(`.localSpec/DevTickets/archive/20260828_Isolation_DevPlanTicket.md`) — `orchestre.py` used to
+(`.agent/.local/.localSpec/DevTickets/archive/20260828_Isolation_DevPlanTicket.md`) — `orchestre.py` used to
 carry most of this table's Tier 2/3 responsibility directly; it now
 delegates each to its own module. See each module's own docstring header
-(`Ring:`/`Contract:`/`Imports:`, `.localSpec/DevTickets/IsolationPlan.md` §3.2) for the
+(`Ring:`/`Contract:`/`Imports:`, `.agent/.local/.localSpec/DevTickets/IsolationPlan.md` §3.2) for the
 authoritative, machine-cross-checked version of this table — this is the
 human-readable summary.
 
@@ -271,7 +271,7 @@ human-readable summary.
 | `git_branch.py` | 0 | The single owner of the `.cgs` branch fallback chain (`fallback_branch` → `default_branch` → `project.default_branch` → `DEFAULT_BRANCH`) and of the privacy rule that decides what a repository targets under a tree-wide branch move. A pure resolver: declared fields in, a `BranchResolution` (branch, `RefKind`, and the `BranchSource` that answered) out. Holds no tree, no root and no privacy *state* — `git_tree.py` owns those, and `git_tree_branch.py` owns branch state the same way (which branch the tree is on, and which branch each repository is actually on). Also owns the private/local naming rule: `private_local_branch` composes `<project name>` on `main` and `<project name>_<branch>` otherwise, and `PRIVATE_LOCAL_SEPARATOR` never leaves this module — `tests/unit/test_git_branch.py` fails if either escapes, the same guard the `"main"` literal already has. `resolve_propagated_ref` now answers three cases, not two: a project repo follows the move, private/distant never moves, private/local takes the derived branch. |
 | `ledger_entry.py` | 0 | Hash-chained register-entry construction and canonicalisation (pure chain math). |
 | `integrity.py` | 0 | `Finding` taxonomy and `verify_chain` — pure arithmetic checks over a register-entry sequence. |
-| `json_render.py` | 0 | The machine-readable shape of what a command reports — `status`, `verify`, and the error object a JSON-capable command prints when it fails — with `SCHEMA_VERSION` and the serialiser. One module for every command's shape, so field names are decided once rather than re-invented per command, and `cli/` carries none of them. Separate from `status_render.py` on purpose: that renders one table for humans, where a column can be renamed when the wording improves; a JSON field cannot, because something is parsing it. The promise is **additive only**. See `.localSpec/DevTickets/archive/20260916_CliContract_DevPlanTicket.md`. |
+| `json_render.py` | 0 | The machine-readable shape of what a command reports — `status`, `verify`, and the error object a JSON-capable command prints when it fails — with `SCHEMA_VERSION` and the serialiser. One module for every command's shape, so field names are decided once rather than re-invented per command, and `cli/` carries none of them. Separate from `status_render.py` on purpose: that renders one table for humans, where a column can be renamed when the wording improves; a JSON field cannot, because something is parsing it. The promise is **additive only**. See `.agent/.local/.localSpec/DevTickets/archive/20260916_CliContract_DevPlanTicket.md`. |
 | `status_render.py` | 0 | Pure text rendering for `cgitsync status`'s repository table, including the `SCOPE` column. That column is where the developer vocabulary is translated for end users: `private` reads as **private**, `writable` as **local**, private read-only as **distant**, and a repo that is not private as **project**. `_status_scope_label` is the only place that mapping lives; it reads the effective flags, so a repo nested in a private one is labelled like its parent. Docs, tutorials and CLI output use the user words; code, docstrings and this table keep `private`/`writable`. |
 | `config_document.py` | 0 (+ Ring-1 adapter) | Pure `ConfigDocument` base — dict wrapping, dot-path reads, the `validate()` hook. |
 | `config_document_io.py` | 1 | `ConfigDocumentIOMixin` — the six file-I/O methods (`from_toml`/`to_toml`/etc.) `ConfigDocument` used to carry directly. |
@@ -281,12 +281,12 @@ human-readable summary.
 | `master.py` | 1 | Local, workspace-scoped Git identity for ComplexGitSync's own automated commits; persisted per `CGSHOME` via `.cgitsync/master.toml` — not part of the `.cgs`/`.gts` project spec. |
 | `paths.py` | 1 | Environment-marker path portability (`$HOME`/`%USERPROFILE%`/etc.) and `CGSHOME`/`CGSPATH` resolution. |
 | `state_store.py` | 1 | The one place that composes a State's path: `.cgitsync/state/<hash>.gts`, where the hash is the document's own content digest (`state_path`). Still reads the older `state(<hash>)_n/` directories, so a workspace written before the flat layout resolves without being rewritten — and `snapshot_resolver.py` imports that grammar from here rather than carrying the copy it used to. Formerly content-addressed directory allocation — the general mechanism every lifecycle command uses (not related to the deleted Memory transport, despite the class name). |
-| `settings.py` | 1 | Where ComplexGitSync keeps its own workspaces, answered before any workspace is open — which is what separates it from `master.py`, whose `.cgitsync/master.toml` cannot be read until one has been found. Owns the root (`$CGSPATH`, else `$HOME/.cgs`), the **default workspace** that `snapshot_resolver.py` falls back to when none of its three inputs finds one, the `$HOME/.cgs/default` pointer that makes that workspace minted-once-then-reused, the empty but valid `.gts` written into it (`UNLOADED`, `is_ready = false` — an empty tree must never claim to be ready), the list of other workspaces under the root that the CLI prints as a hint and never selects from, and the `UseCase` (`STANDALONE`/`NESTED`) derived from whether the running installation sits inside the resolved CGSHOME. Derived, never stored: two callers in one process cannot disagree. See `.localSpec/DevTickets/archive/20260916_CgshomeDefault_DevPlanTicket.md`. |
+| `settings.py` | 1 | Where ComplexGitSync keeps its own workspaces, answered before any workspace is open — which is what separates it from `master.py`, whose `.cgitsync/master.toml` cannot be read until one has been found. Owns the root (`$CGSPATH`, else `$HOME/.cgs`), the **default workspace** that `snapshot_resolver.py` falls back to when none of its three inputs finds one, the `$HOME/.cgs/default` pointer that makes that workspace minted-once-then-reused, the empty but valid `.gts` written into it (`UNLOADED`, `is_ready = false` — an empty tree must never claim to be ready), the list of other workspaces under the root that the CLI prints as a hint and never selects from, and the `UseCase` (`STANDALONE`/`NESTED`) derived from whether the running installation sits inside the resolved CGSHOME. Derived, never stored: two callers in one process cannot disagree. See `.agent/.local/.localSpec/DevTickets/archive/20260916_CgshomeDefault_DevPlanTicket.md`. |
 | `snapshot_resolver.py` | 1 | Resolves which `.gts` snapshot the CLI defaults to when a command omits one explicitly — and, when none of its three inputs finds a workspace at all, falls back to `settings.py`'s default workspace rather than raising (`CGSHOME_ORIGIN_DEFAULT`), except under an explicit `--search-dir`, where a directory the user named is never silently replaced, and — through its `describe_*` functions — reports *which input decided it*: `--search-dir`, `$CGSHOME`, or the current directory, in that order of precedence. The precedence is deliberate (the documented bootstrap tells users to export `$CGSHOME`), which is exactly why the reason has to travel with the answer: a stale export silently retargets every command at another workspace that holds the same repositories. This module never prints — `cli/_shared.py` turns a `CgshomeResolution`/`SnapshotResolution` into the `cgshome=`/`source=` lines and the mismatch warning. |
 | `memory/` | 1 | **Everything a workspace remembers, in one package.** `repository.py` defines the memory mount and branch without running Git. `states.py` owns States; `environment.py` atomically stores content-addressed Environment records; `ledger_entry.py`/`ledger_store.py` own the hash chain; `commit_log.py` owns commit/publish evidence; `integrity.py` verifies; `store.py` reads the legacy register. `pending.py` merges folded and pending views so callers do not care where an entry, State, Environment, or log currently sits. **No Git, ever**: repository operations remain in `operations.py`/`git_runner.py`. |
 | `discovery.py` | 1 | Nested `.cgs` auto-discovery and `.gitmodules` parsing. |
 | `git_tree.py` | 1 | `GitTree`/`WorkingGitTree` structures, traversal, lifecycle state; `to_cgs()` delegates to `cgs_format.py`; `.gitignore` maintenance across the tree (`sync_gitignore`) — the reason this is Ring 1, not 0. Also the single rule for "which repo sits inside which": `resolve_repo_for_path` for a live tree, `innermost_containing_path` for plain paths before one exists. Owns privacy *state* as well: `propagate_privacy` pushes each parent's `private`/`writable` onto everything nested inside it (a parent defines its leaves; a leaf may restrict itself further, never open itself wider) and records the answer in `WorkingRepo.propagated_private`/`propagated_writable`. Every build path calls it beside `normalize_node_types`. |
-| `git_tree_branch.py` | 2 | The tree's branch *state*, and the counterpart to `git_branch.py`'s *rule*: which branch the tree is on (the root's — what `status` prints as `cgitsync_branch`), which branch each repository targets when the tree moves (`target`, a pass to `git_branch.resolve_propagated_ref` with the project's name filled in), which branch Git says each is on (`observed`, read once per repository and cached so one `status` costs one call per repository instead of two), and where the two disagree (`deviations`). Also holds `tree_project_name`, moved here from `operations.py` because the project's name exists in that code path only to name a private/local branch. Restates no rule: every answer it gives comes from `git_branch.py`. Four call sites computed all of this separately before it existed — `validate_branch_topology`, `_collect_branch_alignment_diagnostics`, `_branch_incoherence`, and the root read in `_restart_tree_common` — and the three that asked the same question disagreed about a detached root. `deviations(ignore_unreadable=...)` keeps the one difference that is real: a report skips a repository Git cannot answer for, a preflight gate must not. An instance is a snapshot — build a new one after a checkout or a pull. See `.localSpec/DevTickets/archive/20260916_StatusCurrentBranch_DevPlanTicket.md`. |
+| `git_tree_branch.py` | 2 | The tree's branch *state*, and the counterpart to `git_branch.py`'s *rule*: which branch the tree is on (the root's — what `status` prints as `cgitsync_branch`), which branch each repository targets when the tree moves (`target`, a pass to `git_branch.resolve_propagated_ref` with the project's name filled in), which branch Git says each is on (`observed`, read once per repository and cached so one `status` costs one call per repository instead of two), and where the two disagree (`deviations`). Also holds `tree_project_name`, moved here from `operations.py` because the project's name exists in that code path only to name a private/local branch. Restates no rule: every answer it gives comes from `git_branch.py`. Four call sites computed all of this separately before it existed — `validate_branch_topology`, `_collect_branch_alignment_diagnostics`, `_branch_incoherence`, and the root read in `_restart_tree_common` — and the three that asked the same question disagreed about a detached root. `deviations(ignore_unreadable=...)` keeps the one difference that is real: a report skips a repository Git cannot answer for, a preflight gate must not. An instance is a snapshot — build a new one after a checkout or a pull. See `.agent/.local/.localSpec/DevTickets/archive/20260916_StatusCurrentBranch_DevPlanTicket.md`. |
 | `provider.py` | 0 | **Which command-line tool creates a repository on which host, and with what arguments.** Runs nothing: `git_runner.run_tool` does that, for the same reason `toolchain.py` asks it for a version. Holds no credential, reads none and sends none — `gh`, `glab` and `tea` each keep their own, under their own `auth login`. The owner or group comes from `parse_repo_id` and from nowhere else. |
 | `toolchain.py` | 2 | The five version strings every ledger entry records — cgitsync, git, pixi, dvc, git-lfs — read at most once per process and reported as `none` when a tool is not installed. Asks `git_runner.tool_version` rather than importing `subprocess`, so the single-importer rule holds. A data backend is asked only when the operation being recorded used one: `dvc --version` starts a Python interpreter and would be felt on every `status`. |
 | `tree_env.py` | 2 | Observes secret-free machine, tool, provider-authentication, environment-root and manifest facts; content-hashes that record and compares it with `.cgs` requirements. Reads manifests but stores only tree-relative pointers and digests. |
@@ -341,9 +341,9 @@ implicit in an otherwise "pure" module.)
 
 ## Ring model and import rules
 
-Added by `.localSpec/DevTickets/archive/20260828_Isolation_DevPlanTicket.md` (P6) once the
+Added by `.agent/.local/.localSpec/DevTickets/archive/20260828_Isolation_DevPlanTicket.md` (P6) once the
 isolation work gave the package enough real modules for these rules to be
-checkable rather than aspirational. See `.localSpec/DevTickets/IsolationPlan.md` for
+checkable rather than aspirational. See `.agent/.local/.localSpec/DevTickets/IsolationPlan.md` for
 the full design rationale; this section is the enforced-in-practice
 summary, and the authoritative source the rest of the docs (`CLAUDE.md`,
 `docs/DevGuide/architecture.md`) point back to.
@@ -358,7 +358,7 @@ ring, never a higher one.
 | 4 — ADAPTER | `cli/` package (`_shared.py`, `minimalist.py`, `expert.py`, `configuration.py`, `environment.py`, `suggest.py`, `__init__.py` assembling them) |
 | 3 — ORCHESTRATION | `orchestre.py` (`Orchestre`, `ComplexGitSyncClient`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operations.py`, `registry.py`, `toolchain.py`, `tree_env.py` |
-| 1 — FILESYSTEM | `paths.py`, `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.localSpec/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `environment`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
+| 1 — FILESYSTEM | `paths.py`, `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.agent/.local/.localSpec/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `environment`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
 | 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `environment_spec.py`, `ledger_entry.py`, `integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The five import rules (machine-checked)
@@ -381,7 +381,7 @@ ring, never a higher one.
    `ClockProtocol` of its own — Ring 0 must be self-contained, so it cannot
    import Ring 1's — which Python's structural typing makes interchangeable
    with the canonical one at every call site. See
-   `.localSpec/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`.
+   `.agent/.local/.localSpec/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`.
 
 ### Ceilings
 
@@ -425,8 +425,8 @@ are non-trivial — keep them in sync rather than let the header rot.
 
 One concern per commit — `DELETE`/`MOVE`/`CHANGE` never mixed in the same
 commit. This is the same discipline
-`.localSpec/DevTickets/archive/20260826_Deletion_DevPlanTicket.md` and
-`.localSpec/DevTickets/archive/20260828_CleanupPass2_DevPlanTicket.md` used successfully; the isolation
+`.agent/.local/.localSpec/DevTickets/archive/20260826_Deletion_DevPlanTicket.md` and
+`.agent/.local/.localSpec/DevTickets/archive/20260828_CleanupPass2_DevPlanTicket.md` used successfully; the isolation
 work continues it. A commit that both deletes duplicated code from
 `orchestre.py`/`cli/` and authors a brand-new module is two concerns —
 split it.
@@ -873,7 +873,7 @@ useful approximation — and a wrong hash next to a mismatch check reads as
 *corrupt*, which is the worst possible answer, because it is not true and
 it invites deleting the one thing that was fine. This is exactly what
 happened once, self-hosted (`SnapshotVersionGuard`,
-`.localSpec/DevTickets/archive/20260918_SnapshotVersionGuard_DevPlanTicket.md`):
+`.agent/.local/.localSpec/DevTickets/archive/20260918_SnapshotVersionGuard_DevPlanTicket.md`):
 `checkout main` wrote a version-2 State and, in the same run, swapped this
 editable checkout's own code to a build that only understood version 1 —
 which then recomputed the hash the old way, got a different digest, and
@@ -1320,7 +1320,7 @@ CLI display requirements:
   patches only part of a scenario and lets the rest read the real
   calendar is green only until the two happen to agree, which is not
   really green at all — see
-  `.localSpec/DevTickets/archive/20260920_ClockSeam_DevPlanTicket.md`.
+  `.agent/.local/.localSpec/DevTickets/archive/20260920_ClockSeam_DevPlanTicket.md`.
 
 ---
 
@@ -1359,12 +1359,12 @@ the rule and the filing agree.
 `memory-dev` and `data-repo` are this project's branches other than
 `main`, so those three are the only ticket filename prefixes it has. An
 open memory ticket is named
-`.localSpec/DevTickets/openTickets/memory-dev_<priority>-<rank>_<Name>_DevPlanTicket.md`
+`.agent/.local/.localSpec/DevTickets/openTickets/memory-dev_<priority>-<rank>_<Name>_DevPlanTicket.md`
 and carries `*Branch: memory-dev*` under its `*Created:*` line; every other
 open ticket is `main_<priority>-<rank>_<Name>_DevPlanTicket.md` and carries
 `*Branch: main*`. The prefix is written out in both cases — `main_` is not
 implied by its absence. Both conventions are defined in
-[.agentSpec/TICKETLIFECYCLE.md](../.agentSpec/TICKETLIFECYCLE.md) §2.3 and
+[.agent/.distant/ticket/TICKETLIFECYCLE.md](../../.distant/ticket/TICKETLIFECYCLE.md) §2.3 and
 §3 — this section only says which branches exist here.
 
 **Every change to the data layer is developed on `data-repo`.** The data
@@ -1403,7 +1403,7 @@ state (see *What SemVer measures here*, below). **No workflow writes it.**
 installs, reconstitutes the tree, lints, and tests, and nothing more. A
 version bump is a release decision, made by a reader, not a byproduct of a
 push — the general rule `DevSpecs.md`'s *Versioning* section and
-[AgentConduct.md](../.agentSpec/DevSpec/AgentConduct.md) §1.3 both state.
+[AgentConduct.md](../../.distant/dev-sync/AgentConduct.md) §1.3 both state.
 
 ### What SemVer measures here
 
@@ -1448,7 +1448,7 @@ a State's hash. See *What a State's name is computed from*, below.
 | Who | Does | With |
 |---|---|---|
 | **Worker** — the agent changing `src/` | Bumps `__build__`, as part of that change | `pixi run bump-build` (`scripts/bump_build.py`) — writes one file |
-| **Orchestrator** — independent, quotes the work | Decides MAJOR/MINOR/PATCH, runs `bump-version`, tags, writes the release row | `pixi run bump-version {major,minor,patch} [--pre <stage>] [--release]` (`.localSpec/scripts/bump_version.py` — private, see ProjectSpecSplit) |
+| **Orchestrator** — independent, quotes the work | Decides MAJOR/MINOR/PATCH, runs `bump-version`, tags, writes the release row | `pixi run bump-version {major,minor,patch} [--pre <stage>] [--release]` (`.agent/.local/release/scripts/bump_version.py` — private, see ProjectSpecSplit) |
 | **CI** | Verifies: lint, tests, tree reconstitution | Never writes a version; needs no credentials to |
 
 **CI cannot make the MAJOR/MINOR/PATCH judgement** — no diff distinguishes
@@ -1510,12 +1510,16 @@ embed the version on their title pages, so rebuild them (`cd docs &&
 latexmk -pdf MASTER.tex`, plus each `c_*.tex`) and commit the result in the
 same change.
 
-`bump_version.py` is orchestrator tooling and lives in `.localSpec/scripts/`
-— private, not in the public `ComplexGitSync` repository — so a public-only
-checkout structurally cannot cut a release (ProjectSpecSplit). It is not in
-the shared `.agentSpec/DevSpec` either: every target path it touches
-(`pyproject.toml`, `src/ComplexGitSync/__init__.py`, `docs/Setup/`, ...) is
-specific to this project.
+`bump_version.py` is orchestrator tooling and lives in
+`.agent/.local/release/scripts/` — private, not in the public
+`ComplexGitSync` repository — so a public-only checkout structurally cannot
+cut a release (ProjectSpecSplit). It moved there from
+`.agent/.local/.localSpec/scripts/`, where WP4 first placed it, once the
+`release` skill was split out on its own — the `.localSpec` copy was dead
+weight and has been removed. It is not in the shared `.agent/.distant/dev-sync`
+either: every target path it touches (`pyproject.toml`,
+`src/ComplexGitSync/__init__.py`, `docs/Setup/`, ...) is specific to this
+project.
 
 ### `bump-build`
 

@@ -4,13 +4,18 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22, part 2.** Renumbered again, `main_1-2` →
+> `main_1-1`: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md)
+> finished and archived in the same pass (WP2/WP3 both verified done), so
+> this ticket is now first in the pile it always led on merit — agentic
+> conduct rules, right behind the layout work that just closed.
+
 > **Ticket review — 2026-09-22.** Renumbered from `main_1-4` to `main_1-2`
 > — still priority 1, moved up two places — on the owner's request to
 > reorganise the backlog with "finalize the agentic" leading the queue.
 > This ticket is agentic-conduct rules, so it sits second, right behind
-> [ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md) (the
-> layout half of the same theme) and ahead of
-> [AgentReport](main_1-3_AgentReport_DevPlanTicket.md), which depends on
+> ProjectSpecSplit (the layout half of the same theme) and ahead of
+> [AgentReport](main_1-2_AgentReport_DevPlanTicket.md), which depends on
 > it settling who writes and owns a self-history record.
 
 > **Owner direction — 2026-09-20, two requests in one.**
@@ -39,7 +44,7 @@ takes two of them, and everything they touch belongs to the person who
 commissioned it.
 
 **What this document is.** The conduct half of the agent work, split out
-of [AgentReport](main_1-3_AgentReport_DevPlanTicket.md) so that one ticket
+of [AgentReport](main_1-2_AgentReport_DevPlanTicket.md) so that one ticket
 builds a mechanism and this one states rules. Mostly documents and one
 signed record; almost no code.
 
@@ -117,7 +122,7 @@ spec must say so, or it reads as requiring two agents to file a one-line
 short ticket.
 
 **Where it lands.** The general project spec, since it is a rule for any
-cgitsync project — see [ProjectSpecSplit](main_1-1_ProjectSpecSplit_DevPlanTicket.md).
+cgitsync project — see [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md).
 Until that split happens, `CLAUDE.md`.
 
 ## 2. The data contract

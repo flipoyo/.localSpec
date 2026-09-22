@@ -4,6 +4,18 @@
 
 *Branch: main*
 
+> **Closing this ticket — 2026-09-22.** WP2 (landed 2026-09-22, verified by
+> a fresh `bootstrap` producing a `READY` tree with `errors=0`) and WP3
+> (the path sweep, completed in this same pass across every spec, ticket,
+> test and doc file — see §5/§6) are both now DONE, alongside the
+> already-DONE WP1 and WP4. All six acceptance items in §6 are ✅. One
+> adjacent, undocumented finding surfaced and was fixed in passing:
+> `bump_version.py` had moved a second time, to
+> `.agent/.local/release/scripts/`, under an initiative
+> (`AgentSkillsSplit`) with no ticket on file; the orphaned `.localSpec`
+> copy is removed and the specs corrected. `pixi run lint`/`test` pass
+> unchanged (1632/4). This ticket is archived in the same change.
+>
 > **Ticket review — 2026-09-22.** Re-ranked from `main_2-6` to `main_1-1` —
 > first in the priority-1 pile — on the owner's request to reorganise the
 > backlog as: finalize the agentic, then what's important before
@@ -188,9 +200,9 @@ repository at a time, and keep the tree bootstrapping after each step.
 
 | WP | Does | Depends on |
 |---|---|---|
-| **WP1 — DONE, 2026-09-21** | The content split (§2): general rules moved to [AgentConduct.md](../../.agentSpec/DevSpec/AgentConduct.md) (a new DevSpec file, per D1), `CLAUDE.md` trimmed to point at it and keep only ComplexGitSync's own fill-ins. `DevSpecs.md`'s own stale *Versioning* section (CI-auto-increment claim, `YYYY.XX`-only) fixed in the same pass — it was blocking on exactly this ticket, per Versioning §5.3. No directory moves | D1 |
+| **WP1 — DONE, 2026-09-21** | The content split (§2): general rules moved to [AgentConduct.md](../../../../.distant/dev-sync/AgentConduct.md) (a new DevSpec file, per D1), `CLAUDE.md` trimmed to point at it and keep only ComplexGitSync's own fill-ins. `DevSpecs.md`'s own stale *Versioning* section (CI-auto-increment claim, `YYYY.XX`-only) fixed in the same pass — it was blocking on exactly this ticket, per Versioning §5.3. No directory moves | D1 |
 | **WP2 — DONE, 2026-09-22** | `.agent` created and populated: `.agentSpec`→`.agent/.distant/{dev-sync,documentation,ticket}`, `.localSpec`→`.agent/.local/.localSpec`, `.claude`→`.agent/.local/.claude`, plus `.agent/.local/{cgitsync-dev,dogfooding,release}`. Landed in `03ad181`/`a1bbea7`, without this ticket being reopened first — see the 2026-09-22 review note above | D2, D3, WP1 |
-| **WP3 — PARTIAL, 2026-09-22** | The path sweep: every `.localSpec/`, `.agentSpec/`, `.claude/` reference in specs, tickets and docstrings. `src/` docstrings and a handful of top-level config files (`install.cgs`, `examples/complexgitsync4dev.cgs`, `pixi.toml`, `.gitignore`) were swept with WP2. **Not swept**: `CLAUDE.md`'s own *Layout* section and most of its cross-references, which still read the old flat paths as Markdown links — broken, since those directories no longer exist at that depth. `AdditionalSpecs.md`, `audit.md`, `docs/`, and the other open tickets have not been checked. Pairs naturally with [CitationRot](main_1-5_CitationRot_DevPlanTicket.md), which is building the check that would catch exactly this | WP2 |
+| **WP3 — DONE, 2026-09-22** | The path sweep: every `.localSpec/`, `.agentSpec/`, `.claude/` reference in specs, tickets and docstrings. `src/` docstrings and a handful of top-level config files were swept with WP2; everything else — `CLAUDE.md`, `AGENT.md` (both symlinked mounts), `AdditionalSpecs.md`, `audit.md`, `DevTickets/README.md`, `tests/`, `docs/DevGuide/`, `.gitignore` (including two patterns broken outright, not just stale), and the two dead cross-ticket links — swept in this pass. See §6 for the full account. Left alone on purpose: the two test fixtures in `test_git_branch.py`/`test_walk_git_repositories.py` that use `.agentSpec` as an example dot-name, not a path reference, and this ticket's own §1 table/mermaid, which describe the pre-move layout *as history* and would misdescribe it if rewritten. Pairs naturally with [CitationRot](main_1-5_CitationRot_DevPlanTicket.md), which is building the check that would catch a recurrence | WP2 |
 | **WP4 — DONE, 2026-09-21** | Moved `scripts/bump_version.py` to **`.localSpec/scripts/`**, not `.agentSpec`/`DevSpec` as first drafted here — every path it touches (`pyproject.toml`, `src/ComplexGitSync/__init__.py`, `docs/Setup/`, ...) is specific to this one project, so it fails the general/specific test (§2) for the *shared* spec repository just as much as it needs to be out of the *public* one. `.agent/.distant` was never going to be right either, since that would still be shared. `pixi.toml`'s `bump-version` task, `REPO_ROOT` inside the script (now three levels up, not two), and `tests/unit/test_bump_version.py` (module-level `pytest.skip` when `.localSpec` isn't mounted, mirroring the existing docs-absent skip) all moved or updated with it. Versioning's other half of this item — the false "CI auto-increments" claim — was already fixed as of Versioning's own implementation | — |
 
 ## 6. Acceptance
@@ -200,24 +212,42 @@ repository at a time, and keep the tree bootstrapping after each step.
 - ✅ A rule in the general spec names no ComplexGitSync module, command or
   branch. If it does, it was not general. (Checked by hand across
   `AgentConduct.md` and the `DevSpecs.md` edit; no CI check for this yet.)
-- ✅ No path in `src/` points at a directory that moved — `src/` was swept
-  with WP2/WP3.
-- ❌ **Not yet true of the specs**: `CLAUDE.md`'s own *Layout* section and
-  most of its cross-references still read the pre-WP2 flat paths
-  (`.agentSpec/...`, `.localSpec/...`) as Markdown links. `AdditionalSpecs.md`,
-  `audit.md`, `docs/`, and the other open tickets have not been checked
-  (2026-09-22).
+- ✅ No path in `src/`, `tests/`, `scripts/`, `docs/`, `.gitignore`, or any
+  spec or open ticket points at a directory that moved — swept 2026-09-22:
+  `CLAUDE.md` and `AGENT.md` (both the *Layout* section and every
+  Markdown link — verified each href resolves on disk), `AdditionalSpecs.md`,
+  `audit.md`, `DevTickets/README.md`, `.localSpec/AGENT.md`,
+  `docs/DevGuide/{README,architecture}.md`, `tests/{unit,integration}/*.py`
+  (41 docstring citations), and the two dead links inside
+  `MemoryArchitecture` and this ticket's own WP1 row. `.gitignore` also had
+  two genuinely broken (not just stale-prefixed) ignore patterns from the
+  WP2 commit itself — missing the `.agent/` prefix entirely, so they
+  matched nothing — removed rather than fixed, since `/.agent/` alone
+  already covers what they were trying to say.
+- ✅ A rule in the general spec names no ComplexGitSync module, command or
+  branch. If it does, it was not general. (Checked by hand across
+  `AgentConduct.md` and the `DevSpecs.md` edit; no CI check for this yet.)
 - ✅ A checkout of the public `ComplexGitSync` repository alone has no
-  `.localSpec/scripts/bump_version.py`; `pixi run bump-version` fails with
-  Python's own file-not-found error rather than silently doing nothing
-  (WP4).
+  `.agent/.local/release/scripts/bump_version.py`; `pixi run bump-version`
+  fails with Python's own file-not-found error rather than silently doing
+  nothing (WP4). The path itself moved a second time, undocumented, after
+  WP4 shipped this bullet: `AgentSkillsSplit` (no ticket on file) relocated
+  the script again, from `.agent/.local/.localSpec/scripts/` to
+  `.agent/.local/release/scripts/`, alongside the rest of the `release`
+  skill. `pixi.toml` and `tests/unit/test_bump_version.py` already pointed
+  at the new location; the orphaned `.localSpec` copy — dead code, tracked,
+  committed, and nothing importing it — has been removed (2026-09-22), and
+  `AdditionalSpecs.md`'s two citations of it corrected.
 - ✅ `pixi run lint` and `pixi run test` pass (1632 passed, 4 skipped —
-  the 4 are environment-only: a missing `yaml` module and a missing
-  French locale, neither touched by this ticket; re-verified 2026-09-21
-  closing this ticket); `cgitsync status` shows `errors=0`.
-- **Still open**: `pixi run cgitsync bootstrap examples/complexgitsync4dev.cgs`
-  producing a working tree, now that WP2 exists to test against — not run
-  as part of this review, since it clones a fresh checkout and was out of
-  scope for a ticket-ranking pass.
-- **Still open**: WP3's path sweep across the specs (see the WP3 row
-  above) and re-checking the two ❌ acceptance items once it lands.
+  same counts as the 2026-09-21 review, confirming the sweep changed no
+  behaviour); `cgitsync status` shows `errors=0` (2026-09-22, re-verified
+  after the sweep).
+- ✅ `pixi run cgitsync bootstrap examples/complexgitsync4dev.cgs
+  BootstrapTest --cgs-path <scratch>` produces a working, `READY` tree
+  (2026-09-22): all 11 repositories clone into `.agent/.distant/{dev-sync,
+  documentation,ticket}` and `.agent/.local/{.auto,.claude,.dev,.localSpec,
+  .versioning}` exactly as declared, `CLAUDE.md`/`AGENT.md` resolve as root
+  symlinks in the fresh clone, and `cgitsync status` against it shows
+  `errors=0`. This exercises what is on the remotes today (the WP3 doc
+  sweep above is local and unpushed), so it verifies WP2's layout, not
+  WP3's prose — the two were always independent per §3.
