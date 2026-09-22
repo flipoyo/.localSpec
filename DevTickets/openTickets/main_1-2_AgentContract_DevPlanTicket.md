@@ -4,6 +4,11 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22, part 3.** Renumbered again, `main_1-1` →
+> `main_1-2`: [Autofix](main_1-1_Autofix_DevPlanTicket.md) — merged from
+> two memory-dev tickets into one, on `main` — is queued first, on the
+> owner's explicit instruction. Everything below is otherwise unchanged.
+
 > **Ticket review — 2026-09-22, part 2.** Renumbered again, `main_1-2` →
 > `main_1-1`: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md)
 > finished and archived in the same pass (WP2/WP3 both verified done), so
@@ -15,7 +20,7 @@
 > reorganise the backlog with "finalize the agentic" leading the queue.
 > This ticket is agentic-conduct rules, so it sits second, right behind
 > ProjectSpecSplit (the layout half of the same theme) and ahead of
-> [AgentReport](main_1-2_AgentReport_DevPlanTicket.md), which depends on
+> [AgentReport](main_1-3_AgentReport_DevPlanTicket.md), which depends on
 > it settling who writes and owns a self-history record.
 
 > **Owner direction — 2026-09-20, two requests in one.**
@@ -44,7 +49,7 @@ takes two of them, and everything they touch belongs to the person who
 commissioned it.
 
 **What this document is.** The conduct half of the agent work, split out
-of [AgentReport](main_1-2_AgentReport_DevPlanTicket.md) so that one ticket
+of [AgentReport](main_1-3_AgentReport_DevPlanTicket.md) so that one ticket
 builds a mechanism and this one states rules. Mostly documents and one
 signed record; almost no code.
 

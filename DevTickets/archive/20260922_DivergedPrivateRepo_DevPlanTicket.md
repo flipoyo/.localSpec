@@ -4,6 +4,15 @@
 
 *Branch: memory-dev*
 
+> **Superseded — 2026-09-22.** Merged into
+> [Autofix](../openTickets/main_1-1_Autofix_DevPlanTicket.md) (`main`,
+> queued first), on the owner's explicit instruction: *"merge the two
+> memory-dev priority 1 tickets into an autofix one in main, and queue it
+> first."* Every finding here (§1-§4) and WP1's completed hand-fix carried
+> over verbatim; nothing here was wrong, this document just stopped being
+> the one place the design lives. Archived, not deleted, the same day it
+> was written.
+
 > **Owner incident — 2026-09-22, in conversation.** Two agent sessions
 > ("cgsN", this one, and "cgsDbg", a parallel debugging session) both
 > committed to the owner's private `.memory` repository from the same
@@ -205,8 +214,8 @@ without yet answering it for this case.
 | WP | Does | Depends on |
 |---|---|---|
 | **WP1 — DONE, 2026-09-22** | Resolved the owner's live `.memory` divergence. `git merge origin/ComplexGitSync --no-commit` surfaced exactly the predicted add/add on `lgr/000016.toml`/`000017.toml` plus a `HEAD` cache conflict — nothing else (`state/`/`env/`/`logs/` are content-addressed and merged as a clean union on their own). Rather than "pick a side, splice the loser after," the six colliding/orphaned entries (local's old seq 16-19, origin's old seq 16-17) were re-sequenced in **`recorded_at` order** — the two sessions interleave in real time, so a pure "ours-then-theirs" splice would have reported `TIME_REGRESSION`. Every entry kept its original `command`/`argv`/`state_id`/`recorded_at`; only `seq`/`prev`/`entry_hash` were recomputed, using `ledger_entry.compute_entry_hash` — the same function a real write uses — via a saved, reusable script: [scripts/rescue_20260922_memory_ledger_splice.py](../../scripts/rescue_20260922_memory_ledger_splice.py). Result, checked before committing: `integrity.verify_chain` over all 21 entries returned `HistoryState.VERIFIED`, `is_clean=True`, zero findings; every entry's `state_id` resolves to a file that exists on disk. `cgitsync status` now shows `.memory` as `clean ahead(+3)`, `errors=0` | D3 |
-| **WP2 — SUPERSEDED, 2026-09-22** | The generic reconciliation primitive per D2. Split out into its own ticket, [LedgerAutofix](memory-dev_1-2_LedgerAutofix_DevPlanTicket.md), on the owner's request, the same day WP1 shipped and proved the algorithm by hand — that ticket holds the design (`autofix.py`, detection, safety properties) this row used to hold | D1, D2 |
-| **WP3** | **The user guide the owner asked for**: one document, tricky git states on the left, the safe `cgitsync` command on the right, and — this is the part that makes it honest rather than a wish list — an explicit column for "this repository's content has no ordering invariant, plain merge is fine" versus "it does, do not merge or force without WP2." Covers at minimum: ahead-only (push), behind-only (pull), diverged-mergeable (`.localSpec`-shape: `git merge`), diverged-chained (`.memory`/`omniscience`-shape: [LedgerAutofix](memory-dev_1-2_LedgerAutofix_DevPlanTicket.md)'s `cgitsync autofix` once it ships, or WP1's hand-run steps until then), and what `pull-force`'s hint should have said instead of a bare command name | WP1 (for the worked example), LedgerAutofix (for what the chained-diverged row actually recommends once it exists) |
+| **WP2 — SUPERSEDED, 2026-09-22** | The generic reconciliation primitive per D2. Split out into its own ticket, LedgerAutofix (now merged into Autofix), on the owner's request, the same day WP1 shipped and proved the algorithm by hand — that ticket holds the design (`autofix.py`, detection, safety properties) this row used to hold | D1, D2 |
+| **WP3** | **The user guide the owner asked for**: one document, tricky git states on the left, the safe `cgitsync` command on the right, and — this is the part that makes it honest rather than a wish list — an explicit column for "this repository's content has no ordering invariant, plain merge is fine" versus "it does, do not merge or force without WP2." Covers at minimum: ahead-only (push), behind-only (pull), diverged-mergeable (`.localSpec`-shape: `git merge`), diverged-chained (`.memory`/`omniscience`-shape: LedgerAutofix (now merged into Autofix)'s `cgitsync autofix` once it ships, or WP1's hand-run steps until then), and what `pull-force`'s hint should have said instead of a bare command name | WP1 (for the worked example), LedgerAutofix (for what the chained-diverged row actually recommends once it exists) |
 | **WP4** | Fix `pull-force`'s failed-`pull` hint (`git_runner.py`) to name the risk when the repository has local-only commits — at minimum, print `cgitsync status`'s own `ahead(+N)` count for that repository next to the suggestion, so "you are about to discard N commits" is visible before it happens, not only in `--help` | — |
 
 ## 7. Acceptance
@@ -226,6 +235,6 @@ without yet answering it for this case.
 - **Superseded**: WP2, the generic chain-aware reconciliation primitive —
   WP1's fix was done by hand, once, precisely because it did not exist
   yet. Its design now lives in
-  [LedgerAutofix](memory-dev_1-2_LedgerAutofix_DevPlanTicket.md).
+  LedgerAutofix (now merged into Autofix).
 - `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
   `errors=0`.

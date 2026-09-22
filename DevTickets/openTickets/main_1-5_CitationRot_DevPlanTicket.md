@@ -4,6 +4,11 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-22, part 3.** Renumbered again, `main_1-4` →
+> `main_1-5`: [Autofix](main_1-1_Autofix_DevPlanTicket.md) is queued first
+> in the pile, on the owner's explicit instruction. Everything below is
+> otherwise unchanged.
+
 > **Ticket review — 2026-09-22, part 2.** Renumbered again, `main_1-5` →
 > `main_1-4`: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md)
 > finished and archived in the same pass, compacting the pile by one, and

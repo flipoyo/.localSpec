@@ -12,12 +12,12 @@
 > not have prevented it: the two machines were never in the same lock
 > domain, each finished and pushed before the other could see it. What
 > actually happened and how it was fixed by hand, then generalised, is
-> [DivergedPrivateRepo](memory-dev_1-1_DivergedPrivateRepo_DevPlanTicket.md)
-> and [LedgerAutofix](memory-dev_1-2_LedgerAutofix_DevPlanTicket.md) —
-> the cure for a fork that already happened across machines, complementary
-> to this ticket's prevention of one happening on a single machine. Rank
-> and priority unchanged; still the least urgent of the three, and still
-> true regardless.
+> [Autofix](main_1-1_Autofix_DevPlanTicket.md) — queued first in `main`'s
+> priority-1 pile, merged the same day from the two tickets that first
+> recorded the incident and the design — the cure for a fork that already
+> happened across machines, complementary to this ticket's prevention of
+> one happening on a single machine. Rank and priority unchanged; still
+> the least urgent of the three, and still true regardless.
 
 > **Ticket review — 2026-09-19.** Still last, and now behind
 > [TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md) as well.

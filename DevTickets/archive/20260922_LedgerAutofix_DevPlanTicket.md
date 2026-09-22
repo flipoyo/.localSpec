@@ -4,6 +4,14 @@
 
 *Branch: memory-dev*
 
+> **Superseded — 2026-09-22.** Merged into
+> [Autofix](../openTickets/main_1-1_Autofix_DevPlanTicket.md) (`main`,
+> queued first), on the owner's explicit instruction: *"merge the two
+> memory-dev priority 1 tickets into an autofix one in main, and queue it
+> first."* This ticket's whole design (§1-§7, the `Autofix` class, the
+> `cgitsync autofix` verb) carried over verbatim. Archived, not deleted,
+> the same day it was written.
+
 > **Owner direction — 2026-09-22, in conversation.** *"The script is a
 > basis for this issue solving. I think we had a DevPlanTicket for such
 > issues, ie to protect the GitTree from simultaneous ops done by two
@@ -308,7 +316,7 @@ reason for `repair()` to attempt something anyway.
 | **WP1** | `autofix.py`: the `Autofix` class, `Diagnosis`/`Situation`, and `check()`/`repair()` from §4, parametrised (no hardcoded refs/hashes), covering `NON_FF_REJECTED`, `DIVERGED_PLAIN`, and `DIVERGED_CHAINED` for `.memory`'s `lgr/` shape. Unit tests: `check()` against real captured error strings from this incident and from the `.localSpec` one earlier the same day; `repair()` against two small synthetic diverged chains (disjoint-time, and separately a case step 3 must refuse) asserting `verify_chain` on the result | D1 |
 | **WP2** | `cgitsync autofix` (D2): the run-log reader that finds "the former error" with no arguments, a `ComplexGitSyncClient.autofix(error, repo_name)` method carrying the semantics, and a thin `_handle_*`/`_execute_*` pair in `cli/` — `cli/` itself never touches `git_runner`/`memory` directly, only the client method | WP1, D2 |
 | **WP3** | Re-run this ticket's own worked example against `autofix.py` (a synthetic replay of `memory-dev_1-1`'s incident, not the real one — that one is already fixed) and confirm it reaches the same `HistoryState.VERIFIED` result the hand-run rescue did, byte-for-byte on every entry but the seq/prev/hash fields recomputation covers | WP1 |
-| **WP4** | Point `memory-dev_1-1_DivergedPrivateRepo`'s own WP2 at this ticket instead of holding the design itself — that ticket's WP2 row becomes one line: "superseded by `LedgerAutofix`" — and its WP3 (the user guide) cites `cgitsync autofix` by name once WP2 above ships | WP2 |
+| **WP4** | Point `DivergedPrivateRepo (now merged into Autofix)`'s own WP2 at this ticket instead of holding the design itself — that ticket's WP2 row becomes one line: "superseded by `LedgerAutofix`" — and its WP3 (the user guide) cites `cgitsync autofix` by name once WP2 above ships | WP2 |
 
 ## 7. Acceptance
 
