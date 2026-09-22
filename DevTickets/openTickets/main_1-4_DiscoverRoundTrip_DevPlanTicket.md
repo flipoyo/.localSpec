@@ -348,6 +348,14 @@ Independent of WP1/WP2 and may land separately.
 | **D2** | Is a `.cgs` with no recognisable root entry an error, or a warning? | **An error, at validation.** Today's outcome is a tree that cannot clone its own root and a `validate` that says `complete=true`; there is no reading under which that is better than a named refusal. The cost is that a spec someone is already using stops loading — which is the point, since it was never describing the tree they thought | **Owner** |
 | **D3** | Fix `examples/molonari.cgs` now, or with WP1? | **Done, 2026-09-21** — the owner asked for it ahead of WP1. `relative_path = "."` added to the `MOLONARI1D` entry; the root now resolves with `owner='flipoyo'` instead of `owner=None`, and `cgitsync validate` no longer reports `complete=true` over a phantom root. WP1's own test (every `examples/*.cgs` resolves a root with a declared owner) still lands with the work package | **Owner** — closed |
 
+D1 is about an *ordinary* repository's `default_branch`; the same field on
+`examples/molonari.cgs`'s `private, writable` `ComplexGitSync` entry has a
+different, still-open defect — it hand-encodes a naming rule
+(`private_local_branch`) that `resolve_declared_ref`/`discover` never
+compute, and the encoded value there has already gone stale. Out of this
+ticket's scope; tracked as
+[PrivateLocalBranchAtClone](main_1-7_PrivateLocalBranchAtClone_DevPlanTicket.md).
+
 ## 7. Documentation — what the owner asked for
 
 > *"I didn't find the UX fluid and those warnings if not possible to
