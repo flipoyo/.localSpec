@@ -69,6 +69,24 @@ The authoritative execution results are reported with the Phase 6 change set.
   deferred this cause by decision D3. Not yet decided: whether attaching a
   root should record its checked-out branch, or whether the fallback chain
   should prefer `fallback_branch` over the declared name.
+- **A private/local repository's branch is computed two different ways,
+  and only the privacy-blind one runs before the first clone.**
+  `resolve_declared_ref` (`registry.py`'s GT-LOAD, `discovery.py`'s
+  GT-DISCOVER) has no `private`/`writable` parameter and cannot apply
+  `private_local_branch`; `resolve_propagated_ref`
+  (`git_tree_branch.py`, every branch move after the tree exists) does.
+  The two agree only if a `.cgs` author hand-types
+  `private_local_branch(project_name, project_branch)` into the entry's
+  `default_branch` field — which goes stale silently (`examples/molonari.cgs`
+  still carries `"lMOLO"`, `molonari-light.cgs`'s project name, instead of
+  `"MOLONARI"`) and has to name a branch that exists on the remote before
+  the very first `initialise`, when a private/local branch is meant to be
+  created lazily. Reproduced against this tree's own remote: `cgitsync
+  initialise examples/molonari-light.cgs` fails with `No cloneable branch
+  found for ComplexGitSync: expected one of ['lMOLO', 'lMOLO']` — the
+  duplicate is the declared/fallback pair collapsing onto one hand-typed
+  string. Tracked as
+  [PrivateLocalBranchAtClone](DevTickets/openTickets/main_1-7_PrivateLocalBranchAtClone_DevPlanTicket.md).
 - No other open finding is outstanding as of this rewrite. This section is
   a live log, not a fixed list — add a bullet here as soon as a real
   decision or risk surfaces, and remove it once resolved.
