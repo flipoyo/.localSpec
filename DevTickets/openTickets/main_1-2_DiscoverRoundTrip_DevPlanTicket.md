@@ -4,6 +4,11 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-23.** Renumbered again, `main_1-3` → `main_1-2`:
+> [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md)
+> finished and archived, compacting the pile by one. Everything below is
+> otherwise unchanged.
+
 > **Ticket review — 2026-09-22, part 3.** Renumbered again, `main_1-3` →
 > `main_1-4`: [Autofix](../archive/20260923_Autofix_DevPlanTicket.md) is queued first
 > in the pile, on the owner's explicit instruction. Everything below is
@@ -363,7 +368,7 @@ different, still-open defect — it hand-encodes a naming rule
 (`private_local_branch`) that `resolve_declared_ref`/`discover` never
 compute, and the encoded value there has already gone stale. Out of this
 ticket's scope; tracked as
-[PrivateLocalBranchAtClone](main_1-6_PrivateLocalBranchAtClone_DevPlanTicket.md).
+[PrivateLocalBranchAtClone](main_1-5_PrivateLocalBranchAtClone_DevPlanTicket.md).
 
 ## 7. Documentation — what the owner asked for
 

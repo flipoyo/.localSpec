@@ -4,6 +4,16 @@
 
 *Branch: main*
 
+> **Archived — 2026-09-23, part 3.** WP4 — a `.self-history` record citing
+> this ticket's signed contract by hash — migrated to
+> [AgentReport](../openTickets/main_1-1_AgentReport_DevPlanTicket.md) as
+> its WP6, since it always needed AgentReport's own WP1 to exist first and
+> AgentReport is the ticket that can actually finish it. Every other work
+> package (§5) is done, so this ticket is archived here rather than left
+> open for one dependent item; `main_1-2`'s pile compacted by one rank as a
+> result. §4's D6 travels with WP6 rather than staying behind in a closed
+> ticket.
+
 > **Implementation — 2026-09-23, part 2.** WP3 and WP5 are now done. The
 > owner supplied the missing fact from the *Implementation — 2026-09-23*
 > note below — which provider, which access path, and the actual terms —
@@ -20,7 +30,7 @@
 > `.agent/.distant/dev-sync/agent-contracts/96ab29ae5d1e49e5fc074842d6133e82d56e44d4afb93f653f0d19713914e8cf.toml`,
 > written by the new `ComplexGitSync.memory.agent_contract` module, and
 > `freeze_release()` now reads it (WP5). WP4 is still blocked — it needs
-> [AgentReport](main_1-2_AgentReport_DevPlanTicket.md)'s record to exist —
+> [AgentReport](../openTickets/main_1-1_AgentReport_DevPlanTicket.md)'s record to exist —
 > so this ticket stays open. D6, added below, answers what a `.self-history`
 > record will owe a `legalTerms` entry once WP4 exists to owe it to.
 
@@ -40,12 +50,12 @@
 > **Superseded by the note above** — the owner supplied that reference.
 
 > **Ticket review — 2026-09-22, part 3.** Renumbered again, `main_1-1` →
-> `main_1-2`: [Autofix](../archive/20260923_Autofix_DevPlanTicket.md) — merged from
+> `main_1-2`: [Autofix](20260923_Autofix_DevPlanTicket.md) — merged from
 > two memory-dev tickets into one, on `main` — is queued first, on the
 > owner's explicit instruction. Everything below is otherwise unchanged.
 
 > **Ticket review — 2026-09-22, part 2.** Renumbered again, `main_1-2` →
-> `main_1-1`: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md)
+> `main_1-1`: [ProjectSpecSplit](20260922_ProjectSpecSplit_DevPlanTicket.md)
 > finished and archived in the same pass (WP2/WP3 both verified done), so
 > this ticket is now first in the pile it always led on merit — agentic
 > conduct rules, right behind the layout work that just closed.
@@ -55,7 +65,7 @@
 > reorganise the backlog with "finalize the agentic" leading the queue.
 > This ticket is agentic-conduct rules, so it sits second, right behind
 > ProjectSpecSplit (the layout half of the same theme) and ahead of
-> [AgentReport](main_1-2_AgentReport_DevPlanTicket.md), which depends on
+> [AgentReport](../openTickets/main_1-1_AgentReport_DevPlanTicket.md), which depends on
 > it settling who writes and owns a self-history record.
 
 > **Owner direction — 2026-09-20, two requests in one.**
@@ -85,7 +95,7 @@ person who commissioned it — checked against a provider's actual terms,
 not assumed.
 
 **What this document is.** The conduct half of the agent work, split out
-of [AgentReport](main_1-2_AgentReport_DevPlanTicket.md) so that one ticket
+of [AgentReport](../openTickets/main_1-1_AgentReport_DevPlanTicket.md) so that one ticket
 builds a mechanism and this one states rules. Mostly documents and one
 signed record.
 
@@ -142,7 +152,7 @@ scores itself.
 | **Orchestrator** | Quotes the work against the three criteria, writes the record, and **cuts the release** — see below |
 
 **The orchestrator also owns the version bump.**
-[Versioning](../archive/20260921_Versioning_DevPlanTicket.md) §5.2 settles that CI
+[Versioning](20260921_Versioning_DevPlanTicket.md) §5.2 settles that CI
 never bumps and the local orchestrator agent does. That is the same role
 for a good reason rather than by accident: choosing MAJOR over MINOR means
 judging what a change did to the public contract, which *is* a conformity
@@ -170,7 +180,7 @@ spec must say so, or it reads as requiring two agents to file a one-line
 short ticket.
 
 **Where it lands.** The general project spec, since it is a rule for any
-cgitsync project — see [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md).
+cgitsync project — see [ProjectSpecSplit](20260922_ProjectSpecSplit_DevPlanTicket.md).
 Landed: [AgentConduct.md](../../../../.distant/dev-sync/AgentConduct.md) §4, with
 `CLAUDE.md`'s own scoping fill-in.
 
@@ -347,7 +357,7 @@ instead of a tree.
 | **D2** | Signed once per provider, or once per ticket? | **Once per provider** (§3), cited per record. Per-ticket signing is ceremony that adds no information | Owner |
 | **D3** | Does the record pin the provider's terms *version*? | **Yes.** Without it the record says "terms were agreed" and cannot say which — and §2.2's whole value is answering that later | **Owner** |
 | **D4** | Does an unsigned provider block work? | **No, but it is visible.** A record whose contract reference is missing says so, and `freeze_release()` logs `freeze_release_agent_contract_missing`. A gate here would be bypassed the first time it fired at an inconvenient moment | **Owner** |
-| **D5** | Who is "the owner" in a project with several people? | Undefined today, and [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) is where several people meet one project. **Recommend: this ticket assumes one owner and says so**, rather than inventing a multi-party answer that Omniscience will have to redo | **Owner** |
+| **D5** | Who is "the owner" in a project with several people? | Undefined today, and [Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md) is where several people meet one project. **Recommend: this ticket assumes one owner and says so**, rather than inventing a multi-party answer that Omniscience will have to redo | **Owner** |
 | **D6** | Does a `.self-history` record require a `legalTerms` entry to exist and be current, or just the contract record? | **Require it exist; warn, don't block, if it is stale** — `capturedDate` older than some threshold, or the terms document's own effective date has moved past it — consistent with D4. Decided when WP4 is implemented (AgentReport); recorded here now so AgentReport does not have to re-derive it | **Owner** |
 
 ## 5. Work packages
@@ -358,7 +368,7 @@ instead of a tree.
 | **WP2** | The contract text itself (§2.1), with §2.2's limits stated *in* it rather than only in this ticket. A contract that overstates its own reach is the failure mode | D1, D3, D5 | **Done** — `AgentDataContract.md`, private/distant beside `AgentConduct.md`; rewritten 2026-09-23 to state §2.1 as intent, not fact, and to add §2.3's `legalTerms` mechanism |
 | **WP3** | The contract record: content-addressed, stored private/distant, with provider, terms version and date | WP2, D2 | **Done** — `memory/agent_contract.py` (`AgentContractRecord`, content-addressed under `.agent/.distant/dev-sync/agent-contracts/`, plus a `current` pointer); the signed record cites [legalTerms/anthropic.md](../../../../.distant/dev-sync/legalTerms/anthropic.md), read live before signing |
 | **WP4** | `.self-history` records cite the contract by hash; a missing citation is reported rather than fatal (D4). **This is the one piece that needs AgentReport's record to exist first** | WP3, AgentReport WP1 | **Deferred** — blocked on AgentReport, which does not exist yet. D6 (above) is answered in advance so this WP has nothing left to decide when AgentReport lands |
-| **WP5** | The contract record's terms version joins a release row as `artefact:agent_contract`, the same way `artefact:src` already does — [Versioning](../archive/20260921_Versioning_DevPlanTicket.md) §3 designed the `release` field on the ledger entry with exactly this artefact in mind (`.localSpec/AdditionalSpecs.md`'s entry-schema table already reserves the key) but left it unfilled pending this ticket's contract record. `ComplexGitSyncClient.freeze_release()` gains the pair once WP3 exists to read a terms version from | WP3, Versioning (done) | **Done** — `freeze_release()` reads `agent-contracts/current` and adds `artefact:agent_contract` when one is signed; absent, not fatal, otherwise (`freeze_release_agent_contract_missing`) |
+| **WP5** | The contract record's terms version joins a release row as `artefact:agent_contract`, the same way `artefact:src` already does — [Versioning](20260921_Versioning_DevPlanTicket.md) §3 designed the `release` field on the ledger entry with exactly this artefact in mind (`.localSpec/AdditionalSpecs.md`'s entry-schema table already reserves the key) but left it unfilled pending this ticket's contract record. `ComplexGitSyncClient.freeze_release()` gains the pair once WP3 exists to read a terms version from | WP3, Versioning (done) | **Done** — `freeze_release()` reads `agent-contracts/current` and adds `artefact:agent_contract` when one is signed; absent, not fatal, otherwise (`freeze_release_agent_contract_missing`) |
 
 ## 6. Acceptance
 

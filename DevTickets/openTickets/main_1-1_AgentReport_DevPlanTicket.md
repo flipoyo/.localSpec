@@ -4,6 +4,14 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-23.** Renumbered again, `main_1-2` → `main_1-1`:
+> [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md)
+> finished and archived in the same pass, compacting the pile by one — this
+> ticket was always right behind it. Its unfinished WP4 (a `.self-history`
+> record citing the signed contract by hash) migrated into this ticket as
+> WP6 (§6), since it needed this ticket's WP1 to exist first anyway; §1's
+> `contract` field row was updated to match.
+
 > **Ticket review — 2026-09-22, part 3.** Renumbered again, `main_1-2` →
 > `main_1-3`: [Autofix](../archive/20260923_Autofix_DevPlanTicket.md) is queued first
 > in the pile, on the owner's explicit instruction. Everything below is
@@ -12,7 +20,7 @@
 > **Ticket review — 2026-09-22, part 2.** Renumbered again, `main_1-3` →
 > `main_1-2`: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md)
 > finished and archived in the same pass, compacting the pile by one. Still
-> kept behind [AgentContract](main_1-1_AgentContract_DevPlanTicket.md), for
+> kept behind [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md), for
 > the same reason as before.
 
 > **Ticket review — 2026-09-22.** Renumbered from `main_1-5` to `main_1-3`
@@ -129,7 +137,7 @@ orchestration and implementation of a Ticket". It documents a
 | `state_before` / `state_after` | The two States the work moved between | **Observed** |
 | `worker` | The agent that implemented the ticket — its role from `.localSpec/AGENT.md`'s roster (Dev, CI/CD, Editing), its vendor, its model version | Declared |
 | `orchestrator` | The independent agent that quoted the work and wrote this record — same three fields (§1.1) | Declared |
-| `contract` | The agentProvider contract in force when the work was done, cited by hash — [AgentContract](main_1-1_AgentContract_DevPlanTicket.md) | Declared |
+| `contract` | The agentProvider contract in force when the work was done, cited by hash — [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md) | **Observed** — read from `agent-contracts/current`; absent, not fatal, when nothing is signed (WP6) |
 | `conformity` | The three scores of §3, and one line of reasoning each | §3 |
 | `repos_written` | Which repositories the work wrote to, and in which scope | **Observed** |
 | `checks` | Did `lint` pass, did `test` pass, did `status` report `errors=0` | **Observed** |
@@ -146,7 +154,7 @@ which is exactly the reader the commit-message rule already names.
 ## 1.1 Two agents, never one — summarised; the rule lives elsewhere
 
 > **Split out on 2026-09-20.** The pair rule and the data contract it
-> travels with are now [AgentContract](main_1-1_AgentContract_DevPlanTicket.md).
+> travels with are now [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md).
 > What stays here is what the *record* needs to know about them. That
 > ticket is authoritative; if the two disagree, it wins.
 
@@ -411,10 +419,19 @@ beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
 | **WP3** | The link to state transitions: `state_before`/`state_after` resolved from the ledger, and the environment record beside them | WP2, **TreeEnvironment** |
 | **WP4** | The score: the machine-checked fields computed rather than typed, and the display (§3, D3) | WP1, D3 |
 | **WP5** | `AdditionalSpecs.md`'s record schema and the `.cgs` authoring note for the nested mount. **The `CLAUDE.md` Attribution amendment is already done** — landed 2026-09-20 with D4, ahead of the rest, because it is a rule about conduct rather than a feature and was in force the moment it was written | — |
-**Moved out on 2026-09-20.** The two-agent rule and the data-ownership
-contract are now [AgentContract](main_1-1_AgentContract_DevPlanTicket.md).
-This ticket builds the mechanism; that one states the rules. Its WP4 —
-records citing the contract by hash — needs WP1 here to exist first.
+| **WP6** | `contract` (§1) filled in for real: read `.agent/.distant/dev-sync/agent-contracts/current` (`ComplexGitSync.memory.agent_contract`) and cite the record it names by hash — **observed**, not typed, same as every other fact-bearing field. Absent or stale (its `legal_terms_sha256` no longer matching the current `legalTerms/<provider>.md`) is reported, not fatal, per AgentContract D4/D6 | WP1, AgentContract (done) |
+
+**Moved out on 2026-09-20, migrated back in on 2026-09-23.** The two-agent
+rule and the data-ownership contract were designed in
+[AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md) — that
+ticket is now implemented and archived: the pair rule lives in
+`AgentConduct.md` §4, the contract text in `AgentDataContract.md`, and a
+signed record exists at `.agent/.distant/dev-sync/agent-contracts/`,
+citing a `legalTerms` entry read live against Anthropic's own published
+terms. Only its WP4 — a `.self-history` record citing that signed contract
+by hash — was left undone there, because it needs this ticket's WP1 to
+exist first; it is WP6, above, now that this is the ticket that can
+actually finish it.
 
 ## 7. Acceptance
 

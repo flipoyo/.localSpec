@@ -4,6 +4,11 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-23.** Renumbered again, `main_1-5` → `main_1-4`:
+> [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md)
+> finished and archived, compacting the pile by one. Everything below is
+> otherwise unchanged.
+
 > **Ticket review — 2026-09-22, part 3.** Renumbered again, `main_1-5` →
 > `main_1-6`: [Autofix](../archive/20260923_Autofix_DevPlanTicket.md) is queued first
 > in the pile, on the owner's explicit instruction. Everything below is
@@ -17,10 +22,10 @@
 > **Ticket review — 2026-09-22.** Filename unchanged at the time of this
 > note — `main`'s priority-1 pile ran 1..6 after that review — but three
 > tickets ahead of it changed: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
-> [AgentContract](main_1-1_AgentContract_DevPlanTicket.md) and
-> [AgentReport](main_1-2_AgentReport_DevPlanTicket.md) now lead as
-> "finalize the agentic," and [DiscoverRoundTrip](main_1-3_DiscoverRoundTrip_DevPlanTicket.md)/
-> [CitationRot](main_1-4_CitationRot_DevPlanTicket.md) were promoted ahead
+> [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md) and
+> [AgentReport](main_1-1_AgentReport_DevPlanTicket.md) now lead as
+> "finalize the agentic," and [DiscoverRoundTrip](main_1-2_DiscoverRoundTrip_DevPlanTicket.md)/
+> [CitationRot](main_1-3_CitationRot_DevPlanTicket.md) were promoted ahead
 > of this one. This ticket stays last in the pile: still ready, no owner
 > decision needed, but nothing else is waiting on it the way the five
 > ahead of it are waited on.

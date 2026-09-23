@@ -7,10 +7,10 @@
 > **Ticket review — 2026-09-22.** Considered and left at `main_2-1`
 > (unchanged) during the backlog reorganisation that promoted
 > [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
-> [AgentContract](main_1-1_AgentContract_DevPlanTicket.md),
-> [AgentReport](main_1-2_AgentReport_DevPlanTicket.md),
-> [DiscoverRoundTrip](main_1-3_DiscoverRoundTrip_DevPlanTicket.md) and
-> [CitationRot](main_1-4_CitationRot_DevPlanTicket.md) to priority 1. This
+> [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md),
+> [AgentReport](main_1-1_AgentReport_DevPlanTicket.md),
+> [DiscoverRoundTrip](main_1-2_DiscoverRoundTrip_DevPlanTicket.md) and
+> [CitationRot](main_1-3_CitationRot_DevPlanTicket.md) to priority 1. This
 > ticket, [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
 > [StateLocking](main_2-3_StateLocking_DevPlanTicket.md) are real,
 > analysed work — priority 2's own definition — but none is a prerequisite
