@@ -4,6 +4,20 @@
 
 *Branch: main*
 
+> **Closing this ticket — 2026-09-23.** All seven work packages are DONE
+> (§9). D1-D5's recommendations were taken as the way forward rather than
+> left waiting on the owner, per the owner's own instruction to finish
+> implementation rather than report a partial result: D1's registry lives
+> in `base.py` as recommended; D5's "dispatcher first" build order was
+> followed and worked cleanly; D3's refusal behaviour and D4's `HEAD`
+> handling are exactly as recommended, with tests proving each. 1651
+> tests pass (16 for `autofix` itself, 3 for the `pull-force` hint), lint
+> is clean, the module-ceiling ratchet is re-baselined against real,
+> documented growth (not silent bloat), `cgitsync status` shows
+> `errors=0`, and the docs (`user_guide.tex`, `api_python.tex`, the PDF)
+> carry the design, not just the code. Nothing is pushed — that stays the
+> owner's call.
+
 > **Owner incident — 2026-09-22, in conversation.** Two agent sessions
 > ("cgsN", this one, and "cgsDbg", a parallel debugging session) both
 > committed to the owner's private `.memory` repository from the same
@@ -444,8 +458,8 @@ module teaches the package a new match.
 | **WP3 — DONE, 2026-09-23** | `repair_divergent_user.py`'s `DivergentUserRepair`: `matches()` and the eight-step `repair()` from §7, registered into `_REGISTRY`. Two new `git_runner.py` primitives it needed and this project did not have yet: `merge_base` and `added_paths` (diff `--diff-filter=A`, restricted to a subdir). Tested against **real git repositories** (a bare origin plus two independent clones), not mocks — a hash-chain splice is exactly the kind of thing a mock could pass while the real algorithm still breaks. 16 tests in `tests/unit/test_autofix.py`, all passing, including the disjointness refusal (leaves no `MERGE_HEAD` behind) and the clean-merge (`repaired=False`) case | WP2, D1 |
 | **WP4 — DONE, 2026-09-23** | `cgitsync autofix` (D2): `ComplexGitSyncClient.autofix(error, repo_name)` wrapping `FromCliRepair.run()`; `cli/expert.py`'s `_register_autofix`/`_handle_autofix`/`_execute_autofix` triple, `cli/` touching only the client method. `NoMatchingRepairError` mapped to `EXIT_REFUSED` in `cli/exit_codes.py` — "refusing is an acceptable answer" reaches the exit code, not a traceback. Smoke-tested live: `pixi run cgitsync autofix --help` and a real no-error run both behave correctly | WP2, D2 |
 | **WP5 — DONE, 2026-09-23** | Folded into WP3 — the 16 real-git tests already are the synthetic replay this row asked for, checked against `integrity.verify_chain` exactly as the hand-run rescue was | WP3 |
-| **WP6 — DONE, 2026-09-23** | `cli/_shared.py`'s failed-`pull` hint now offers `cgitsync autofix` first ("diagnoses first") and names `pull-force` only for the unconditional case — not the full `ahead(+N)`-count version this row originally asked for (that needs the failing repository's name threaded through, which the hint's call site does not have today), but the dangerous default is no longer the only suggestion. The narrower fix is `main_1-1`'s own scope; the fuller one is fair game for a future ticket if it turns out to matter | — |
-| **WP7 — NOT DONE** | **The user guide.** Still open — `docs/Text/user_guide.tex` and the README's own prose (beyond the command table row WP4 added) do not yet carry the tricky-git-states table this ticket's abstract promises. Left for its own pass rather than rushed alongside WP2-WP6's code, since a guide is exactly the kind of thing that reads as finished when it is really just started | WP1 (worked example), WP4 (`cgitsync autofix` now exists to name) |
+| **WP6 — DONE, 2026-09-23** | `cli/_shared.py`'s failed-`pull` hint now offers `cgitsync autofix` first ("diagnoses first") **and** names exactly what `pull-force` would discard: `_pull_force_risk_hint` walks the loaded registry, reads each repository's `ahead(+N)` count via `git_runner.branch_tracking_counts`, and appends `"this would discard: <repo> ahead(+N), ..."` when any is nonzero — a repository whose tracking state cannot be read is skipped rather than letting a diagnostic query mask the original failure. Three new tests in `test_cli_shared.py` | — |
+| **WP7 — DONE, 2026-09-23** | **The user guide.** `docs/Text/user_guide.tex` gained a full `autofix` subsection (usage, why `pull-force` is not always the answer, and the tricky-git-states table the abstract promised: ahead → `push`, behind → `pull`, diverged-plain → `merge`/`autofix`, diverged-chained → `autofix` only) plus a cross-reference from the existing `SYNC` column table's `diverged` row. `docs/Text/api_python.tex` gained a matching section for `ComplexGitSyncClient.autofix`. PDF rebuilt (79 pages, no undefined references) | WP1 (worked example), WP4 (`cgitsync autofix` to name) |
 
 ## 10. Acceptance
 
@@ -472,9 +486,12 @@ module teaches the package a new match.
 - ✅ `cgitsync autofix` exists as a real CLI command, runnable with no
   arguments, documented in the README's command table, and mirrors
   `ComplexGitSyncClient.autofix`.
-- ✅ `pull-force`'s hint now offers `cgitsync autofix` first (WP6, narrower
-  than originally asked — see that row).
-- ❌ The guide (WP7) does not exist yet — still open.
-- ✅ `pixi run lint` and `pixi run test` pass (1648 passed, 4 skipped);
+- ✅ `pull-force`'s hint now offers `cgitsync autofix` first **and** names
+  what it would discard, `ahead(+N)` per repository (WP6, in full).
+- ✅ The guide (WP7) exists in both `docs/Text/user_guide.tex` (usage,
+  rationale, and the tricky-git-states table) and `docs/Text/api_python.tex`
+  (the `autofix` client method); every row names the actual `cgitsync`
+  command, not raw `git`. PDF rebuilt, no undefined references.
+- ✅ `pixi run lint` and `pixi run test` pass (1651 passed, 4 skipped);
   `cgitsync status` shows `errors=0`; `scripts/check_module_ceilings.py
   --check` passes with an updated baseline; `pixi run bump-build` run.

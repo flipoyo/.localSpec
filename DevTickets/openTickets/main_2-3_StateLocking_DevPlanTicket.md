@@ -12,7 +12,7 @@
 > not have prevented it: the two machines were never in the same lock
 > domain, each finished and pushed before the other could see it. What
 > actually happened and how it was fixed by hand, then generalised, is
-> [Autofix](main_1-1_Autofix_DevPlanTicket.md) — queued first in `main`'s
+> [Autofix](../archive/20260923_Autofix_DevPlanTicket.md) — queued first in `main`'s
 > priority-1 pile, merged the same day from the two tickets that first
 > recorded the incident and the design — the cure for a fork that already
 > happened across machines, complementary to this ticket's prevention of

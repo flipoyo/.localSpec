@@ -5,7 +5,7 @@
 *Branch: main*
 
 > **Ticket review — 2026-09-22, part 3.** Renumbered again, `main_1-4` →
-> `main_1-5`: [Autofix](main_1-1_Autofix_DevPlanTicket.md) is queued first
+> `main_1-5`: [Autofix](../archive/20260923_Autofix_DevPlanTicket.md) is queued first
 > in the pile, on the owner's explicit instruction. Everything below is
 > otherwise unchanged.
 
