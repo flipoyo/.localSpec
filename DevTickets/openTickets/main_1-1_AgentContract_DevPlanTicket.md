@@ -4,6 +4,20 @@
 
 *Branch: main*
 
+> **Implementation — 2026-09-23.** WP1 and WP2 are done: the pair rule is
+> now [AgentConduct.md](../../.distant/dev-sync/AgentConduct.md) §4, with
+> `CLAUDE.md`'s own scoping fill-in; the contract text is
+> [AgentDataContract.md](../../.distant/dev-sync/AgentDataContract.md),
+> §2 stating its own limits per §2.2 below. WP3–WP5 are **not** done this
+> pass: asked which provider and terms reference to pin (D3), the owner
+> chose to defer the content-addressed record rather than have an agent
+> guess at commercial terms it has no visibility into — see §2.2 and §3,
+> which already say a document like this cannot responsibly invent that
+> fact for itself. This ticket stays open, still ranked here, until the
+> owner supplies that reference; WP4 remains additionally blocked on
+> AgentReport (unimplemented) regardless. `CLAUDE.md`'s new *Whose data
+> this is* section states this same status for a reader who starts there.
+
 > **Ticket review — 2026-09-22, part 3.** Renumbered again, `main_1-1` →
 > `main_1-2`: [Autofix](../archive/20260923_Autofix_DevPlanTicket.md) — merged from
 > two memory-dev tickets into one, on `main` — is queued first, on the
@@ -220,30 +234,33 @@ tree.
 
 ## 5. Work packages
 
-| WP | Does | Depends on |
-|---|---|---|
-| **WP1** | The pair rule written into `CLAUDE.md` (§1), with the scoping note. Conduct, not a feature — it is in force the moment it is written, so it can land before anything else here | — |
-| **WP2** | The contract text itself (§2.1), with §2.2's limits stated *in* it rather than only in this ticket. A contract that overstates its own reach is the failure mode | D1, D3, D5 |
-| **WP3** | The contract record: content-addressed, stored private/distant, with provider, terms version and date | WP2, D2 |
-| **WP4** | `.self-history` records cite the contract by hash; a missing citation is reported rather than fatal (D4). **This is the one piece that needs AgentReport's record to exist first** | WP3, AgentReport WP1 |
-| **WP5** | The contract record's terms version joins a release row as `artefact:agent_contract`, the same way `artefact:src` already does — [Versioning](../archive/20260921_Versioning_DevPlanTicket.md) §3 designed the `release` field on the ledger entry with exactly this artefact in mind (`.localSpec/AdditionalSpecs.md`'s entry-schema table already reserves the key) but left it unfilled pending this ticket's contract record. `ComplexGitSyncClient.freeze_release()` gains the pair once WP3 exists to read a terms version from | WP3, Versioning (done) |
+| WP | Does | Depends on | Status |
+|---|---|---|---|
+| **WP1** | The pair rule written into `CLAUDE.md` (§1), with the scoping note. Conduct, not a feature — it is in force the moment it is written, so it can land before anything else here | — | **Done** — landed in `AgentConduct.md` §4 (the general spec, now that ProjectSpecSplit finished — see the *Implementation* note above), with `CLAUDE.md`'s own fill-in |
+| **WP2** | The contract text itself (§2.1), with §2.2's limits stated *in* it rather than only in this ticket. A contract that overstates its own reach is the failure mode | D1, D3, D5 | **Done** — `AgentDataContract.md`, private/distant beside `AgentConduct.md` |
+| **WP3** | The contract record: content-addressed, stored private/distant, with provider, terms version and date | WP2, D2 | **Deferred** — needs the owner to name the provider and the specific terms reference; asked, and the owner chose to defer rather than have this pass guess |
+| **WP4** | `.self-history` records cite the contract by hash; a missing citation is reported rather than fatal (D4). **This is the one piece that needs AgentReport's record to exist first** | WP3, AgentReport WP1 | **Deferred** — blocked on WP3 and on AgentReport, neither of which exist yet |
+| **WP5** | The contract record's terms version joins a release row as `artefact:agent_contract`, the same way `artefact:src` already does — [Versioning](../archive/20260921_Versioning_DevPlanTicket.md) §3 designed the `release` field on the ledger entry with exactly this artefact in mind (`.localSpec/AdditionalSpecs.md`'s entry-schema table already reserves the key) but left it unfilled pending this ticket's contract record. `ComplexGitSyncClient.freeze_release()` gains the pair once WP3 exists to read a terms version from | WP3, Versioning (done) | **Deferred** — blocked on WP3 |
 
 ## 6. Acceptance
 
-- `CLAUDE.md` states the pair rule, and states which work it governs.
-- The contract record exists once, names the provider and the terms
-  version, and is reachable from a project that mounts the distant spec.
-- A `.self-history` record names the contract that was in force when the
-  work was done, by hash.
-- Editing the contract after the fact produces a different hash, and every
-  record written earlier still cites the earlier terms.
-- The contract text says what it cannot do (§2.2). A reader finishes it
+- [x] `CLAUDE.md` states the pair rule, and states which work it governs.
+- [x] The contract text says what it cannot do (§2.2). A reader finishes it
   knowing where the real obligation lives.
-- A `freeze_release()` release row carries `artefact:agent_contract`
+- [ ] The contract record exists once, names the provider and the terms
+  version, and is reachable from a project that mounts the distant spec.
+  **Not yet — needs the owner's provider/terms reference (WP3).**
+- [ ] A `.self-history` record names the contract that was in force when the
+  work was done, by hash. **Not yet — needs WP3 and AgentReport (WP4).**
+- [ ] Editing the contract after the fact produces a different hash, and every
+  record written earlier still cites the earlier terms. **Not yet — no
+  record exists to test this against (WP3).**
+- [ ] A `freeze_release()` release row carries `artefact:agent_contract`
   alongside `artefact:src`, naming the terms version in force for that
-  release (WP5).
-- `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
-  `errors=0`.
+  release (WP5). **Not yet — needs WP3.**
+- [x] `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
+  `errors=0`. (No `src/` changed this pass, so `pixi run bump-build` does
+  not apply.)
 
 ## 7. What this refuses to do
 
