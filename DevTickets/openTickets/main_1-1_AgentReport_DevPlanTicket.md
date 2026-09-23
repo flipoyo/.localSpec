@@ -4,6 +4,37 @@
 
 *Branch: main*
 
+> **Implementation — 2026-09-24.** WP1 and WP6 are done: the record format
+> (`memory/self_history.py`, `SelfHistoryRecord`), validated (roles against
+> `.localSpec/AGENT.md`'s roster, conformity basis restricted to
+> `measured`/`asserted`, `goal`/`action` at three lines, State ids shaped
+> right); `ComplexGitSyncClient.self_history_add()` and `cgitsync
+> self-history add`, which fill in `contract` (the signed AgentContract's
+> hash) and `checks.status_errors` themselves rather than trust the caller
+> for facts the tool can check on its own. See `AdditionalSpecs.md`'s new
+> *The self-history record* section for the full schema and, in its own
+> words, what has not landed.
+>
+> **Deferred, deliberately, not by oversight:** WP2/WP2b (the nested
+> repository, `config-memory.cgs` discovery, the leaf-first fold/push
+> pipeline, reboot/clone teaching) and WP3 (`state_before`/`state_after`
+> resolved from the ledger). This is the highest-risk part of the ticket —
+> it touches `memory_push`/`memory_reboot`/`memory_clone`, which this
+> project dogfoods against its own real, populated `.cgitsync/.memory`
+> every time a command runs — and the ticket itself leaves genuine
+> mechanism questions open that a first pass should not guess at alone:
+> whether `.self-history` needs its own `memory adopt`-equivalent step or
+> auto-adopts on first fold, and whether `memory reboot`'s own fold step
+> also folds `.self-history`'s pending half or truly leaves it untouched.
+> A record written today is real and useful — it persists in the ordinary,
+> gitignored `.cgitsync/.self-history/` pending area exactly as any other
+> pending content does — it just has nowhere of its own to be pushed to
+> yet. `repos_written` and `checks.lint_passed`/`checks.tests_passed`
+> likewise stay caller-supplied (D5's *how* remains open): the former needs
+> a session-wide write-outcome accumulator this client does not have, and
+> the latter would need `cgitsync` to run Pixi itself, which the
+> `subprocess` confinement rule does not allow.
+
 > **Ticket review — 2026-09-23.** Renumbered again, `main_1-2` → `main_1-1`:
 > [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md)
 > finished and archived in the same pass, compacting the pile by one — this
@@ -411,15 +442,15 @@ Sequenced by dependency, not preference. **WP1 needs nothing from
 [TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md)** and can run
 beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
 
-| WP | Does | Depends on |
-|---|---|---|
-| **WP1** | The record format and its fields (§1), and `cgitsync self-history add` writing one to the pending half, filling the observed fields itself | D1, D2, D5 |
-| **WP2** | `.self-history` as a repository nested in `.memory`, with the §2 pipeline: `config-memory.cgs`; `.memory`'s entry moving from `nested_config = "disabled"` to `"config-memory.cgs"`; the pending area at `.cgitsync/.self-history`; the fold; the leaf-first commit and push; `.memory/.gitignore` listing the mount. `memory/pending.py` composes both halves, as it already does for the other five. `memory show`/`explore` read it | WP1 |
-| **WP2b** | `memory reboot` and `memory clone` taught about the second mount: reboot leaves `.self-history` alone (D7), clone brings it back (D8). Separable from WP2 and easy to forget — both commands assume one mount today, and neither fails loudly when it meets two | WP2 |
-| **WP3** | The link to state transitions: `state_before`/`state_after` resolved from the ledger, and the environment record beside them | WP2, **TreeEnvironment** |
-| **WP4** | The score: the machine-checked fields computed rather than typed, and the display (§3, D3) | WP1, D3 |
-| **WP5** | `AdditionalSpecs.md`'s record schema and the `.cgs` authoring note for the nested mount. **The `CLAUDE.md` Attribution amendment is already done** — landed 2026-09-20 with D4, ahead of the rest, because it is a rule about conduct rather than a feature and was in force the moment it was written | — |
-| **WP6** | `contract` (§1) filled in for real: read `.agent/.distant/dev-sync/agent-contracts/current` (`ComplexGitSync.memory.agent_contract`) and cite the record it names by hash — **observed**, not typed, same as every other fact-bearing field. Absent or stale (its `legal_terms_sha256` no longer matching the current `legalTerms/<provider>.md`) is reported, not fatal, per AgentContract D4/D6 | WP1, AgentContract (done) |
+| WP | Does | Depends on | Status |
+|---|---|---|---|
+| **WP1** | The record format and its fields (§1), and `cgitsync self-history add` writing one to the pending half, filling the observed fields itself | D1, D2, D5 | **Done** — `memory/self_history.py`, `ComplexGitSyncClient.self_history_add()`, `cgitsync self-history add` |
+| **WP2** | `.self-history` as a repository nested in `.memory`, with the §2 pipeline: `config-memory.cgs`; `.memory`'s entry moving from `nested_config = "disabled"` to `"config-memory.cgs"`; the pending area at `.cgitsync/.self-history`; the fold; the leaf-first commit and push; `.memory/.gitignore` listing the mount. `memory/pending.py` composes both halves, as it already does for the other five. `memory show`/`explore` read it | WP1 | **Deferred** — the highest-risk part of this ticket, touching the fold/push pipeline this project dogfoods its own real memory against on every command; also blocked on a genuine open mechanism question (does `.self-history` need its own adopt-equivalent, or auto-adopt on first fold) the ticket does not answer |
+| **WP2b** | `memory reboot` and `memory clone` taught about the second mount: reboot leaves `.self-history` alone (D7), clone brings it back (D8). Separable from WP2 and easy to forget — both commands assume one mount today, and neither fails loudly when it meets two | WP2 | **Deferred** — blocked on WP2; also an open mechanism question (does reboot's own fold step fold `.self-history`'s pending half too) the ticket does not answer |
+| **WP3** | The link to state transitions: `state_before`/`state_after` resolved from the ledger, and the environment record beside them | WP2, **TreeEnvironment** | **Deferred** — blocked on WP2 (a record with nowhere to be pushed gains little from a stricter State cross-check yet); the fields exist and validate their own shape today, just without the ledger cross-check |
+| **WP4** | The score: the machine-checked fields computed rather than typed, and the display (§3, D3) | WP1, D3 | **Partial** — the score's *shape* is built (measured/asserted, three criteria) and `checks.status_errors` is genuinely observed; `checks.lint_passed`/`tests_passed` and `repos_written` stay caller-supplied (D5's *how* is still open — see the Implementation note above), and there is no `memory show` display yet (D2's "finishing report only" position has nothing to render into) |
+| **WP5** | `AdditionalSpecs.md`'s record schema and the `.cgs` authoring note for the nested mount. **The `CLAUDE.md` Attribution amendment is already done** — landed 2026-09-20 with D4, ahead of the rest, because it is a rule about conduct rather than a feature and was in force the moment it was written | — | **Partial** — the record schema is documented (`AdditionalSpecs.md`, *The self-history record*); the `.cgs` authoring note for the nested mount is WP2's, deferred with it |
+| **WP6** | `contract` (§1) filled in for real: read `.agent/.distant/dev-sync/agent-contracts/current` (`ComplexGitSync.memory.agent_contract`) and cite the record it names by hash — **observed**, not typed, same as every other fact-bearing field. Absent or stale (its `legal_terms_sha256` no longer matching the current `legalTerms/<provider>.md`) is reported, not fatal, per AgentContract D4/D6 | WP1, AgentContract (done) | **Done** — `self_history_add()` reads `agent-contracts/current` and cites its hash; absent when nothing is signed. Staleness against `legalTerms` is not separately re-checked here, since `AgentContractRecord` itself already carries `legal_terms_sha256` and does not go stale on its own |
 
 **Moved out on 2026-09-20, migrated back in on 2026-09-23.** The two-agent
 rule and the data-ownership contract were designed in
@@ -435,32 +466,35 @@ actually finish it.
 
 ## 7. Acceptance
 
-- One agent-worked ticket produces one record, and `memory show` prints it
-  with the score display at the top.
-- Every observed field is computed, not typed: changing the record's
+- [ ] One agent-worked ticket produces one record, and `memory show` prints it
+  with the score display at the top. **The record is produced (`self-history
+  add`); `memory show` does not read it yet — no display exists (WP4).**
+- [ ] Every observed field is computed, not typed: changing the record's
   `checks` by hand contradicts what `lint` and `test` actually did, and a
-  reader can tell.
-- The record names the two States the work moved between, and both resolve
-  in the ledger.
-- No record contains an absolute path outside `$CGSTREE`, an OS user name,
-  or any credential.
-- **`.cgitsync/.memory/.self-history`'s worktree is clean except while a
+  reader can tell. **True for `status_errors` and `contract`; `lint_passed`/
+  `tests_passed`/`repos_written` are still caller-supplied (WP4/D5).**
+- [ ] The record names the two States the work moved between, and both resolve
+  in the ledger. **`state_before`/`state_after` validate their own shape;
+  they are not cross-checked against the ledger yet (WP3).**
+- [x] No record contains an absolute path outside `$CGSTREE`, an OS user name,
+  or any credential. Nothing in `SelfHistoryRecord` accepts a path at all.
+- [ ] **`.cgitsync/.memory/.self-history`'s worktree is clean except while a
   fold is running**, and `cgitsync status` reports it as an ordinary
-  private/local repository. This is the test that proves the pipeline
-  works; it is the bug WorkingTransitionState was opened for, one level
-  deeper.
-- `memory push` publishes the leaf before the parent, and a tree checked
-  out afterwards has both.
-- **A second machine cloning this project gets the same accounting record
-  as the first, and the two agree.** This is D8's replicability test, and
-  it is the one an omission would fail silently — an uninformed machine
-  looks exactly like a compliant one.
-- A reboot leaves `.self-history` intact and readable across the
+  private/local repository. **Not yet — no such mount exists (WP2).**
+- [ ] `memory push` publishes the leaf before the parent, and a tree checked
+  out afterwards has both. **Not yet (WP2).**
+- [ ] **A second machine cloning this project gets the same accounting record
+  as the first, and the two agree.** **Not yet — `memory clone` does not
+  know about a second mount (WP2b).**
+- [ ] A reboot leaves `.self-history` intact and readable across the
   boundary: the records written before the reboot and after it sit in one
-  unbroken history (D7).
-- A workspace with no self-history still runs every command normally — this
+  unbroken history (D7). **Not yet — nothing to leave intact until WP2
+  gives it a repository (WP2b).**
+- [x] A workspace with no self-history still runs every command normally — this
   is additive, and a tree that never used it must not notice it exists.
-- `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
+  Verified: the pending directory is created only on first `self-history
+  add`, and every other command is unaware of it.
+- [x] `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
   `errors=0`.
 
 ## 8. What this refuses to do
