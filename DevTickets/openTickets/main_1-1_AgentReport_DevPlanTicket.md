@@ -4,6 +4,31 @@
 
 *Branch: main*
 
+> **Implementation — 2026-09-24, part 2.** WP2 and WP2b are now done too,
+> on the owner's own direction: the owner created
+> `github.com/flipoyo/.self-history` and gave the design its resolving
+> answer to the two mechanism questions part 1 left open below — self-history's
+> adopt is `.memory`'s own adopt, subprocessed, so that every operation
+> `.memory` already has (adopt, push, clone) does the same thing for
+> self-history automatically, the moment `github:<owner>/.self-history` is
+> reachable. Built that way: `memory/repository.py`'s
+> `config_memory_document()` (the nested `.cgs`, self-referencing `.memory`
+> at `relative_path = "."` — the same trick `docs/DocCGS.cgs` used for
+> `DocComplexGitSync` before DocSpec's own de-nesting), `_adopt_self_history_if_wanted`
+> (called from `memory_adopt`, silent, reachability as the opt-in — a
+> `.gts`-loaded registry never carries `nested_config`, so a flag-based
+> check would never fire for the ordinary path every command takes),
+> `_push_self_history` (leaf-first fold+commit+push, called first inside
+> `memory_push`), `_clone_self_history_if_declared` (D8: reads which
+> repository to clone from `config-memory.cgs` itself). `memory_reboot`
+> needed no change at all — it only ever opens `.memory`'s own mount, so
+> D7 held by construction. One further method beyond the ticket's own
+> WP list: `self_history_adopt`/`cgitsync self-history adopt`, the explicit
+> retrofit for a `.memory` — like this project's own — adopted before
+> self-history existed to ride along; `cgitsync memory self-history` for
+> consultation. WP3 (`state_before`/`state_after` resolved from the
+> ledger) is still open — see part 1's note, unchanged.
+
 > **Implementation — 2026-09-24.** WP1 and WP6 are done: the record format
 > (`memory/self_history.py`, `SelfHistoryRecord`), validated (roles against
 > `.localSpec/AGENT.md`'s roster, conformity basis restricted to
@@ -26,10 +51,12 @@
 > whether `.self-history` needs its own `memory adopt`-equivalent step or
 > auto-adopts on first fold, and whether `memory reboot`'s own fold step
 > also folds `.self-history`'s pending half or truly leaves it untouched.
-> A record written today is real and useful — it persists in the ordinary,
-> gitignored `.cgitsync/.self-history/` pending area exactly as any other
-> pending content does — it just has nowhere of its own to be pushed to
-> yet. `repos_written` and `checks.lint_passed`/`checks.tests_passed`
+> **Superseded by part 2 below** — the owner answered both questions and
+> WP2/WP2b are done; WP3 remains open. A record written today is real and
+> useful — it persists in the ordinary, gitignored `.cgitsync/.self-history/`
+> pending area exactly as any other pending content does, and now has a
+> real home to be pushed to once self-history is adopted.
+> `repos_written` and `checks.lint_passed`/`checks.tests_passed`
 > likewise stay caller-supplied (D5's *how* remains open): the former needs
 > a session-wide write-outcome accumulator this client does not have, and
 > the latter would need `cgitsync` to run Pixi itself, which the
@@ -445,8 +472,8 @@ beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
 | WP | Does | Depends on | Status |
 |---|---|---|---|
 | **WP1** | The record format and its fields (§1), and `cgitsync self-history add` writing one to the pending half, filling the observed fields itself | D1, D2, D5 | **Done** — `memory/self_history.py`, `ComplexGitSyncClient.self_history_add()`, `cgitsync self-history add` |
-| **WP2** | `.self-history` as a repository nested in `.memory`, with the §2 pipeline: `config-memory.cgs`; `.memory`'s entry moving from `nested_config = "disabled"` to `"config-memory.cgs"`; the pending area at `.cgitsync/.self-history`; the fold; the leaf-first commit and push; `.memory/.gitignore` listing the mount. `memory/pending.py` composes both halves, as it already does for the other five. `memory show`/`explore` read it | WP1 | **Deferred** — the highest-risk part of this ticket, touching the fold/push pipeline this project dogfoods its own real memory against on every command; also blocked on a genuine open mechanism question (does `.self-history` need its own adopt-equivalent, or auto-adopt on first fold) the ticket does not answer |
-| **WP2b** | `memory reboot` and `memory clone` taught about the second mount: reboot leaves `.self-history` alone (D7), clone brings it back (D8). Separable from WP2 and easy to forget — both commands assume one mount today, and neither fails loudly when it meets two | WP2 | **Deferred** — blocked on WP2; also an open mechanism question (does reboot's own fold step fold `.self-history`'s pending half too) the ticket does not answer |
+| **WP2** | `.self-history` as a repository nested in `.memory`, with the §2 pipeline: `config-memory.cgs`; the pending area at `.cgitsync/.self-history`; the fold; the leaf-first commit and push. `memory show`/`explore` read it | WP1 | **Done** — `config_memory_document()` writes the nested `.cgs`; `memory_adopt()` adopts it automatically the moment `github:<owner>/.self-history` is reachable (the opt-in signal, not a `nested_config` flag — see the Implementation note above); `memory_push()` folds and pushes it leaf-first. `cgitsync memory self-history` reads it, in place of `memory show`/`explore` growing a second shape |
+| **WP2b** | `memory reboot` and `memory clone` taught about the second mount: reboot leaves `.self-history` alone (D7), clone brings it back (D8). Separable from WP2 and easy to forget — both commands assume one mount today, and neither fails loudly when it meets two | WP2 | **Done** — `memory_reboot()` needed no change: it only ever opens `.memory`'s own mount, so D7 held by construction; `memory_clone()` reads which repository to clone from `config-memory.cgs` itself (D8) |
 | **WP3** | The link to state transitions: `state_before`/`state_after` resolved from the ledger, and the environment record beside them | WP2, **TreeEnvironment** | **Deferred** — blocked on WP2 (a record with nowhere to be pushed gains little from a stricter State cross-check yet); the fields exist and validate their own shape today, just without the ledger cross-check |
 | **WP4** | The score: the machine-checked fields computed rather than typed, and the display (§3, D3) | WP1, D3 | **Partial** — the score's *shape* is built (measured/asserted, three criteria) and `checks.status_errors` is genuinely observed; `checks.lint_passed`/`tests_passed` and `repos_written` stay caller-supplied (D5's *how* is still open — see the Implementation note above), and there is no `memory show` display yet (D2's "finishing report only" position has nothing to render into) |
 | **WP5** | `AdditionalSpecs.md`'s record schema and the `.cgs` authoring note for the nested mount. **The `CLAUDE.md` Attribution amendment is already done** — landed 2026-09-20 with D4, ahead of the rest, because it is a rule about conduct rather than a feature and was in force the moment it was written | — | **Partial** — the record schema is documented (`AdditionalSpecs.md`, *The self-history record*); the `.cgs` authoring note for the nested mount is WP2's, deferred with it |
@@ -478,18 +505,20 @@ actually finish it.
   they are not cross-checked against the ledger yet (WP3).**
 - [x] No record contains an absolute path outside `$CGSTREE`, an OS user name,
   or any credential. Nothing in `SelfHistoryRecord` accepts a path at all.
-- [ ] **`.cgitsync/.memory/.self-history`'s worktree is clean except while a
+- [x] **`.cgitsync/.memory/.self-history`'s worktree is clean except while a
   fold is running**, and `cgitsync status` reports it as an ordinary
-  private/local repository. **Not yet — no such mount exists (WP2).**
-- [ ] `memory push` publishes the leaf before the parent, and a tree checked
-  out afterwards has both. **Not yet (WP2).**
-- [ ] **A second machine cloning this project gets the same accounting record
-  as the first, and the two agree.** **Not yet — `memory clone` does not
-  know about a second mount (WP2b).**
-- [ ] A reboot leaves `.self-history` intact and readable across the
+  private/local repository. Verified in
+  `test_self_history_pipeline.py::test_memory_push_folds_and_sends_self_history_before_memory`.
+- [x] `memory push` publishes the leaf before the parent, and a tree checked
+  out afterwards has both. Verified: self-history's fold+commit+push runs
+  first inside `memory_push`, before `.memory`'s own.
+- [x] **A second machine cloning this project gets the same accounting record
+  as the first, and the two agree.** Verified in
+  `test_memory_clone_brings_back_self_history_too`.
+- [x] A reboot leaves `.self-history` intact and readable across the
   boundary: the records written before the reboot and after it sit in one
-  unbroken history (D7). **Not yet — nothing to leave intact until WP2
-  gives it a repository (WP2b).**
+  unbroken history (D7). Verified: `memory_reboot` never opens
+  `.self-history`'s mount at all.
 - [x] A workspace with no self-history still runs every command normally — this
   is additive, and a tree that never used it must not notice it exists.
   Verified: the pending directory is created only on first `self-history

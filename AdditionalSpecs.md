@@ -283,7 +283,7 @@ human-readable summary.
 | `state_store.py` | 1 | The one place that composes a State's path: `.cgitsync/state/<hash>.gts`, where the hash is the document's own content digest (`state_path`). Still reads the older `state(<hash>)_n/` directories, so a workspace written before the flat layout resolves without being rewritten — and `snapshot_resolver.py` imports that grammar from here rather than carrying the copy it used to. Formerly content-addressed directory allocation — the general mechanism every lifecycle command uses (not related to the deleted Memory transport, despite the class name). |
 | `settings.py` | 1 | Where ComplexGitSync keeps its own workspaces, answered before any workspace is open — which is what separates it from `master.py`, whose `.cgitsync/master.toml` cannot be read until one has been found. Owns the root (`$CGSPATH`, else `$HOME/.cgs`), the **default workspace** that `snapshot_resolver.py` falls back to when none of its three inputs finds one, the `$HOME/.cgs/default` pointer that makes that workspace minted-once-then-reused, the empty but valid `.gts` written into it (`UNLOADED`, `is_ready = false` — an empty tree must never claim to be ready), the list of other workspaces under the root that the CLI prints as a hint and never selects from, and the `UseCase` (`STANDALONE`/`NESTED`) derived from whether the running installation sits inside the resolved CGSHOME. Derived, never stored: two callers in one process cannot disagree. See `.agent/.local/.localSpec/DevTickets/archive/20260916_CgshomeDefault_DevPlanTicket.md`. |
 | `snapshot_resolver.py` | 1 | Resolves which `.gts` snapshot the CLI defaults to when a command omits one explicitly — and, when none of its three inputs finds a workspace at all, falls back to `settings.py`'s default workspace rather than raising (`CGSHOME_ORIGIN_DEFAULT`), except under an explicit `--search-dir`, where a directory the user named is never silently replaced, and — through its `describe_*` functions — reports *which input decided it*: `--search-dir`, `$CGSHOME`, or the current directory, in that order of precedence. The precedence is deliberate (the documented bootstrap tells users to export `$CGSHOME`), which is exactly why the reason has to travel with the answer: a stale export silently retargets every command at another workspace that holds the same repositories. This module never prints — `cli/_shared.py` turns a `CgshomeResolution`/`SnapshotResolution` into the `cgshome=`/`source=` lines and the mismatch warning. |
-| `memory/` | 1 | **Everything a workspace remembers, in one package.** `repository.py` defines the memory mount and branch without running Git. `states.py` owns States; `environment.py` atomically stores content-addressed Environment records; `agent_contract.py` atomically stores content-addressed `AgentContractRecord`s the same way, under a caller-given `dev-sync` directory rather than `.cgitsync/` — signed once per provider, not scoped to one workspace — plus a plain `current` pointer naming the record in force; `self_history.py` stores content-addressed `SelfHistoryRecord`s the same way again, under `.cgitsync/.self-history/` (pending) — AgentReport ticket WP1/WP6; the nested-repository fold/push pipeline that turns that pending directory into a mount of its own (WP2/WP2b) has not landed yet, so `self_history_dirs`' folded half is read defensively and may not exist; `ledger_entry.py`/`ledger_store.py` own the hash chain; `commit_log.py` owns commit/publish evidence; `integrity.py` verifies; `store.py` reads the legacy register. `pending.py` merges folded and pending views so callers do not care where an entry, State, Environment, or log currently sits. **No Git, ever**: repository operations remain in `operations.py`/`git_runner.py`. |
+| `memory/` | 1 | **Everything a workspace remembers, in one package.** `repository.py` defines the memory mount and branch without running Git — including, now, self-history's own nested mount: `config_memory_document()` renders the `.cgs` that makes `.self-history` a discoverable child of `.memory`, and `self_history_mount_path`/`self_history_commit_message` give it the same path/commit-message shape `.memory` itself has. `states.py` owns States; `environment.py` atomically stores content-addressed Environment records; `agent_contract.py` atomically stores content-addressed `AgentContractRecord`s the same way, under a caller-given `dev-sync` directory rather than `.cgitsync/` — signed once per provider, not scoped to one workspace — plus a plain `current` pointer naming the record in force; `self_history.py` stores content-addressed `SelfHistoryRecord`s the same way again, under `.cgitsync/.self-history/` (pending) and `.cgitsync/.memory/.self-history/` (folded, a repository of its own once adopted — `orchestre.py`'s `_adopt_self_history_if_wanted`/`self_history_adopt`, AgentReport WP2/WP2b); `ledger_entry.py`/`ledger_store.py` own the hash chain; `commit_log.py` owns commit/publish evidence; `integrity.py` verifies; `store.py` reads the legacy register. `pending.py` merges folded and pending views so callers do not care where an entry, State, Environment, or log currently sits. **No Git, ever**: repository operations remain in `operations.py`/`git_runner.py`. |
 | `discovery.py` | 1 | Nested `.cgs` auto-discovery and `.gitmodules` parsing. |
 | `git_tree.py` | 1 | `GitTree`/`WorkingGitTree` structures, traversal, lifecycle state; `to_cgs()` delegates to `cgs_format.py`; `.gitignore` maintenance across the tree (`sync_gitignore`) — the reason this is Ring 1, not 0. Also the single rule for "which repo sits inside which": `resolve_repo_for_path` for a live tree, `innermost_containing_path` for plain paths before one exists. Owns privacy *state* as well: `propagate_privacy` pushes each parent's `private`/`writable` onto everything nested inside it (a parent defines its leaves; a leaf may restrict itself further, never open itself wider) and records the answer in `WorkingRepo.propagated_private`/`propagated_writable`. Every build path calls it beside `normalize_node_types`. |
 | `git_tree_branch.py` | 2 | The tree's branch *state*, and the counterpart to `git_branch.py`'s *rule*: which branch the tree is on (the root's — what `status` prints as `cgitsync_branch`), which branch each repository targets when the tree moves (`target`, a pass to `git_branch.resolve_propagated_ref` with the project's name filled in), which branch Git says each is on (`observed`, read once per repository and cached so one `status` costs one call per repository instead of two), and where the two disagree (`deviations`). Also holds `tree_project_name`, moved here from `operations.py` because the project's name exists in that code path only to name a private/local branch. Restates no rule: every answer it gives comes from `git_branch.py`. Four call sites computed all of this separately before it existed — `validate_branch_topology`, `_collect_branch_alignment_diagnostics`, `_branch_incoherence`, and the root read in `_restart_tree_common` — and the three that asked the same question disagreed about a detached root. `deviations(ignore_unreadable=...)` keeps the one difference that is real: a report skips a repository Git cannot answer for, a preflight gate must not. An instance is a snapshot — build a new one after a checkout or a pull. See `.agent/.local/.localSpec/DevTickets/archive/20260916_StatusCurrentBranch_DevPlanTicket.md`. |
@@ -1238,8 +1238,10 @@ them and something else to the other.
 same way an Environment record or an `AgentContractRecord` is —
 `memory/self_history.py`, `SelfHistoryRecord.digest()` over sorted-key
 compact JSON, sha256, no prefix. Written to
-`.cgitsync/.self-history/<hash>.toml` (the pending half; there is no
-folded half yet — see *What has not landed* below).
+`.cgitsync/.self-history/<hash>.toml` (the pending half); `memory push`
+folds it into `.cgitsync/.memory/.self-history/<hash>.toml` (the folded
+half, a repository of its own once adopted — see *What has landed so far*
+below) leaf-first, before folding and pushing `.memory` itself.
 
 ### Entry schema
 
@@ -1265,7 +1267,7 @@ own optional fields use, so a record written before a field existed (or a
 record whose caller genuinely could not observe it) hashes honestly rather
 than carrying a fabricated default.
 
-### What has landed so far (AgentReport WP1, WP6)
+### What has landed so far (AgentReport WP1, WP2, WP2b, WP6)
 
 - `ComplexGitSyncClient.self_history_add()` and `cgitsync self-history add`
   — write one record to the pending half, filling `contract` and
@@ -1274,26 +1276,43 @@ than carrying a fabricated default.
   lines, `ticket` non-empty, `worker`/`orchestrator` roles from the AGENT.md
   roster, `conformity` bases restricted to `measured`/`asserted`,
   `state_before`/`state_after` shaped like a State id or empty.
+- **The nested repository, and its own lifecycle riding `.memory`'s.**
+  `memory/repository.py`'s `config_memory_document()` writes the nested
+  `.cgs` that makes `.self-history` a real, discoverable child of `.memory`
+  (`relative_path = ".self-history"`, both entries falling back to the
+  same `project.default_branch` so the two mounts can never disagree about
+  which branch they are on). `ComplexGitSyncClient.memory_adopt()` adopts
+  it automatically — silently, the moment `github:<owner>/.self-history`
+  is reachable, per `_adopt_self_history_if_wanted`'s own reasoning below.
+  `memory_push()` folds and pushes it leaf-first, before folding and
+  pushing `.memory`. `memory_clone()` brings it back too, reading which
+  repository to clone from `config-memory.cgs` itself. `memory_reboot()`
+  never touches it, by construction — it only ever opens `.memory`'s own
+  mount (D7). `ComplexGitSyncClient.self_history_adopt()` and `cgitsync
+  self-history adopt` are the explicit, standalone retrofit for a
+  `.memory` adopted before self-history existed — this project's own,
+  among others.
+- `ComplexGitSyncClient.memory_self_history()` and `cgitsync memory
+  self-history` — every record this workspace holds, folded and pending
+  merged, for consultation.
 
-### What has not landed (WP2, WP2b, WP3, and the rest of WP4/WP5)
-
-**There is no `.self-history` repository yet.** The AgentReport ticket's
-§2 design — a nested repository at `.cgitsync/.memory/.self-history`,
-discovered via `config-memory.cgs`, folded and pushed leaf-first by
-`memory push` — is not implemented. A record written today sits in the
-plain, gitignored pending directory and goes no further on its own; it is
-not lost (the directory is ordinary `.cgitsync` content, replicated the
-same way anything else there is until a memory push exists to fold it),
-but it is not yet shared with anyone else's clone either. `memory reboot`
-and `memory clone` accordingly know nothing about a second mount (D7/D8
-have nothing to implement against yet).
+**Why `.memory`'s own `nested_config` field is not the opt-in check.**
+`_adopt_self_history_if_wanted` does not look at the tree's registry at
+all: `registry.build_registry_from_gts_document` never sets
+`nested_config` (it is `.cgs`-only information — see `_apply_repo_identity`
+in `git_tree.py`), so a check against `self.registry` would silently never
+fire for the ordinary `load_gts` path every command actually takes.
+Reachability of `github:<owner>/.self-history` is the opt-in instead: tried
+on every `.memory` adopt, cheap to fail for the overwhelming majority of
+projects that have not created that repository, and additive by
+construction rather than by a flag that could drift from what is actually
+there.
 
 **`state_before`/`state_after` are not resolved against the ledger.**
 WP3 — pulling both from `read_ledger_entries()` the way `pending.py`'s
-`current_state_from_ledger` already does for a single State — needs the
-nested-repository work above to matter (a record with no home to travel to
-gains little from a stricter State cross-check today) and depended on
-TreeEnvironment, which is done; the cross-check itself is not written.
+`current_state_from_ledger` already does for a single State — is the one
+piece of "what one record holds" (§1) still open; it depended on
+TreeEnvironment, which is done, but the cross-check itself is not written.
 
 **`repos_written` and `checks.lint_passed`/`checks.tests_passed` stay
 caller-supplied.** Making `repos_written` genuinely observed needs a
