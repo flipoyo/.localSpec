@@ -4,6 +4,37 @@
 
 *Branch: main*
 
+> **Implementation — 2026-09-24, part 4 — fixes a live crash part 3 left
+> behind.** Caught on this project's own dogfooding tree, not a fixture:
+> `.self-history` was adopted for real (`cgitsync self-history adopt
+> --owner flipoyo`) but nothing had ever been recorded to it yet — an
+> **unborn branch**, zero commits of its own, even though `origin/main`
+> had already been fetched during adopt. `cgitsync memory reboot` then
+> crashed inside `_push_self_history` (called first, leaf-before-parent,
+> from `memory_push`): it unconditionally called `git_runner.current_branch`
+> then `push`, and `git rev-parse --abbrev-ref HEAD` **raises** on an
+> unborn branch — unlike a detached `HEAD`, which `current_branch` already
+> handles by returning `None`. Two different failure modes, one of them
+> unhandled.
+>
+> Fixed the same way every other self-history path in this ticket has
+> already chosen to fail: additively. When `_push_self_history` finds
+> nothing to fold and nothing to commit this call, it now checks whether
+> the mount has *any* prior commit at all (`git_runner.rev_parse_head`,
+> caught) before asking for its branch or pushing; if there is none, it
+> returns `None` — the same no-op stance a workspace that never adopted
+> self-history at all already gets from the `.git`-existence check above
+> it. A `memory push`/`memory reboot` before the first `self-history add`
+> is now harmless rather than a crash.
+>
+> Regression coverage:
+> `test_memory_push_after_adopt_with_nothing_pending_does_not_crash` and
+> `test_memory_reboot_after_adopt_with_nothing_pending_does_not_crash` in
+> `tests/integration/test_self_history_pipeline.py` — neither existed
+> before this incident; the 16 tests written for parts 2/3 all adopted
+> self-history through a fixture that also seeded a first push, so none of
+> them exercised the truly-empty case.
+
 > **Implementation — 2026-09-24, part 3 — corrects part 2's own mistake.**
 > The owner caught a real misunderstanding in how part 2 designed the
 > "should `memory_adopt` also handle self-history" check, twice over, and
