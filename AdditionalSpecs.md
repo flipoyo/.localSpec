@@ -283,7 +283,7 @@ human-readable summary.
 | `state_store.py` | 1 | The one place that composes a State's path: `.cgitsync/state/<hash>.gts`, where the hash is the document's own content digest (`state_path`). Still reads the older `state(<hash>)_n/` directories, so a workspace written before the flat layout resolves without being rewritten — and `snapshot_resolver.py` imports that grammar from here rather than carrying the copy it used to. Formerly content-addressed directory allocation — the general mechanism every lifecycle command uses (not related to the deleted Memory transport, despite the class name). |
 | `settings.py` | 1 | Where ComplexGitSync keeps its own workspaces, answered before any workspace is open — which is what separates it from `master.py`, whose `.cgitsync/master.toml` cannot be read until one has been found. Owns the root (`$CGSPATH`, else `$HOME/.cgs`), the **default workspace** that `snapshot_resolver.py` falls back to when none of its three inputs finds one, the `$HOME/.cgs/default` pointer that makes that workspace minted-once-then-reused, the empty but valid `.gts` written into it (`UNLOADED`, `is_ready = false` — an empty tree must never claim to be ready), the list of other workspaces under the root that the CLI prints as a hint and never selects from, and the `UseCase` (`STANDALONE`/`NESTED`) derived from whether the running installation sits inside the resolved CGSHOME. Derived, never stored: two callers in one process cannot disagree. See `.agent/.local/.localSpec/DevTickets/archive/20260916_CgshomeDefault_DevPlanTicket.md`. |
 | `snapshot_resolver.py` | 1 | Resolves which `.gts` snapshot the CLI defaults to when a command omits one explicitly — and, when none of its three inputs finds a workspace at all, falls back to `settings.py`'s default workspace rather than raising (`CGSHOME_ORIGIN_DEFAULT`), except under an explicit `--search-dir`, where a directory the user named is never silently replaced, and — through its `describe_*` functions — reports *which input decided it*: `--search-dir`, `$CGSHOME`, or the current directory, in that order of precedence. The precedence is deliberate (the documented bootstrap tells users to export `$CGSHOME`), which is exactly why the reason has to travel with the answer: a stale export silently retargets every command at another workspace that holds the same repositories. This module never prints — `cli/_shared.py` turns a `CgshomeResolution`/`SnapshotResolution` into the `cgshome=`/`source=` lines and the mismatch warning. |
-| `memory/` | 1 | **Everything a workspace remembers, in one package.** `repository.py` defines the memory mount and branch without running Git — including, now, self-history's own nested mount: `config_memory_document()` renders the `.cgs` that makes `.self-history` a discoverable child of `.memory`, and `self_history_mount_path`/`self_history_commit_message` give it the same path/commit-message shape `.memory` itself has. `states.py` owns States; `environment.py` atomically stores content-addressed Environment records; `agent_contract.py` atomically stores content-addressed `AgentContractRecord`s the same way, under a caller-given `dev-sync` directory rather than `.cgitsync/` — signed once per provider, not scoped to one workspace — plus a plain `current` pointer naming the record in force; `self_history.py` stores content-addressed `SelfHistoryRecord`s the same way again, under `.cgitsync/.self-history/` (pending) and `.cgitsync/.memory/.self-history/` (folded, a repository of its own once adopted — `orchestre.py`'s `_adopt_self_history_if_wanted`/`self_history_adopt`, AgentReport WP2/WP2b); `ledger_entry.py`/`ledger_store.py` own the hash chain; `commit_log.py` owns commit/publish evidence; `integrity.py` verifies; `store.py` reads the legacy register. `pending.py` merges folded and pending views so callers do not care where an entry, State, Environment, or log currently sits. **No Git, ever**: repository operations remain in `operations.py`/`git_runner.py`. |
+| `memory/` | 1 | **Everything a workspace remembers, in one package.** `repository.py` defines the memory mount and branch without running Git — including, now, self-history's own nested mount: `config_memory_document()` renders the `.cgs` that makes `.self-history` a discoverable child of `.memory`, and `self_history_mount_path`/`self_history_commit_message` give it the same path/commit-message shape `.memory` itself has. `states.py` owns States; `environment.py` atomically stores content-addressed Environment records; `agent_contract.py` atomically stores content-addressed `AgentContractRecord`s the same way, under a caller-given `dev-sync` directory rather than `.cgitsync/` — signed once per provider, not scoped to one workspace — plus a plain `current` pointer naming the record in force; `self_history.py` stores content-addressed `SelfHistoryRecord`s the same way again, under `.cgitsync/.self-history/` (pending) and `.cgitsync/.memory/.self-history/` (folded, a repository of its own once adopted — `orchestre.py`'s `_adopt_self_history_if_declared`/`self_history_adopt`, AgentReport WP2/WP2b); `ledger_entry.py`/`ledger_store.py` own the hash chain; `commit_log.py` owns commit/publish evidence; `integrity.py` verifies; `store.py` reads the legacy register. `pending.py` merges folded and pending views so callers do not care where an entry, State, Environment, or log currently sits. **No Git, ever**: repository operations remain in `operations.py`/`git_runner.py`. |
 | `discovery.py` | 1 | Nested `.cgs` auto-discovery and `.gitmodules` parsing. |
 | `git_tree.py` | 1 | `GitTree`/`WorkingGitTree` structures, traversal, lifecycle state; `to_cgs()` delegates to `cgs_format.py`; `.gitignore` maintenance across the tree (`sync_gitignore`) — the reason this is Ring 1, not 0. Also the single rule for "which repo sits inside which": `resolve_repo_for_path` for a live tree, `innermost_containing_path` for plain paths before one exists. Owns privacy *state* as well: `propagate_privacy` pushes each parent's `private`/`writable` onto everything nested inside it (a parent defines its leaves; a leaf may restrict itself further, never open itself wider) and records the answer in `WorkingRepo.propagated_private`/`propagated_writable`. Every build path calls it beside `normalize_node_types`. |
 | `git_tree_branch.py` | 2 | The tree's branch *state*, and the counterpart to `git_branch.py`'s *rule*: which branch the tree is on (the root's — what `status` prints as `cgitsync_branch`), which branch each repository targets when the tree moves (`target`, a pass to `git_branch.resolve_propagated_ref` with the project's name filled in), which branch Git says each is on (`observed`, read once per repository and cached so one `status` costs one call per repository instead of two), and where the two disagree (`deviations`). Also holds `tree_project_name`, moved here from `operations.py` because the project's name exists in that code path only to name a private/local branch. Restates no rule: every answer it gives comes from `git_branch.py`. Four call sites computed all of this separately before it existed — `validate_branch_topology`, `_collect_branch_alignment_diagnostics`, `_branch_incoherence`, and the root read in `_restart_tree_common` — and the three that asked the same question disagreed about a detached root. `deviations(ignore_unreadable=...)` keeps the one difference that is real: a report skips a repository Git cannot answer for, a preflight gate must not. An instance is a snapshot — build a new one after a checkout or a pull. See `.agent/.local/.localSpec/DevTickets/archive/20260916_StatusCurrentBranch_DevPlanTicket.md`. |
@@ -1256,7 +1256,7 @@ below) leaf-first, before folding and pushing `.memory` itself.
 | `contract` | The current signed `AgentContractRecord`'s own hash, or `""` when nothing is signed | **Observed** — `agent_contract.read_current_contract()` |
 | `checks.status_errors` | This workspace's own `errors=` count, when a tree is loaded | **Observed** — `ComplexGitSyncClient._collect_status()` |
 | `checks.lint_passed` / `checks.tests_passed` | Whether `pixi run lint`/`pixi run test` passed | Declared — the tool cannot run Pixi itself; `subprocess` stays confined to `git_runner.py` |
-| `state_before` / `state_after` | `state(<hash>)` ids, validated against the same shape a ledger entry's `state_id` uses; **not yet cross-checked against the ledger** (see below) | Declared |
+| `state_before` / `state_after` | `state(<hash>)` ids | `state_before` Declared; `state_after` **Observed** when omitted (the ledger's own most recent entry) — both **verified** against the ledger regardless of who supplied them (see below) |
 | `repos_written` | `[{repo, scope}, ...]` | Declared — no session-wide write-outcome accumulator exists yet to observe this |
 | `pushed` / `pushed_reason` | Whether anything reached a remote, and on whose instruction | Declared |
 | `recorded_at` | ISO timestamp, from the caller's own `ClockProtocol` — this module reads no clock | Declared, by the caller |
@@ -1267,52 +1267,88 @@ own optional fields use, so a record written before a field existed (or a
 record whose caller genuinely could not observe it) hashes honestly rather
 than carrying a fabricated default.
 
-### What has landed so far (AgentReport WP1, WP2, WP2b, WP6)
+### What has landed so far (AgentReport WP1, WP2, WP2b, WP3, WP6)
 
 - `ComplexGitSyncClient.self_history_add()` and `cgitsync self-history add`
   — write one record to the pending half, filling `contract` and
   `checks.status_errors` in from what the tool can itself check.
 - The record format above, with validation: `goal`/`action` at most 3
   lines, `ticket` non-empty, `worker`/`orchestrator` roles from the AGENT.md
-  roster, `conformity` bases restricted to `measured`/`asserted`,
-  `state_before`/`state_after` shaped like a State id or empty.
+  roster, `conformity` bases restricted to `measured`/`asserted`.
 - **The nested repository, and its own lifecycle riding `.memory`'s.**
   `memory/repository.py`'s `config_memory_document()` writes the nested
   `.cgs` that makes `.self-history` a real, discoverable child of `.memory`
   (`relative_path = ".self-history"`, both entries falling back to the
   same `project.default_branch` so the two mounts can never disagree about
-  which branch they are on). `ComplexGitSyncClient.memory_adopt()` adopts
-  it automatically — silently, the moment `github:<owner>/.self-history`
-  is reachable, per `_adopt_self_history_if_wanted`'s own reasoning below.
-  `memory_push()` folds and pushes it leaf-first, before folding and
-  pushing `.memory`. `memory_clone()` brings it back too, reading which
-  repository to clone from `config-memory.cgs` itself. `memory_reboot()`
-  never touches it, by construction — it only ever opens `.memory`'s own
-  mount (D7). `ComplexGitSyncClient.self_history_adopt()` and `cgitsync
-  self-history adopt` are the explicit, standalone retrofit for a
-  `.memory` adopted before self-history existed — this project's own,
-  among others.
+  which branch they are on). `ComplexGitSyncClient.self_history_adopt()`
+  (`cgitsync self-history adopt`) is the **one place this fact is decided**
+  — it writes `config-memory.cgs` the first time, for a brand-new project
+  or as the explicit retrofit for a `.memory` adopted before self-history
+  existed (this project's own, among others). Every other reader only
+  repeats that decision back, never re-derives or probes for it: `memory_adopt()`
+  follows it automatically (`_adopt_self_history_if_declared`, see below)
+  when `.memory`'s own just-fetched content already has it — via
+  `fallback_branch`, the same mechanism that lets `.memory`'s own adopt
+  inherit shared history; `memory_push()` folds and pushes it leaf-first,
+  before folding and pushing `.memory`; `memory_clone()` brings it back
+  too, reading which repository to clone from `config-memory.cgs` itself
+  (`_clone_self_history_if_declared`); `memory_reboot()` never touches it,
+  by construction — it only ever opens `.memory`'s own mount (D7).
 - `ComplexGitSyncClient.memory_self_history()` and `cgitsync memory
   self-history` — every record this workspace holds, folded and pending
   merged, for consultation.
+- **`state_before`/`state_after` verified against the ledger, not merely
+  shape-checked (WP3).** `orchestre._resolve_ledger_state` asks the same
+  three questions `verify`'s own `MISSING_STATE`/`STATE_DIGEST_MISMATCH`
+  findings ask (`_verify_states_on_disk`): does some ledger entry actually
+  name this state_id, is the State it names on disk, and does that file's
+  content still hash to the name it is filed under. `self_history_add`
+  raises rather than recording a citation that fails any of the three — a
+  fabricated or stale reference is refused, not accepted as fact.
+  `state_after` is additionally **observed**, not merely validated, when
+  not given: the ledger's own most recent entry at the moment
+  `self_history_add` runs.
 
-**Why `.memory`'s own `nested_config` field is not the opt-in check.**
-`_adopt_self_history_if_wanted` does not look at the tree's registry at
-all: `registry.build_registry_from_gts_document` never sets
-`nested_config` (it is `.cgs`-only information — see `_apply_repo_identity`
-in `git_tree.py`), so a check against `self.registry` would silently never
-fire for the ordinary `load_gts` path every command actually takes.
-Reachability of `github:<owner>/.self-history` is the opt-in instead: tried
-on every `.memory` adopt, cheap to fail for the overwhelming majority of
-projects that have not created that repository, and additive by
-construction rather than by a flag that could drift from what is actually
-there.
+**Why this is a ledger question, not a `.cgs`/registry one.** A `.gts` is
+a static snapshot of an already-discovered tree — a READY tree does not
+re-run discovery, and the fact that a `.gts` can be loaded at all is
+downstream of it having been generated from a tree that went through
+discovery once already. Two mistakes an earlier draft of this section made,
+both from asking the wrong layer:
 
-**`state_before`/`state_after` are not resolved against the ledger.**
-WP3 — pulling both from `read_ledger_entries()` the way `pending.py`'s
-`current_state_from_ledger` already does for a single State — is the one
-piece of "what one record holds" (§1) still open; it depended on
-TreeEnvironment, which is done, but the cross-check itself is not written.
+- Whether `memory_adopt` should also handle self-history was first designed
+  as a check against `.memory`'s own `nested_config` field on the loaded
+  registry. That fails silently for the ordinary case, because
+  `registry.build_registry_from_gts_document` never sets `nested_config` at
+  all (it is `.cgs`-only information — see `_apply_repo_identity` in
+  `git_tree.py`) — not a bug to route around, just the wrong question:
+  `.gts` does not need to re-answer "should I discover this," because a
+  properly-discovered tree already has the answer baked into its own
+  `repo_state` entries the moment such an entry exists. The actual
+  question `_adopt_self_history_if_declared` asks is simpler and does not
+  touch the registry at all: has *this project's `.memory`, as actually
+  committed*, already decided to use self-history —
+  `config-memory.cgs`'s presence in what `.memory`'s own adopt just
+  fetched.
+- A later revision replaced that check with a blind `remote_reachable`
+  probe on every `.memory` adopt, treated as the opt-in itself. That is
+  also the wrong mechanism: it asks a network question to answer a
+  question about the tree's own declared shape, and a repository being
+  reachable is not evidence that *this* tree decided to use it.
+  `_self_history_identity_from_config` — reading `config-memory.cgs` back,
+  the one artefact `self_history_adopt` actually committed — is the
+  correct signal; reachability is only ever checked afterward, to decide
+  whether the already-declared repository can actually be fetched right
+  now.
+
+Both mistakes shared a root cause: reaching for a runtime check
+(re-discovery, a network probe) to answer a question the tree's own
+already-verified state — what the ledger recorded, what `.memory` already
+committed — could answer directly. `_resolve_ledger_state` (WP3, above) is
+the same correction applied to a different question: whether a State
+citation is real is a ledger question, answered the way `verify` already
+answers it, never a matter of re-parsing or re-deriving something from a
+transformed document.
 
 **`repos_written` and `checks.lint_passed`/`checks.tests_passed` stay
 caller-supplied.** Making `repos_written` genuinely observed needs a

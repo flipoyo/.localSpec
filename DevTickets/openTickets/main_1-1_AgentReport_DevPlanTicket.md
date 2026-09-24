@@ -4,6 +4,56 @@
 
 *Branch: main*
 
+> **Implementation — 2026-09-24, part 3 — corrects part 2's own mistake.**
+> The owner caught a real misunderstanding in how part 2 designed the
+> "should `memory_adopt` also handle self-history" check, twice over, and
+> both mistakes shared one root cause: reaching for a *runtime check* to
+> answer a question the tree's own already-verified state could answer
+> directly.
+>
+> **First mistake, in the original design:** checking `.memory`'s own
+> `nested_config` field on the *loaded registry*. That fails silently for
+> the ordinary case — `registry.build_registry_from_gts_document` never
+> sets `nested_config` at all, since it is `.cgs`-only information. Part 2
+> mischaracterised this as *the problem* and reached for a network probe
+> to route around it. It was never the problem: a `.gts` is a **static
+> snapshot of an already-discovered tree** — a READY tree does not
+> re-run discovery, and the fact that a `.gts` can be loaded at all is
+> downstream of it having been generated from a tree that went through
+> discovery once already. Asking the registry "does `.memory` declare
+> `nested_config`" was asking a `.cgs`-only question a `.gts`-loaded
+> registry was never going to answer — the wrong layer entirely, not a
+> bug needing a workaround.
+>
+> **Second mistake, part 2's own fix:** replacing that check with a blind
+> `remote_reachable` probe on every `.memory` adopt, treated as the opt-in
+> itself. Corrected now: **`_adopt_self_history_if_declared`** asks
+> instead whether *this project's `.memory`, as actually committed*, has
+> already decided to use self-history — `config-memory.cgs`'s presence in
+> what `.memory`'s own adopt just fetched (via `.memory`'s existing
+> "start from a fallback base branch" mechanism, the same one that already
+> lets a new project's branch inherit shared history). Reachability is
+> still checked, but only *after* that — to see whether an
+> already-declared repository can be fetched right now, never as the
+> signal that decides whether self-history applies here at all.
+> `self_history_adopt` is now the **one place this fact is ever decided**
+> (it writes `config-memory.cgs`); every reader — the automatic path here,
+> `_clone_self_history_if_declared` — only ever repeats that decision back,
+> via the new shared `_self_history_identity_from_config`.
+>
+> **The same correction finishes WP3.** Whether a `state_before`/
+> `state_after` citation names a real State was never a `.cgs`/discovery
+> question either — it is a ledger question, the exact one `verify`
+> already answers via `MISSING_STATE`/`STATE_DIGEST_MISMATCH`:
+> does some entry actually name this state_id, is the State on disk, does
+> it still hash to its own name. `orchestre._resolve_ledger_state` asks
+> those same three questions for one citation; `self_history_add` now
+> raises rather than recording a citation that fails any of them, and
+> observes `state_after` from the ledger's own most recent entry when not
+> given. See `AdditionalSpecs.md`'s *The self-history record* section for
+> the corrected explanation in full — it now says plainly what both
+> mistakes were, not only the fix.
+
 > **Implementation — 2026-09-24, part 2.** WP2 and WP2b are now done too,
 > on the owner's own direction: the owner created
 > `github.com/flipoyo/.self-history` and gave the design its resolving
@@ -472,9 +522,9 @@ beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
 | WP | Does | Depends on | Status |
 |---|---|---|---|
 | **WP1** | The record format and its fields (§1), and `cgitsync self-history add` writing one to the pending half, filling the observed fields itself | D1, D2, D5 | **Done** — `memory/self_history.py`, `ComplexGitSyncClient.self_history_add()`, `cgitsync self-history add` |
-| **WP2** | `.self-history` as a repository nested in `.memory`, with the §2 pipeline: `config-memory.cgs`; the pending area at `.cgitsync/.self-history`; the fold; the leaf-first commit and push. `memory show`/`explore` read it | WP1 | **Done** — `config_memory_document()` writes the nested `.cgs`; `memory_adopt()` adopts it automatically the moment `github:<owner>/.self-history` is reachable (the opt-in signal, not a `nested_config` flag — see the Implementation note above); `memory_push()` folds and pushes it leaf-first. `cgitsync memory self-history` reads it, in place of `memory show`/`explore` growing a second shape |
+| **WP2** | `.self-history` as a repository nested in `.memory`, with the §2 pipeline: `config-memory.cgs`; the pending area at `.cgitsync/.self-history`; the fold; the leaf-first commit and push. `memory show`/`explore` read it | WP1 | **Done** — `self_history_adopt()` (`cgitsync self-history adopt`) is the one place `config_memory_document()` writes the nested `.cgs`, once, for a brand-new project or as the explicit retrofit this project's own `.memory` needed; `memory_adopt()` follows that decision automatically once it is already committed to `.memory`'s own content (`_adopt_self_history_if_declared`, corrected in part 3's note above — not a `nested_config` flag, not a reachability probe); `memory_push()` folds and pushes it leaf-first. `cgitsync memory self-history` reads it, in place of `memory show`/`explore` growing a second shape |
 | **WP2b** | `memory reboot` and `memory clone` taught about the second mount: reboot leaves `.self-history` alone (D7), clone brings it back (D8). Separable from WP2 and easy to forget — both commands assume one mount today, and neither fails loudly when it meets two | WP2 | **Done** — `memory_reboot()` needed no change: it only ever opens `.memory`'s own mount, so D7 held by construction; `memory_clone()` reads which repository to clone from `config-memory.cgs` itself (D8) |
-| **WP3** | The link to state transitions: `state_before`/`state_after` resolved from the ledger, and the environment record beside them | WP2, **TreeEnvironment** | **Deferred** — blocked on WP2 (a record with nowhere to be pushed gains little from a stricter State cross-check yet); the fields exist and validate their own shape today, just without the ledger cross-check |
+| **WP3** | The link to state transitions: `state_before`/`state_after` resolved from the ledger, and the environment record beside them | WP2, **TreeEnvironment** | **Done** (the ledger half) — `orchestre._resolve_ledger_state` verifies each citation the same three ways `verify` does (named by an entry, on disk, still hashing to its own name); `self_history_add` raises on one that does not resolve, and observes `state_after` from the ledger's latest entry when not given. The environment record beside them is not separately wired in — nothing in the ticket names a distinct action for that half beyond what the ledger check already covers |
 | **WP4** | The score: the machine-checked fields computed rather than typed, and the display (§3, D3) | WP1, D3 | **Partial** — the score's *shape* is built (measured/asserted, three criteria) and `checks.status_errors` is genuinely observed; `checks.lint_passed`/`tests_passed` and `repos_written` stay caller-supplied (D5's *how* is still open — see the Implementation note above), and there is no `memory show` display yet (D2's "finishing report only" position has nothing to render into) |
 | **WP5** | `AdditionalSpecs.md`'s record schema and the `.cgs` authoring note for the nested mount. **The `CLAUDE.md` Attribution amendment is already done** — landed 2026-09-20 with D4, ahead of the rest, because it is a rule about conduct rather than a feature and was in force the moment it was written | — | **Partial** — the record schema is documented (`AdditionalSpecs.md`, *The self-history record*); the `.cgs` authoring note for the nested mount is WP2's, deferred with it |
 | **WP6** | `contract` (§1) filled in for real: read `.agent/.distant/dev-sync/agent-contracts/current` (`ComplexGitSync.memory.agent_contract`) and cite the record it names by hash — **observed**, not typed, same as every other fact-bearing field. Absent or stale (its `legal_terms_sha256` no longer matching the current `legalTerms/<provider>.md`) is reported, not fatal, per AgentContract D4/D6 | WP1, AgentContract (done) | **Done** — `self_history_add()` reads `agent-contracts/current` and cites its hash; absent when nothing is signed. Staleness against `legalTerms` is not separately re-checked here, since `AgentContractRecord` itself already carries `legal_terms_sha256` and does not go stale on its own |
@@ -500,9 +550,9 @@ actually finish it.
   `checks` by hand contradicts what `lint` and `test` actually did, and a
   reader can tell. **True for `status_errors` and `contract`; `lint_passed`/
   `tests_passed`/`repos_written` are still caller-supplied (WP4/D5).**
-- [ ] The record names the two States the work moved between, and both resolve
-  in the ledger. **`state_before`/`state_after` validate their own shape;
-  they are not cross-checked against the ledger yet (WP3).**
+- [x] The record names the two States the work moved between, and both resolve
+  in the ledger. Verified in `test_self_history_add_rejects_a_state_the_ledger_never_recorded`
+  and `..._rejects_a_state_whose_file_was_tampered_with` (WP3).
 - [x] No record contains an absolute path outside `$CGSTREE`, an OS user name,
   or any credential. Nothing in `SelfHistoryRecord` accepts a path at all.
 - [x] **`.cgitsync/.memory/.self-history`'s worktree is clean except while a
