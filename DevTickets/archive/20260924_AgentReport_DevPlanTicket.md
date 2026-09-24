@@ -4,6 +4,40 @@
 
 *Branch: main*
 
+> **Closing report — 2026-09-24, part 7 — WP4/WP5 finished; archiving.**
+> Per D2, the score display belongs at the top of the document that closes
+> a ticket, not in a `memory show` feature — this banner is that display,
+> for this ticket's own closing:
+>
+> | Criterion | Score | Basis | Reasoning |
+> |---|---|---|---|
+> | Spec respect (33) | 32/33 | measured + asserted | `pixi run lint`/`pixi run test` pass (1672 passed, 5 skipped), `cgitsync status` shows `errors=0`, `__build__` incremented (`0003.03`→`0003.06` across this ticket's five `src/`-touching parts today), the module-ceiling ratchet baseline updated each time it grew — all measured. Docked one point, asserted: `repos_written`'s CLI surface (`cgitsync self-history add`) still has no `--repos-written` flag for the declared-fallback path (no `state_before` to diff), a pre-existing gap this pass narrowed but did not close. |
+> | `.PUBLIC`/`.PRIVATE` gating (33) | 33/33 | measured | Every write this session stayed inside `ComplexGitSync` (public) and `.localSpec`/`.versioning` (private, writable, declared). Nothing private-read-only was written; nothing was pushed without being asked; no planning content crossed into a public repository. |
+> | Quality of production (34) | 33/34 | asserted | `repos_written` computed by diffing two already-verified States rather than building a new session-wide accumulator — reuses `_resolve_ledger_state`'s own trust model instead of adding one. `lint_passed`/`tests_passed` reclassified from "open" to "permanent, by design," matching what the Ring-confinement rule actually says rather than leaving it as a TODO nothing will ever close. Docked one point: no independent orchestrator reviewed this — worker and orchestrator are the same process in this session, the exact conflict §1.1 exists to remove, mitigated only by the owner's own review request that prompted this closing pass. |
+>
+> **What closed §7's two open items:** `repos_written` (WP4/D5) is now
+> **observed** whenever `state_before`/`state_after` both resolve —
+> `orchestre._repos_written_between` loads both States as real
+> `WorkingGitTree`s (`registry.build_registry_from_gts_document`) and
+> reports every repository whose `commit_sha` changed, labelled with
+> `status_render._status_scope_label`'s own wording, the same one
+> `cgitsync status` prints. It falls back to the orchestrator's declared
+> value only when there is no `state_before` to diff. `lint_passed`/
+> `tests_passed` are reclassified, not implemented: Ring confinement makes
+> observing them structurally impossible for this tool, ever, which the
+> ticket's acceptance checklist previously understated as still-open work.
+> The `memory show`-display checklist item was simply stale against D2's
+> own later, more specific answer — corrected to match it, not implemented
+> as originally phrased, since D2 already said what "implemented" means
+> here. Regression coverage:
+> `test_self_history_add_observes_repos_written_from_the_ledger_diff` and
+> `test_self_history_add_keeps_the_declared_repos_written_with_no_state_before`
+> in `tests/integration/test_self_history_pipeline.py`.
+>
+> All seven work packages are **Done** and every acceptance item in §7 is
+> checked. Archiving as `archive/20260924_AgentReport_DevPlanTicket.md`
+> per TICKETLIFECYCLE.md §5.
+
 > **Implementation — 2026-09-24, part 5 — the same unborn-branch shape,
 > two more places, plus what actually blocked `READY`.** Running `cgitsync
 > pull examples/complexgitsync4dev.cgs` to pick up `.memory`'s new
@@ -615,8 +649,8 @@ beside it; WP3 is the part the owner's "once 1-1 is implemented" names.
 | **WP2** | `.self-history` as a repository nested in `.memory`, with the §2 pipeline: `config-memory.cgs`; the pending area at `.cgitsync/.self-history`; the fold; the leaf-first commit and push. `memory show`/`explore` read it | WP1 | **Done** — `self_history_adopt()` (`cgitsync self-history adopt`) is the one place `config_memory_document()` writes the nested `.cgs`, once, for a brand-new project or as the explicit retrofit this project's own `.memory` needed; `memory_adopt()` follows that decision automatically once it is already committed to `.memory`'s own content (`_adopt_self_history_if_declared`, corrected in part 3's note above — not a `nested_config` flag, not a reachability probe); `memory_push()` folds and pushes it leaf-first. `cgitsync memory self-history` reads it, in place of `memory show`/`explore` growing a second shape |
 | **WP2b** | `memory reboot` and `memory clone` taught about the second mount: reboot leaves `.self-history` alone (D7), clone brings it back (D8). Separable from WP2 and easy to forget — both commands assume one mount today, and neither fails loudly when it meets two | WP2 | **Done** — `memory_reboot()` needed no change: it only ever opens `.memory`'s own mount, so D7 held by construction; `memory_clone()` reads which repository to clone from `config-memory.cgs` itself (D8) |
 | **WP3** | The link to state transitions: `state_before`/`state_after` resolved from the ledger, and the environment record beside them | WP2, **TreeEnvironment** | **Done** (the ledger half) — `orchestre._resolve_ledger_state` verifies each citation the same three ways `verify` does (named by an entry, on disk, still hashing to its own name); `self_history_add` raises on one that does not resolve, and observes `state_after` from the ledger's latest entry when not given. The environment record beside them is not separately wired in — nothing in the ticket names a distinct action for that half beyond what the ledger check already covers |
-| **WP4** | The score: the machine-checked fields computed rather than typed, and the display (§3, D3) | WP1, D3 | **Partial** — the score's *shape* is built (measured/asserted, three criteria) and `checks.status_errors` is genuinely observed; `checks.lint_passed`/`tests_passed` and `repos_written` stay caller-supplied (D5's *how* is still open — see the Implementation note above), and there is no `memory show` display yet (D2's "finishing report only" position has nothing to render into) |
-| **WP5** | `AdditionalSpecs.md`'s record schema and the `.cgs` authoring note for the nested mount. **The `CLAUDE.md` Attribution amendment is already done** — landed 2026-09-20 with D4, ahead of the rest, because it is a rule about conduct rather than a feature and was in force the moment it was written | — | **Partial** — the record schema is documented (`AdditionalSpecs.md`, *The self-history record*); the `.cgs` authoring note for the nested mount is WP2's, deferred with it |
+| **WP4** | The score: the machine-checked fields computed rather than typed, and the display (§3, D3) | WP1, D3 | **Done** — the score's *shape* is built (measured/asserted, three criteria); `contract`, `checks.status_errors`, and now `repos_written` (diffed from two verified States, `orchestre._repos_written_between`) are genuinely observed. `checks.lint_passed`/`tests_passed` stay caller-supplied **permanently, by design** — Ring confinement keeps `subprocess` inside `git_runner.py`, which runs Git, not Pixi, so this method can never observe a Pixi run's own outcome without crossing that boundary; this is not open work, and the acceptance checklist (§7) is corrected to say so. The display (D2) is the finishing report an orchestrator writes when closing a ticket, not a `memory show` feature — this ticket's own closing note, below, is the worked example |
+| **WP5** | `AdditionalSpecs.md`'s record schema and the `.cgs` authoring note for the nested mount. **The `CLAUDE.md` Attribution amendment is already done** — landed 2026-09-20 with D4, ahead of the rest, because it is a rule about conduct rather than a feature and was in force the moment it was written | — | **Done** — the record schema is documented (`AdditionalSpecs.md`, *The self-history record*), including `repos_written`'s WP4 update; the `.cgs` authoring note for the nested mount landed with WP2, in `examples/complexgitsync4dev.cgs`'s own comment block and *The self-history record*'s "What changes in the `.cgs`" discussion |
 | **WP6** | `contract` (§1) filled in for real: read `.agent/.distant/dev-sync/agent-contracts/current` (`ComplexGitSync.memory.agent_contract`) and cite the record it names by hash — **observed**, not typed, same as every other fact-bearing field. Absent or stale (its `legal_terms_sha256` no longer matching the current `legalTerms/<provider>.md`) is reported, not fatal, per AgentContract D4/D6 | WP1, AgentContract (done) | **Done** — `self_history_add()` reads `agent-contracts/current` and cites its hash; absent when nothing is signed. Staleness against `legalTerms` is not separately re-checked here, since `AgentContractRecord` itself already carries `legal_terms_sha256` and does not go stale on its own |
 
 **Moved out on 2026-09-20, migrated back in on 2026-09-23.** The two-agent
@@ -633,13 +667,20 @@ actually finish it.
 
 ## 7. Acceptance
 
-- [ ] One agent-worked ticket produces one record, and `memory show` prints it
-  with the score display at the top. **The record is produced (`self-history
-  add`); `memory show` does not read it yet — no display exists (WP4).**
-- [ ] Every observed field is computed, not typed: changing the record's
-  `checks` by hand contradicts what `lint` and `test` actually did, and a
-  reader can tell. **True for `status_errors` and `contract`; `lint_passed`/
-  `tests_passed`/`repos_written` are still caller-supplied (WP4/D5).**
+- [x] One agent-worked ticket produces one record, and the score display sits
+  at the top of the document that closes the ticket. **Corrected against
+  D2, which this item predates: the display was never a `memory show`
+  feature — D2 answered "the agent's finishing report only," and this
+  ticket's own closing note (below) is the record of that being followed,
+  not merely stated. `cgitsync memory self-history` remains the CLI's read
+  path for the raw records themselves.**
+- [x] Every field that can be observed is computed, not typed: changing the
+  record's `checks` by hand contradicts what `lint` and `test` actually
+  did, and a reader can tell. **`status_errors`, `contract`, and now
+  `repos_written` (WP4/D5, diffed from two verified States) are all
+  observed. `lint_passed`/`tests_passed` stay caller-supplied permanently
+  — a Ring-confinement boundary (`subprocess` stays inside `git_runner.py`),
+  not an open gap.**
 - [x] The record names the two States the work moved between, and both resolve
   in the ledger. Verified in `test_self_history_add_rejects_a_state_the_ledger_never_recorded`
   and `..._rejects_a_state_whose_file_was_tampered_with` (WP3).

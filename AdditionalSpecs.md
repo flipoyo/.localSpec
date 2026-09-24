@@ -1257,7 +1257,7 @@ below) leaf-first, before folding and pushing `.memory` itself.
 | `checks.status_errors` | This workspace's own `errors=` count, when a tree is loaded | **Observed** — `ComplexGitSyncClient._collect_status()` |
 | `checks.lint_passed` / `checks.tests_passed` | Whether `pixi run lint`/`pixi run test` passed | Declared — the tool cannot run Pixi itself; `subprocess` stays confined to `git_runner.py` |
 | `state_before` / `state_after` | `state(<hash>)` ids | `state_before` Declared; `state_after` **Observed** when omitted (the ledger's own most recent entry) — both **verified** against the ledger regardless of who supplied them (see below) |
-| `repos_written` | `[{repo, scope}, ...]` | Declared — no session-wide write-outcome accumulator exists yet to observe this |
+| `repos_written` | `[{repo, scope}, ...]` | **Observed** when `state_before`/`state_after` both resolve — `_repos_written_between` diffs the two States' own `commit_sha` per repo (WP4/D5); Declared otherwise (no `state_before` to diff against) |
 | `pushed` / `pushed_reason` | Whether anything reached a remote, and on whose instruction | Declared |
 | `recorded_at` | ISO timestamp, from the caller's own `ClockProtocol` — this module reads no clock | Declared, by the caller |
 
@@ -1267,7 +1267,7 @@ own optional fields use, so a record written before a field existed (or a
 record whose caller genuinely could not observe it) hashes honestly rather
 than carrying a fabricated default.
 
-### What has landed so far (AgentReport WP1, WP2, WP2b, WP3, WP6)
+### What has landed so far (AgentReport WP1, WP2, WP2b, WP3, WP4, WP5, WP6 — done, ticket archived)
 
 - `ComplexGitSyncClient.self_history_add()` and `cgitsync self-history add`
   — write one record to the pending half, filling `contract` and
@@ -1373,14 +1373,24 @@ citation is real is a ledger question, answered the way `verify` already
 answers it, never a matter of re-parsing or re-deriving something from a
 transformed document.
 
-**`repos_written` and `checks.lint_passed`/`checks.tests_passed` stay
-caller-supplied.** Making `repos_written` genuinely observed needs a
-session-wide write-outcome accumulator this client does not have today
+**`repos_written` is now observed too, when it can be (WP4/D5).** The
+session-wide write-outcome accumulator this client does not have
 (`last_write_outcomes` is overwritten by every write call, not
-accumulated); making lint/test genuinely observed would need `cgitsync`
-itself to run Pixi, which the `subprocess` confinement rule does not
-allow. Both are named here rather than silently left as an implied
-"someday" — see the AgentReport ticket's own Status column.
+accumulated) turned out to be the wrong tool for the job: `orchestre.
+_repos_written_between` diffs two already-verified States' own per-repository
+`commit_sha` instead — any repository whose commit changed between
+`state_before` and `state_after` was written, and its scope reads from the
+same `private`/`writable` flags `cgitsync status` labels a row with. No
+accumulator, no new state to keep consistent — just two `.gts` documents
+already on disk, read the same way `_resolve_ledger_state` already reads
+one. It falls back to whatever the orchestrator declared only when there
+is no `state_before` to diff against.
+
+**`checks.lint_passed`/`checks.tests_passed` stay caller-supplied,
+permanently, by design.** Making them genuinely observed would need
+`cgitsync` itself to run Pixi, which the `subprocess` confinement rule
+does not allow — not a gap this client will close later, a boundary it
+does not cross.
 
 ---
 

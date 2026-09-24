@@ -8,7 +8,7 @@
 > (unchanged) during the backlog reorganisation that promoted
 > [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
 > [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md),
-> [AgentReport](main_1-1_AgentReport_DevPlanTicket.md),
+> [AgentReport](../archive/20260924_AgentReport_DevPlanTicket.md),
 > [DiscoverRoundTrip](main_1-2_DiscoverRoundTrip_DevPlanTicket.md) and
 > [CitationRot](main_1-3_CitationRot_DevPlanTicket.md) to priority 1. This
 > ticket, [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and

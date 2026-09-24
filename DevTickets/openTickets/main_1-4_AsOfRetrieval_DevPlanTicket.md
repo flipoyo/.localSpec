@@ -23,7 +23,7 @@
 > note — `main`'s priority-1 pile ran 1..6 after that review — but three
 > tickets ahead of it changed: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
 > [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md) and
-> [AgentReport](main_1-1_AgentReport_DevPlanTicket.md) now lead as
+> [AgentReport](../archive/20260924_AgentReport_DevPlanTicket.md) now lead as
 > "finalize the agentic," and [DiscoverRoundTrip](main_1-2_DiscoverRoundTrip_DevPlanTicket.md)/
 > [CitationRot](main_1-3_CitationRot_DevPlanTicket.md) were promoted ahead
 > of this one. This ticket stays last in the pile: still ready, no owner
