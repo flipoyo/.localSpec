@@ -4,6 +4,65 @@
 
 *Branch: main*
 
+> **Implementation — 2026-09-24, part 5 — the same unborn-branch shape,
+> two more places, plus what actually blocked `READY`.** Running `cgitsync
+> pull examples/complexgitsync4dev.cgs` to pick up `.memory`'s new
+> `nested_config` (making `.self-history` a real, discovered child) hit
+> the identical crash part 4 fixed, but at a second call site: `pull`'s
+> tree-wide checkout (`operations._restart_tree`) also calls
+> `current_branch()` on every repository it visits, `.self-history`
+> included. Part 4's fix to `_push_self_history` alone never reached this
+> path. Root-caused it properly this time, in `git_runner.py` itself
+> rather than at each call site: `current_branch()` used `git rev-parse
+> --abbrev-ref HEAD`, which raises on an unborn branch; switched to `git
+> symbolic-ref --short -q HEAD`, which reads which ref `HEAD` points *at*
+> rather than what commit it names, so it answers correctly for an unborn
+> branch too (only a genuinely detached `HEAD` degrades to `None`) — this
+> single change fixes every caller, part 4's included, not only `pull`'s.
+>
+> Fixing that surfaced a second, real question underneath: with the crash
+> gone, `pull` failed cleanly instead with "restart did not produce a
+> READY tree," because `_refresh_repo_after_checkout` also calls
+> `rev_parse_head()` unconditionally, and `git_tree.py`'s `is_ready()`
+> requires a real `commit_sha` for every repository. A genuinely unborn
+> `.self-history` can never satisfy that. Put to the owner as an explicit
+> choice — give the mount a real initial commit at adopt time, or relax
+> `is_ready()`'s invariant for this one repository shape — and the owner
+> chose the former, matching the phrase used to design self-history in the
+> first place: **"empty but initiated."** `_finish_self_history_adopt` now
+> makes one `git commit --allow-empty` immediately after
+> `init_repository`, before configuring the remote or fetching, so
+> `.self-history` is never actually unborn from the moment it exists.
+> `head_commit_sha_or_none()` (new, alongside the still-raising
+> `rev_parse_head`) is what `_refresh_repo_after_checkout` uses instead,
+> for the one caller (a tree-wide checkout visiting a repository that
+> might legitimately have no commit yet) where that is a normal shape, not
+> a bug — `commit_sha: str | None` already modelled it.
+>
+> The live tree's own already-adopted `.self-history` — created before
+> this fix existed, still genuinely unborn — got the same commit applied
+> directly, through the same code (`git_runner.commit(..., allow_empty=
+> True)`), not a manual `git commit` outside `cgitsync`: `cgitsync pull
+> examples/complexgitsync4dev.cgs` now succeeds and shows `.self-history`
+> as a real, `READY`, discovered child of `.memory` in `cgitsync status`.
+> That initial commit has not been pushed to `github:flipoyo/.self-history`
+> yet — `cgitsync memory push` will send it — left for the owner to run,
+> per AgentConduct.md's own "never push without being asked."
+>
+> Regression coverage: `test_current_branch_answers_a_name_for_an_unborn_branch`,
+> `test_head_commit_sha_or_none_is_none_for_an_unborn_branch`,
+> `test_rev_parse_head_still_raises_for_an_unborn_branch`, and
+> `test_current_branch_still_raises_when_repo_directory_is_gone` in
+> `tests/unit/test_git_runner.py`, against real git repositories, not
+> fakes — the existing fake `GitRunner`s never exercise a real unborn
+> branch's actual failure mode, which is exactly how this shipped past
+> part 4's own test suite unnoticed. Part 4's own
+> `test_memory_push_after_adopt_with_nothing_pending_does_not_crash` was
+> renamed to `..._pushes_the_initiated_commit` and rewritten: the premise
+> it tested (self-history stays unborn after adopt) is no longer true, and
+> `memory push` now has exactly one real thing to do — send the initiated
+> commit — rather than nothing at all.
+
 > **Implementation — 2026-09-24, part 4 — fixes a live crash part 3 left
 > behind.** Caught on this project's own dogfooding tree, not a fixture:
 > `.self-history` was adopted for real (`cgitsync self-history adopt

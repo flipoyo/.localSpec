@@ -1297,6 +1297,29 @@ than carrying a fabricated default.
 - `ComplexGitSyncClient.memory_self_history()` and `cgitsync memory
   self-history` — every record this workspace holds, folded and pending
   merged, for consultation.
+- **"Empty but initiated" means a real commit, not an unborn branch.**
+  `_finish_self_history_adopt` gives `.self-history` one contentless
+  commit (`git commit --allow-empty`) the moment it is adopted, before
+  configuring its remote or fetching. Without it, `.self-history` was a
+  genuinely unborn branch — no commit for `HEAD` to resolve at all — which
+  crashed three different call sites the same way, in three separate live
+  incidents on this project's own tree, before `git_runner.py` itself was
+  fixed: `current_branch()` (`git rev-parse --abbrev-ref HEAD`, used by
+  `memory push`/`memory reboot`'s `_push_self_history` and by `pull`'s
+  tree-wide checkout) now asks `git symbolic-ref --short -q HEAD` instead,
+  which answers with the branch's real name for an unborn branch exactly
+  as it does for one with commits — only a genuinely detached `HEAD`
+  degrades to `None`. `head_commit_sha_or_none()` is `rev_parse_head`'s
+  sibling for the one caller (`operations._refresh_repo_after_checkout`,
+  run by `pull`'s tree-wide checkout for every discovered repository) that
+  can legitimately meet a repository with no commit yet — `git_repo.py`'s
+  `commit_sha: str | None` already modelled that state; nothing did until
+  now. `rev_parse_head` itself keeps raising for every other caller, where
+  an unresolved `HEAD` is a real bug (after a `commit`, after checking out
+  a branch already known to have one), not a normal shape. Without the
+  initial commit, `.self-history` would still crash nothing, but could
+  never make a tree `READY`: `git_tree.py`'s `is_ready()` requires a real
+  `commit_sha` for every repository it holds.
 - **`state_before`/`state_after` verified against the ledger, not merely
   shape-checked (WP3).** `orchestre._resolve_ledger_state` asks the same
   three questions `verify`'s own `MISSING_STATE`/`STATE_DIGEST_MISMATCH`
