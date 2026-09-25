@@ -86,7 +86,7 @@ The authoritative execution results are reported with the Phase 6 change set.
   found for ComplexGitSync: expected one of ['lMOLO', 'lMOLO']` — the
   duplicate is the declared/fallback pair collapsing onto one hand-typed
   string. Tracked as
-  [PrivateLocalBranchAtClone](DevTickets/openTickets/main_1-6_PrivateLocalBranchAtClone_DevPlanTicket.md).
+  [PrivateLocalBranchAtClone](DevTickets/openTickets/main_1-5_PrivateLocalBranchAtClone_DevPlanTicket.md).
 - No other open finding is outstanding as of this rewrite. This section is
   a live log, not a fixed list — add a bullet here as soon as a real
   decision or risk surfaces, and remove it once resolved.

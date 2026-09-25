@@ -4,6 +4,30 @@
 
 *Branch: main*
 
+> **Implementation — 2026-09-25 — all six work packages land in one
+> change; archiving.** `scripts/spec_tree.py` (WP-1/WP-3): the link
+> graph, `--check` (broken links, orphans), bare-filename-in-prose
+> detection via the same-directory-sibling rule D2 settled on. `pixi run
+> check-spectree` (WP-2, D4) plus `tests/unit/test_spec_tree.py`, wired
+> into `pixi run test` the same way `test_module_ceilings.py` already
+> wires in the ceiling ratchet — 14 fixture tests (broken link, orphan,
+> bare filename resolved/not-resolved, cross-link cycle, upstream vs.
+> writable broken links, three digest-citation failure shapes) plus two
+> tests against this repo's own real tree. `--flatten` and `digest.md`
+> (WP-4, D3/D5): the digest is hand-written, 15 rules, `--check-digest`
+> verifies every citation resolves inside the reachable graph. `CLAUDE.md`
+> now links and instructs loading `digest.md` in full (WP-5). §6 tracks
+> which work package delivered what; §7's acceptance criteria all hold —
+> `pixi run check-spectree`/`pixi run test`/`pixi run lint` all pass,
+> `cgitsync status` shows `errors=0`. One real, pre-existing gap the tool
+> found along the way and fixed: `audit.md` cited a since-renumbered
+> ticket by its old rank (`main_1-6` → `main_1-5`); one it found and
+> correctly did **not** try to fix: `TICKETLIFECYCLE.md`
+> (`.agent/.distant/ticket/`, shared and read-only) has a broken
+> `DOCSTYLE.md` link of its own — reported by `--check`, not failed,
+> exactly as D-none-of-the-above intended for a mount this project cannot
+> edit; belongs to `flipoyo/.ticketing`'s own maintainer.
+
 > **Owner direction — 2026-09-25, in conversation, following a live
 > incident (§1):** *"Write a ticket on the specs loading issue. We must
 > optimise the access to specs for you. Maybe we can think about a python

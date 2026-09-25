@@ -421,6 +421,37 @@ Imports: comma-separated internal modules, or "none"
 list against the module's real `from .x import ...` statements when both
 are non-trivial — keep them in sync rather than let the header rot.
 
+### Spec tree
+
+`scripts/spec_tree.py` (`pixi run check-spectree`, and folded into
+`pixi run test` via `tests/unit/test_spec_tree.py` the same way
+`check_module_ceilings.py` is) applies the ceiling ratchet's own idea —
+"checked in CI, not trusted by eye" — to the spec documents themselves
+rather than to `src/`. `main_1-7_SpecTree_DevPlanTicket.md` has the
+design in full; in short:
+
+- **The graph.** Nodes are `DECLARED_SPEC_FILES` — a hand-maintained list
+  of rule/spec documents, not a glob over every `.md` under `.agent/`
+  (that would pull in a mounted documentation repository's own theme
+  docs and every planning ticket). Edges are markdown links, resolved
+  relative to the linking file, plus backtick-quoted bare filenames
+  resolved only against a same-directory sibling (the real gap the
+  ticket found: `CLAUDE.md`'s own `AGENT.md` mention has no markdown
+  link at all).
+- **`--check`.** Fails on a broken link whose *source* this project can
+  edit, and on any declared spec unreachable from `CLAUDE.md` by any
+  chain of edges — an orphan. A broken link sourced from
+  `.agent/.distant/` (shared, read-only) is reported, never a failure:
+  this project cannot fix another repository's own prose.
+- **`digest.md`** (`.agent/.local/.localSpec/digest.md`) — every
+  `MUST`/`NEVER` rule in the tree, one line each, hand-written, citing
+  its source. `CLAUDE.md` instructs every session to load it in full;
+  the full discursive specs stay behind the ordinary lazy, pointer-based
+  reading model. `--check-digest` verifies every citation still resolves
+  inside the reachable graph — it cannot verify a line still says what
+  its source currently says, which stays this file's own editorial
+  upkeep.
+
 ### Commit discipline
 
 One concern per commit — `DELETE`/`MOVE`/`CHANGE` never mixed in the same
