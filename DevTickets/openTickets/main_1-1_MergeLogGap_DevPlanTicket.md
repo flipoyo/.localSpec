@@ -9,6 +9,13 @@
 > instruction to analyse the case rather than patch around it silently.
 > §1-§2 are the diagnosis; §3 is the correction plan; §4 is the tutorial
 > update the plan owes.
+>
+> Drafted 2026-09-27 from code reading, then quoted the same day in a dry
+> orchestration run — read-only, no code changed, the owner's own conflict
+> left untouched — which confirmed §2.1, corrected an overclaim in §2.2,
+> and added §2.3's evidence and three findings that reshaped WP2 and WP4.
+> `CLAUDE.md`'s pair rule does not require a second pass over a ticket
+> draft (drafting is orchestration work already); this one was asked for.
 
 ## Abstract — read this first
 
@@ -48,13 +55,15 @@ quiet log directory is not proof nothing needed to be recorded there.
 **What you will find.** §1 the incident, reproduced from the real run. §2
 root cause, in two independent parts: (A) log persistence is gated on a
 call every failure path skips by definition — general, not merge-specific,
-though merge is where it is hit hardest; (B) `merge()` itself (unlike
-`merge_into()`, `checkout()`, `commit()`, `pull()`, …) never calls that
-write at all, success included, so a plain merge leaves both no on-disk
-log and a `.gts` snapshot stale about the very `HEAD`s it just moved. §3
-four work packages. §4 the tutorial update this ticket owes —
-`04_private_repos.md`, not `05_memory.md` (§4 explains why). §5 acceptance
-criteria.
+though merge is where it is hit hardest; (B) `merge()` itself never calls
+that write at all, success included, so a plain merge leaves both no
+on-disk log and a `.gts` snapshot stale about the very `HEAD`s it just
+moved — and §2.2 names the two other commands that skip it too, which this
+ticket's first draft wrongly claimed merge was alone in. §2.3 the dry
+orchestration run: the on-disk proof of the mechanism, and three findings
+that change WP2 and WP4. §3 four work packages. §4 the tutorial update
+this ticket owes — `04_private_repos.md`, not `05_memory.md` (§4 explains
+why). §5 acceptance criteria.
 
 **Who it is for.** Whoever picks up `autofix`/`operations.py` work next —
 a peer workstream to
@@ -187,10 +196,22 @@ the situation an owner reaches for `autofix` over.
 `write_gts_snapshot(...)` call anywhere in the method. Its sibling
 `merge_into()` (`orchestre.py:3512`, `cgitsync merge --into`) calls
 `write_gts_snapshot(command_origin="merge-into")` at line 3564,
-immediately after its own `git.merge_into(...)` — the same pattern every
-other tree-mutating command follows (`checkout`, `commit`, `pull`,
-`branch`, …). Plain `merge` is the one command in that family that skips
-it entirely.
+immediately after its own `git.merge_into(...)`.
+
+**Corrected by the §2.3 dry run — `merge` is not unique here, and the
+first draft of this ticket said it was.** Enumerating the client's own
+write commands for a `write_gts_snapshot` call in the body gives:
+`pull` (3092), `checkout` (3251), `branch` (3290), `close_branch` (3310),
+`commit` (3351), `merge_into` (3512) and `push` (3876) all write one;
+`merge` (3472), `add` (3793) and `tag` (3925) do not. What makes `merge`
+the consequential one of those three is not that it is alone but that it
+is the only one that moves `HEAD`: `add` touches the index only, so there
+is no committed fact for a State to record and the `commit` that follows
+writes one anyway. `tag` creates a ref, so whether its omission is a gap
+depends on whether a `.gts` records tags at all — an open question WP1
+should answer deliberately rather than leave to whoever notices next,
+since a fix shaped only around `merge` will leave `tag` with the same
+shape and no guidance.
 
 That means a **successful** plain merge — the common case, not only the
 conflicting one the owner hit today — never flushes its own log to disk
@@ -205,14 +226,82 @@ asymmetry with plain `merge` is only that a *successful* `merge --into`
 does get logged and recorded, where a successful plain `merge` never
 does, regardless of outcome.
 
+### 2.3 What the dry orchestration run verified
+
+This ticket was drafted from code reading alone. A separate dry
+orchestration pass (read-only; no code changed, nothing merged, the
+owner's own conflict left untouched) re-checked every claim above against
+this tree. §2.1 and §2.2 hold, §2.2 needed the correction folded in above,
+and the run produced the on-disk proof the draft was missing plus three
+findings the draft did not have.
+
+**The mechanism, now proved on disk and not only inferred.**
+`.cgitsync/logs/` on this tree holds exactly **one** file,
+`push-20260927T143325538632Z.log`, whose single `command_end` record reads
+`status="ok"`, `error=None`. The owner's four commands — `status`,
+`merge --all` (refused), `autofix`, `merge --resolve` — left no log file
+whatsoever. So `find_last_error` had precisely one file to read, belonging
+to an unrelated `push` that had succeeded, and returning `None` from it
+was the only answer available to it. The supporting claims check out
+exactly: `bind_log_file` has one production caller in the whole codebase
+(`orchestre.py:6372`, inside `write_gts_snapshot`; the only other two
+references are test stubs, see below), and `CommandRunLogger` is
+constructed in exactly one place (`orchestre.py:448`, inside
+`create_run_logger`) with no `log_path` argument — so `log_path is None`
+for every run until a snapshot is written.
+
+**Finding 1 — why a green test suite coexists with this bug, which WP4
+must not repeat.** The only two tests that exercise log-file creation are
+both named `test_pull_command_creates_log_file`
+(`tests/unit/test_cli_smoke.py:1032`, `tests/unit/test_cli_expert.py:266`),
+and each uses a `StubClient` whose `pull()` method **calls
+`bind_log_file` itself**. They therefore prove that
+`_run_with_logging` prints `log_file=` when *something* binds a path —
+never that production ever binds one, least of all on a failure path. The
+one production caller sits inside `write_gts_snapshot`, which no stub in
+either test ever reaches. A regression test for WP2 that stubs
+`bind_log_file` the same way would pass against the unfixed code.
+
+**Finding 2 — a dead function already holds a stale answer to WP2's main
+design question.** `_resolve_log_dir` (`orchestre.py:451`) has zero
+callers anywhere in `src/` or `tests/`. It is also the only thing that
+would have consumed `create_run_logger`'s `project_root` and
+`project_log_dir` parameters, which are accepted and silently dropped — so
+a `.cgs` setting `project.log_dir`, dutifully read by
+`cli/_shared.py::_create_command_logger` via
+`document.read("project.log_dir")` and passed down, has no effect at all.
+This is leftover from moving logs into the tree's own `.cgitsync/logs/`
+(a move `test_initialise_command_gts_does_not_write_external_log_file`,
+`test_cli_smoke.py:1017`, pins by asserting the external XDG location
+stays unused). Minor on its own, but WP2 has to decide where to bind a log
+at `command_start`, and it should delete or revive this function
+deliberately rather than leave two answers in the tree.
+
+**Finding 3 — WP2's sequencing constraint, which the draft glossed over.**
+The filename production uses, `{command_origin}-{timestamp}.log`, is built
+*inside* `write_gts_snapshot` from `cgitsync_dir`, which is resolved from
+the loaded registry. WP2 wants to bind at `command_start` —
+`_run_with_logging` logs that before `runner(...)` has loaded anything, so
+the registry is not available yet. What *is* available that early is
+`resolved_source`, the resolved source path, which for a `.gts` under the
+state area gives `.cgitsync/` by walking up, but for a `.cgs` source does
+not (a `.cgs` need not live inside the tree at all — `CLAUDE.md`'s
+*Layout* is explicit that where a `.cgs` lives never affects the tree it
+describes). WP2 must settle this rather than improvise it: either resolve
+CGSHOME up front the way `snapshot_resolver` already does for the banner
+the CLI prints before any work, or keep the buffer and flush it from a
+`finally` once the path is known. `_run_with_logging` has no `finally`
+today — its `except` logs and re-raises — so the second option is a real
+change to that function's shape, not a one-liner.
+
 ## 3. Correction plan
 
 | WP | Touches | Deliverable |
 |---|---|---|
 | **WP1** | `orchestre.py::merge`, `operations.py::merge_tree`/`merge_into_tree` | Closes Part B's success-path half. **Preferred shape, not a bare duplicate call:** `merge()` memorizes the tree's own current branch (CWB, the same value `git_tree_branch.py` already exposes) and reuses `merge_into`'s "checkout target, then merge, then `write_gts_snapshot`, all in one process" path with `target_branch=CWB` — one code path instead of two, matching this codebase's own single-implementation rule (`git_branch.py`, `parse_repo_id()`; digest.md, *Architecture — single-implementation rules*). **Load-bearing caveat, checked against the code, not assumed:** `_run_preflight_checks`'s `check_branch_alignment` flag is `True` by default everywhere and `merge_into_tree` is documented as the *one* caller that sets it `False` (`operations.py:1802-1806`: *"for `merge_into_tree` alone... every other caller leaves it at the default... stays enforced for all of them"*), because `merge_into`'s whole job is moving repositories that are not yet aligned to the target. Plain `merge` relies on that alignment check as a real precondition today. Routing it through `merge_into_tree` unchanged would silently drop that check for the plain-merge path — a repo sitting on the wrong branch would get checked out and merged into instead of refused up front. So WP1 must thread `check_branch_alignment` through as a parameter (`merge_into_tree(..., check_branch_alignment=True)` for plain merge's own call, `False` only for `merge --into`'s), not inherit the relaxed default. If threading that parameter through turns out more invasive than it is worth, fall back to the minimal version — a direct `write_gts_snapshot(command_origin="merge")` call added to `merge()` itself, duplicating rather than reusing `merge_into`'s path — and say so in the closing report rather than silently picking one. |
-| **WP2** | `orchestre.py::CommandRunLogger`/`create_run_logger`, `cli/_shared.py::_run_with_logging` | Closes Part A, the half that actually matters for this incident: bind a log path (or otherwise guarantee the buffered lines reach a file) at `command_start`, before any state-mutating work happens, instead of only at the end of a successful `write_gts_snapshot`. A `command_end`/`status="error"` logged on the exception path must reach disk unconditionally — WP1 alone still leaves a *refused* merge invisible, since a refusal is precisely the path that never reaches `write_gts_snapshot`. |
+| **WP2** | `orchestre.py::CommandRunLogger`/`create_run_logger`/`_resolve_log_dir`, `cli/_shared.py::_run_with_logging` | Closes Part A, the half that actually matters for this incident: guarantee the buffered lines reach a file whatever the outcome, instead of only at the end of a successful `write_gts_snapshot`. A `command_end`/`status="error"` logged on the exception path must reach disk unconditionally — WP1 alone still leaves a *refused* merge invisible, since a refusal is precisely the path that never reaches `write_gts_snapshot`. **Settle §2.3's Finding 3 first**, because it decides the shape: binding at `command_start` requires a path that is knowable before the registry loads, which `resolved_source` gives for a `.gts` under the state area and does not give for a `.cgs` source; the alternative is keeping the buffer and flushing from a `finally` in `_run_with_logging`, which has no `finally` today. Also resolve §2.3's Finding 2 in passing — delete `_resolve_log_dir` or revive it — so the tree stops holding two answers to "where does a log go", and either honour `project.log_dir` or stop reading it in `cli/_shared.py`. |
 | **WP3** | `autofix/repair_from_cli.py`, a new `autofix/repair_merge_conflict.py` | Once WP2 makes the error text reach disk, teach `autofix` to actually recognise it: a `MergeConflictRepair` (or an extension to `FromCliRepair`'s matching) that pattern-matches the persisted `"merging '{branch}' conflicts"` text (`operations.py::_describe_merge_conflict`, line 888) and reports back the conflicting repositories/paths `can_merge_cleanly` (`git_runner.py:369`/`888`) already collected — pointing the owner at `merge --resolve` and the conflicted paths directly, rather than only ever being able to answer "no failing command found" for this class of situation. |
-| **WP4** | `tests/`, `.agent/.local/.localSpec/AdditionalSpecs.md` | A regression test reproducing this incident end to end: a small tree with one leaf repo built to conflict, `merge` refused, `autofix` run immediately after (no `error=` given explicitly, exactly as the owner ran it) must find and name the conflict rather than raising `NoMatchingRepairError`. A second test for WP1: a successful plain `merge` produces a `.gts` snapshot and a persisted log file. Update the `operations.py`/`autofix/` rows in `AdditionalSpecs.md`'s architecture table for the new snapshot call and the new repair, per `CLAUDE.md`'s before-committing checklist item 6. |
+| **WP4** | `tests/`, `.agent/.local/.localSpec/AdditionalSpecs.md` | A regression test reproducing this incident end to end: a small tree with one leaf repo built to conflict, `merge` refused, `autofix` run immediately after (no `error=` given explicitly, exactly as the owner ran it) must find and name the conflict rather than raising `NoMatchingRepairError`. A second test for WP1: a successful plain `merge` produces a `.gts` snapshot and a persisted log file. **Neither test may stub `bind_log_file`** — per §2.3's Finding 1 that is exactly how the two existing `test_pull_command_creates_log_file` tests pass against the broken code, and a third test of that shape would too. The assertion has to be that a file exists under the real `.cgitsync/logs/` after a command the test let fail for real. Update the `operations.py`/`autofix/` rows in `AdditionalSpecs.md`'s architecture table for the new snapshot call and the new repair, per `CLAUDE.md`'s before-committing checklist item 6. |
 
 WP1 and WP2 are independent and both required: WP1 without WP2 fixes the
 *successful*-merge staleness (Part B) but leaves every refusal exactly as
@@ -274,7 +363,14 @@ you build, in the same change) — not deferred to a follow-up.
   command found" (WP3).
 - The real incident in §1 is covered by a regression test, plus one for a
   successful plain merge now producing a snapshot and a persisted log
-  (WP4).
+  (WP4) — and neither test stubs `bind_log_file`, so both would fail
+  against today's code (§2.3, Finding 1).
+- `tag`'s missing snapshot write (§2.2) is decided deliberately — fixed, or
+  recorded as correct with the reason — not left as an unremarked
+  second instance of the same shape.
+- Exactly one answer to "where does a run log go" remains in the tree:
+  `_resolve_log_dir` is deleted or revived, and `project.log_dir` is either
+  honoured or no longer read (§2.3, Finding 2).
 - `tutorials/04_private_repos.md` documents a refused merge, the
   now-working `autofix` path, and the `--resolve`-with-no-mergetool
   by-hand fallback; `tutorials/05_memory.md` is confirmed unchanged
