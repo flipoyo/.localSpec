@@ -310,6 +310,68 @@ leaves a successful plain merge still not recording its own `HEAD`
 moves into a fresh snapshot. WP3 has nothing to match against until WP2
 lands.
 
+## 3.1 What was implemented, 2026-09-27
+
+Worker pass by Opus. `pixi run lint` clean, `pixi run test` 1701 passed /
+5 skipped, `cgitsync status` `errors=0` on this tree.
+
+| WP | Landed as |
+|---|---|
+| WP1 | `orchestre.py::merge` reads the tree's own branch once via `GitTreeBranches.tree_branch` (CWB), names it in `merge_start`/`merge_end` as `into_branch`, and calls `write_gts_snapshot(command_origin="merge")`. **Took the ticket's own documented fallback, not the reroute — see below.** |
+| WP2 | `CommandRunLogger.ensure_log_file(logs_dir)` binds a log when nothing else has, called from `cli/_shared.py::_run_with_logging`'s exception path; `_run_logs_dir` answers Finding 3 (registry root first, snapshot path second, `None` rather than a guess). `_resolve_log_dir` deleted and `project.log_dir` no longer read, closing Finding 2. |
+| WP3 | `autofix/repair_merge_conflict.py` (98 LOC), registered second in `FromCliRepair._REGISTRY` behind the narrower `DivergentUserRepair`. Diagnoses only; re-checks with `can_merge_cleanly` rather than trusting the log line. |
+| WP4 | `tests/unit/test_cli_shared.py` (3 tests, none stubbing `bind_log_file`), `tests/integration/test_merge_conflict_autofix.py` (5 tests, real Git). `CLAUDE.md`'s `autofix/` and `orchestre.py` rows updated — `AdditionalSpecs.md` has no `autofix/` row to update, contrary to what WP4 assumed. |
+
+**WP1 took the fallback, and here is why** — the ticket asked for this to be
+said rather than silently chosen. Rerouting plain `merge` through
+`merge_into_tree` would have broken a *different* documented invariant:
+`CLAUDE.md`'s `operations.py` row states that "`merge_status` is the single
+place a repository's fate is decided, so the dry run and the merge cannot
+disagree". `merge --dry-run` decides through `merge_status`; `merge_into_tree`
+decides through `merge_into_status`. Rerouting only the real merge would leave
+the two disagreeing, and rerouting the dry run as well changes its
+user-visible statuses (`already-on-it` becomes `already-merged`,
+`fast-forward` appears) — past the "more invasive than it is worth" line WP1
+drew. The `check_branch_alignment` threading WP1 identified is still the right
+first step whenever that collapse is attempted; it is not needed by what
+landed, since `merge_tree` keeps its own preflight untouched.
+
+The CWB half of the request is implemented regardless: `merge` no longer
+leaves its target implicit in whatever `HEAD` happens to be. It reads the
+branch once, up front, and records it — which is what makes `merge b`
+≡ `merge b --into <CWB>` true in the record rather than only in the help text.
+
+**`tag` keeps its missing snapshot write, deliberately** (§2.2's open
+question). A State holds what the workspace *is* — tree-relative paths, refs,
+commits, who each repository is — and creating a tag moves no `HEAD` and
+changes no repository's current ref: it is still on the branch it was on. A
+State written after `tag` would therefore hash identically to the one already
+recorded, so it would not be a new State at all. `add` is the same case one
+step earlier (index only, and the `commit` that follows writes one). `merge`
+was the real gap precisely because it is the only one of the three that moves
+`HEAD`.
+
+**One user-visible message changed.** `operations.py::_describe_merge_conflict`
+now names the branch in both its forms — `project: merging 'feature' conflicts
+in prose.txt`, where it used to print `project: prose.txt` whenever git blamed
+a file. Found by WP3's own test: the branch was previously named *only* when
+git blamed no file, so the most common refusal never said what was being
+merged — unusable for the repair, and no better for a person reading a
+four-repository refusal. `tests/unit/test_operations.py`'s
+`test_the_error_names_every_conflicting_file_under_its_repository` was updated
+to the new form; the guarantee it protects is unchanged.
+
+**Ceiling baselines raised with the owner's approval** (`AdditionalSpecs.md`,
+*Ceilings*, reserves this to them): `repair_from_cli.py` 112→114,
+`operations.py` 1770→1777, `cli/_shared.py` 604→612, `orchestre.py`
+5794→5842, plus `repair_merge_conflict.py`'s own first entry at 98. All far
+inside the standing ~1000 LOC allowance; nothing else in the baseline moved.
+
+**Still owed, and not the worker's to do** (`CLAUDE.md`, *The pair rule*): an
+independent orchestrator quoting this work against the before-committing
+checklist, `pixi run bump-version`, and the `cgitsync self-history add`
+record. The archive move below belongs in the commit that finishes it.
+
 ## 4. Tutorial update
 
 The instruction behind this ticket asks for an update to "the merging
