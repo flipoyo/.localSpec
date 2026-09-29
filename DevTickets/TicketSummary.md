@@ -8,8 +8,8 @@ Summary of all open planning tickets: what each ticket tackles, ranked by curren
 
 ## main_1 — Priority 1: Core Robustness (Merge-First)
 
-### main_1-3: MergeUX
-`merge --resolve` opens VS Code but is never mentioned; `can_merge_cleanly` silently fails on remote-only branches (WP1, the blocker); and VS Code detection only fires on `$DISPLAY` (misses Wayland/SSH). Six work packages: fix ref resolution, add `--resolve` hint to refusals, restructure autofix advice, widen VS Code detection, add tree-wide resolve loop, fix cgitsync commit refusing resolved merges.
+### main_1-3: InitialiseNonGitRoot
+`install.cgs` is fine (adding `relative_path = "."` changes nothing). `initialise` never clones the root, and when CGSHOME is not a git checkout it clones the other repos anyway, then fails with a message that names nothing. Plan: refuse up front and point at `bootstrap`, drop the misleading "Try clean-init" hint, document the root-must-exist rule.
 
 ### main_1-4: AutofixCommitHygiene
 `cgitsync autofix` starts from the last logged error, but a mangled commit message (shell substitution) succeeds at the Git level — never becomes an error, never caught. Four work packages to detect commit hygiene failures without relying on Git's exit code, diagnose shell-quote damage, and let autofix help when a message got corrupted in transit.
