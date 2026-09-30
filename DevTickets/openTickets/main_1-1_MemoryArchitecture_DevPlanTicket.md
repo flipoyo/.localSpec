@@ -39,6 +39,18 @@
 > cite it. [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) is
 > the one piece of this design still active and stays on `memory-dev`.
 
+> **Audit — 2026-09-30.** This ticket designs and builds nothing, so
+> "implementing" it means making its §6 acceptance true and keeping the
+> document honest about what landed. Done in this pass: §1's words are now
+> in `AdditionalSpecs.md`'s *Memory vocabulary* section, *the hash-chained
+> register* is renamed *the hash-chained ledger* everywhere it meant the
+> ledger (the specs, the `memory/` docstrings, the `verify` help text, the user guide, the API guide and two tests; the first pass missed the line-wrapped and bare uses and an independent review found them), and §3 and §6
+> below carry the status of each decision and each acceptance item. **It
+> stays open**, as §6 says it must: M6 ([Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md))
+> has not landed, and two decisions below (D1 and D4) landed
+> in code differently from what this ticket recommended and need the
+> owner's word, not an agent's.
+
 ## Abstract — read this first
 
 **The one-line version.** What a workspace remembers should outlive the
@@ -300,6 +312,13 @@ The ledger is small and grows by one entry per operation. States are whole
 | Everything, always | Simplest to explain and unbounded in size: a year of `status` calls is a year of snapshots |
 | Ledger only | Smallest, and it throws away the ability to restore a tree from its memory, which is half the reason to keep one |
 
+> **D1 status — 2026-09-30: landed differently from the recommendation, awaiting the owner.**
+> `memory push` folds and pushes **everything** pending — the ledger, States,
+> run logs and Environment records (`_FOLD_SUBDIRS = lgr, state, logs, env`, plus commit logs folded separately) —
+> the first row below's alternative, "Everything, always". There is no
+> per-State policy. Whether that is acceptable, or a policy should bound what
+> a busy workspace pushes, is still the owner's call.
+
 ### D2. One memory repository per project, or one for all?
 
 **Answered by the owner, 2026-09-16: one for all** — `flipoyo/.memory`,
@@ -351,6 +370,14 @@ measure. Pushing a ledger entry per `status` call is noise; pushing only
 per `freeze` may lose the intermediate history that makes a chain worth
 keeping.
 
+> **D4 status — 2026-09-30: landed differently from the recommendation, awaiting the owner.**
+> A sync is never a daemon and is always a command someone typed, but it is
+> not only `memory push`: `push`, `tag` and `freeze` each fold and send the
+> memory first (`PushFoldsMemory`, archived), so a project push publishes it
+> too. Offline is unaffected: the fold commits locally whatever the network
+> does, and a failed send only warns. A memory the `.cgs` does not declare is
+> never pushed at all (`DefaultUserMemory`).
+
 ### D5. What may a memory contain?
 
 This is the one that must be settled before anything leaves the machine.
@@ -366,6 +393,12 @@ or truncated, because rewriting somebody's words is the one thing a record
 must not do. What is forbidden is the machine around them: no absolute
 path, no OS user name, no diff. A memory says what happened and what it was
 called; it is not a second copy of the repository.
+
+> **D5 status — 2026-09-30: landed, and met.** A State records exactly one
+> machine path, the tree's own root; everything else is `$CGSTREE/...`. There
+> is no `actor` field in a ledger entry. Command arguments are scrubbed before
+> they are hashed or written (`ArgvScrubber`, *The hash-chained ledger*), and
+> commit messages are stored as written.
 
 ### D6. How much toolchain does an entry carry, and what does it cost?
 
@@ -581,3 +614,21 @@ code:
 It stays open until the last milestone lands, because it is the one
 document a reader should be able to open to find out what the memory system
 is.
+
+### 6.1 Status of each item — 2026-09-30
+
+| Item | Status | Evidence |
+|---|---|---|
+| §1's four definitions in `AdditionalSpecs.md`, none contradicted in `src/` | **Met** | *Memory vocabulary* section; the one word that meant three things (*register*) now means only the legacy `.lgr`, and every docstring that said *hash-chained register* for the ledger now says *ledger* |
+| §3's decisions answered by the owner, reasoning kept | **Partly** | D2, D3 and D6 answered by the owner; D5 met in code; **D1 and D4 landed differently from the recommendation and are awaiting the owner** (status lines above) |
+| The milestone tickets exist and name this file | **Met** | M1–M5, M7–M13 are archived with their work; M6 is [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md), open on `memory-dev` |
+| Each states what it does not do | **Not re-audited** | Every archived milestone carries its own scope section; this pass did not reread all twelve |
+| Last milestone landed | **No** | M6 is stand-by until its D1 is answered; hence this ticket stays open |
+
+### 6.2 Direction added 2026-09-30
+
+The owner's rule — every memory local first, a tree holding no private
+repository a USER tree whose memory is never synced, one holding any a DEV
+tree whose memory is — is §2.3's new direction. Its USER half landed with
+`DefaultUserMemory`; [UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md)
+builds the rest.

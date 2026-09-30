@@ -319,8 +319,8 @@ human-readable summary.
 | `errors.py` | 0 | The package's public exception hierarchy. |
 | `git_repo.py` | 0 | Per-repository identity types, state enumerations, provider registry, remote-URL construction. Also `RepoScope`, the one definition of which repositories a tree-wide command may touch: `private` marks a repository that configures the project rather than being it, shared with the author's other projects, read-only unless the `.cgs` entry adds `writable = true`. `RepoScope.includes` reads `effective_private`/`effective_writable`, the flags after `git_tree.propagate_privacy` has pushed each parent's privacy down; the declared `private`/`writable` are what gets serialized. `RepoScope` does not know about the memory mount, and since `memory-dev_WorkingTransitionState` (2026-09-17) nothing else needs to either: the mount sits at `.cgitsync/.memory`, one level inside the workspace's own live state area (`.cgitsync` itself — States, the ledger, logs), so it is an ordinary private/writable repository everywhere — `add`/`commit`/`push`/`pull`/`merge`/`tag`/`freeze-release` all reach it the same way they reach `.localSpec`/`.claude`, with no scope exclusion, no preflight exemption, and no `WorkingRepo` field marking it out. Only `memory push`'s own fold (`orchestre._fold_memory_pending`) ever writes into its worktree, moving `.cgitsync`'s pending `lgr`/`state`/`logs`/`commit-logs`/`.cgs` into the mount before committing — which is what makes the mount reliably clean the rest of the time. `memory push` still bypasses the ordinary write-scope refresh (it commits directly via `git_runner`, not through `commit_tree`/`push_tree`), so `orchestre.write_gts_snapshot` separately re-reads the mount's actual `commit_sha`/branch — read-only, every State, regardless of which command triggered it (`orchestre._refresh_memory_mount_state`, `memory-dev_MemoryRecordedRefresh`) — or `status`'s `HEAD ending with *` marker would appear the first time `memory push` moved it and never clear again. |
 | `git_branch.py` | 0 | The single owner of the `.cgs` branch fallback chain (`fallback_branch` → `default_branch` → `project.default_branch` → `DEFAULT_BRANCH`) and of the privacy rule that decides what a repository targets under a tree-wide branch move. A pure resolver: declared fields in, a `BranchResolution` (branch, `RefKind`, and the `BranchSource` that answered) out. Holds no tree, no root and no privacy *state* — `git_tree.py` owns those, and `git_tree_branch.py` owns branch state the same way (which branch the tree is on, and which branch each repository is actually on). Also owns the private/local naming rule: `private_local_branch` composes `<project name>` on `main` and `<project name>_<branch>` otherwise, and `PRIVATE_LOCAL_SEPARATOR` never leaves this module — `tests/unit/test_git_branch.py` fails if either escapes, the same guard the `"main"` literal already has. `resolve_propagated_ref` now answers three cases, not two: a project repo follows the move, private/distant never moves, private/local takes the derived branch. |
-| `ledger_entry.py` | 0 | Hash-chained register-entry construction and canonicalisation (pure chain math). |
-| `integrity.py` | 0 | `Finding` taxonomy and `ChainVerifier.verify` — pure arithmetic checks over a register-entry sequence. |
+| `ledger_entry.py` | 0 | Hash-chained ledger-entry construction and canonicalisation (pure chain math). |
+| `integrity.py` | 0 | `Finding` taxonomy and `ChainVerifier.verify` — pure arithmetic checks over a ledger-entry sequence. |
 | `json_render.py` | 0 | The machine-readable shape of what a command reports — `status`, `verify`, and the error object a JSON-capable command prints when it fails — with `SCHEMA_VERSION` and the serialiser. One module for every command's shape, so field names are decided once rather than re-invented per command, and `cli/` carries none of them. Separate from `status_render.py` on purpose: that renders one table for humans, where a column can be renamed when the wording improves; a JSON field cannot, because something is parsing it. The promise is **additive only**. See `.agent/.local/.localSpec/DevTickets/archive/20260916_CliContract_DevPlanTicket.md`. |
 | `status_render.py` | 0 | Pure text rendering for `cgitsync status`'s repository table, including the `SCOPE` column. That column is where the developer vocabulary is translated for end users: `private` reads as **private**, `writable` as **local**, private read-only as **distant**, and a repo that is not private as **project**. `_status_scope_label` is the only place that mapping lives; it reads the effective flags, so a repo nested in a private one is labelled like its parent. Docs, tutorials and CLI output use the user words; code, docstrings and this table keep `private`/`writable`. |
 | `config_document.py` | 0 (+ Ring-1 adapter) | Pure `ConfigDocument` base — dict wrapping, dot-path reads, the `validate()` hook. |
@@ -519,7 +519,7 @@ split it.
 > **Never hand-edit anything under `.cgitsync/`.** If a workspace's state
 > looks wrong, fix it by running the normal lifecycle commands again, or —
 > once wired into real use — `cgitsync verify --repair`, which only ever
-> repairs the `HEAD` cache and never rewrites or deletes a register entry.
+> repairs the `HEAD` cache and never rewrites or deletes a ledger entry.
 > An agent that corrupts `.cgitsync/` by hand and doesn't notice is the
 > realistic worst case in this workflow.
 
@@ -900,6 +900,35 @@ for clone/pull operations.  It is also exported from the public package API.
 
 ---
 
+## Memory vocabulary
+
+The words below are fixed (`MemoryArchitecture`, §1) and mean one thing each
+everywhere in the code, the specs and the docs. The word **register** is the
+one that used to mean three things; it now means only the legacy file.
+
+| Word | What it is | Where it lives |
+|---|---|---|
+| **State** | One `.gts` snapshot: what the tree contained at one moment, named by the hash of its content | `.cgitsync/state/<hash>.gts` |
+| **Ledger** | The ordered, hash-chained record of when each State was seen, by which tool versions, and what Environment it ran in. Older text calls it *the hash-chained register*; it is the same thing | `.cgitsync/lgr/` |
+| **Commit log** | What one State's commits said, and whether each was published | `.cgitsync/commit-logs/` |
+| **Environment** | What machine and tools a State was observed on, content-addressed, beside the State it names | `.cgitsync/env/` |
+| **Memory** | One project's States, Ledger, Commit logs and Environments — everything `.cgitsync/` holds, folded into a repository | `.cgitsync/` (pending) and `.cgitsync/.memory` (the repository) |
+| **Journal** | The distant record where several developers' memories of one project would meet. Not built; `Omniscience` is its design | its own repository, on another account |
+| **Register** | Only the legacy single-file `<project>.lgr` (next section), read but no longer written | the workspace root or `.cgitsync/` |
+
+**Pending and folded.** Every command writes into `.cgitsync/` (*pending*).
+`memory push` folds the pending content one level down into `.cgitsync/.memory`
+and commits it there (*folded*); `PendingMemory` reads both as one. Only the
+fold ever writes into `.memory`'s worktree, which is why `merge` and `checkout`
+can treat it like any other private/local repository.
+
+**Local first, for everyone.** A memory is always a local repository before it
+is anything else. A `.cgs` that declares no memory gets one made locally
+(`orchestre/default_memory.py`), which is never pushed; a memory the `.cgs`
+declares is pushed to the remote it names. A memory holds no absolute path and
+no user name: paths are written against the tree as `$CGSTREE/...`, and commit
+messages travel exactly as written (`MemoryArchitecture`, D5).
+
 ## Local Git Register and Sync Ledger (`.lgr`)
 
 Each project maintains a project-local register file named `<Project_name>.lgr`.
@@ -980,7 +1009,7 @@ of two.
 
 **A State is named by what it contains; the ledger is ordered by time.**
 Those are the two halves, and each keeps out of the other's business: a
-State says *what* a workspace held, an entry in the register says *when* it
+State says *what* a workspace held, an entry in the ledger says *when* it
 was seen and by what. Being seen twice is two entries pointing at one
 name, which is why nothing counts occurrences in a file name any more.
 
@@ -1069,9 +1098,9 @@ rename, so a reader never sees a half-written snapshot.
 
 ---
 
-## The hash-chained register: schema, storage and threat model
+## The hash-chained ledger: schema, storage and threat model
 
-**This is the register ComplexGitSync writes.** One file per entry under
+**This is the ledger ComplexGitSync writes.** One file per entry under
 `.cgitsync/lgr/`, hash-chained, appended to by every command that writes a
 State. The single-file `.lgr` described in the section above is the older
 format: still read — every workspace created before this holds one — and no
@@ -1133,7 +1162,7 @@ has to rewrite an entry to remove one.
 
 ### Threat model, and the rule that follows from it
 
-The register is **tamper-evident, not tamper-proof**. Anyone who can write
+The ledger is **tamper-evident, not tamper-proof**. Anyone who can write
 the files can edit them; the chain's job is to make that visible.
 
 Two consequences, both load-bearing:
@@ -1144,7 +1173,7 @@ Two consequences, both load-bearing:
   self-consistent among themselves still describe a history nobody can
   vouch for.
 - **`verify` never heals.** `--repair` corrects the untrusted `HEAD` cache
-  and nothing else. Entries are never rewritten or deleted: a register that
+  and nothing else. Entries are never rewritten or deleted: a ledger that
   can be edited back into looking clean is evidence of nothing.
 
 ### What the chain is checked against
@@ -1650,13 +1679,13 @@ CLI display requirements:
 | Workstream | Branch | Ticket filename prefix |
 |---|---|---|
 | Everything else | `main` | `main_` |
-| Memory — a change that **migrates a stored memory format**: the state area's layout, the register/ledger schema, or the distant reference ledger | `memory-dev` | `memory-dev_` |
+| Memory — a change that **migrates a stored memory format**: the state area's layout, the ledger schema, or the distant reference ledger | `memory-dev` | `memory-dev_` |
 | Data — the `DataManager` layer, the DVC backend, `data_backend`/`data_paths`, and data materialisation and publication | `data-repo` | `data-repo_` |
 
 **A change that migrates a stored memory format is developed on
 `memory-dev`.** The memory work was seven dependent milestones — see the
 MemoryArchitecture ticket in [DevTickets/openTickets/](DevTickets/openTickets/) — that between them renamed
-the state area, rewrote the register, moved code into a new `memory/`
+the state area, rewrote the ledger, moved code into a new `memory/`
 package and added a network protocol. Interleaving those with releases on
 `main` would put a half-migrated memory format in front of users, and the
 one thing this project cannot afford to corrupt by accident is the record
@@ -1851,7 +1880,7 @@ before-committing checklist — not a release step.
 
 The release register the owner asked for is the Ledger: a release is one
 ledger entry carrying an additive `release` field (`memory/ledger_entry.py`
-— see *The hash-chained register*, below, for the field's schema), written
+— see *The hash-chained ledger*, below, for the field's schema), written
 automatically by `ComplexGitSyncClient.freeze_release()` from the currently
 installed `__version__`/`__build__` and the release tag name the caller
 gave it. Tamper-evidence is then free: the field is inside the same hash

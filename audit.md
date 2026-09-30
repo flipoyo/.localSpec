@@ -36,7 +36,7 @@ The authoritative execution results are reported with the Phase 6 change set.
 ## Open decisions / risks
 
 - `ledger_entry.py`/`integrity.py`/`ledger_store.py` implement the
-  hash-chained register's mechanics, but `SyncLedger`'s actual write path
+  hash-chained ledger's mechanics, but `SyncLedger`'s actual write path
   (backing `cgitsync verify`) is not yet wired to them — tracked here until
   that wiring lands, rather than left implicit in the module table it used
   to live next to.
