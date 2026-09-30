@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, after InstallFrontier.** Renumbered `main_1-2` → `main_1-1`: [InstallFrontier](../archive/20260930_InstallFrontier_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > **Ticket review — 2026-09-30, after ModulePackagisation.** Renumbered `main_1-3` → `main_1-2`: [ModulePackagisation](../archive/20260930_ModulePackagisation_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > Opened from `shortTickets/memory-install.md` (owner, 2026-09-30):
@@ -19,7 +21,7 @@
 > is a DEV privilege."*
 >
 > Filed under the owner's third structural goal, beside
-> [InstallFrontier](main_1-1_InstallFrontier_DevPlanTicket.md): *publishing a
+> [InstallFrontier](../archive/20260930_InstallFrontier_DevPlanTicket.md): *publishing a
 > memory is a DEV privilege* is a behavioural difference between the two
 > install configurations, which is what that goal is about. Kept separate
 > because InstallFrontier already merges three tickets and seven work packages.
@@ -125,7 +127,7 @@ project already owns, and any other choice buys a rename at exactly the
 moment the user is doing something unfamiliar. Reusing `memory_branch()` also
 keeps `git_branch.py` the only implementation of the naming rule, which
 `CLAUDE.md` requires and which
-[InstallFrontier](main_1-1_InstallFrontier_DevPlanTicket.md) §2.2 shows is
+[InstallFrontier](../archive/20260930_InstallFrontier_DevPlanTicket.md) §2.2 shows is
 already violated once. D2.
 
 ## 4. Work packages
@@ -146,14 +148,14 @@ module is one of its 13) and
 [ModulePackagisation](../archive/20260930_ModulePackagisation_DevPlanTicket.md),
 both landed: WP2 and WP3 edit `orchestre/memory_commands.py` (about 1800
 lines, the largest of the split) rather than the old 6955-line file.
-Independent of [InstallFrontier](main_1-1_InstallFrontier_DevPlanTicket.md)'s
+Independent of [InstallFrontier](../archive/20260930_InstallFrontier_DevPlanTicket.md)'s
 code, though they answer the same question about what an install produces.
 
 ## 5. Decisions
 
 | D | Question | Recommendation | Whose call |
 |---|---|---|---|
-| **D1** | When is a defaulted memory created — at `initialise`/`bootstrap`, or lazily on the first command that would record something? | **Lazily, on the first write.** Creating a git repository inside someone's tree during an install they did not ask questions about is a surprise; creating it the first time there is genuinely something to remember is explainable in one line of output. It also keeps a refused `initialise` from leaving a repository behind — which is exactly the harm [InstallFrontier](main_1-1_InstallFrontier_DevPlanTicket.md) WP1 is about. | **Owner** |
+| **D1** | When is a defaulted memory created — at `initialise`/`bootstrap`, or lazily on the first command that would record something? | **Lazily, on the first write.** Creating a git repository inside someone's tree during an install they did not ask questions about is a surprise; creating it the first time there is genuinely something to remember is explainable in one line of output. It also keeps a refused `initialise` from leaving a repository behind — which is exactly the harm [InstallFrontier](../archive/20260930_InstallFrontier_DevPlanTicket.md) WP1 is about. | **Owner** |
 | **D2** | The defaulted branch name: `memory_branch()` as today, or something simpler? | **`memory_branch()`**, per §3 — no rename when a user later publishes, and no second implementation of the naming rule. | **Owner** |
 | **D3** | A user adds a remote to their defaulted memory by hand. Does `memory push` then push it? | **No, not until the `.cgs` declares it.** "Publishing is a DEV privilege" is the owner's rule, and the `.cgs` is where an intention to publish is stated. A remote found on a memory the `.cgs` does not declare is reported, not obeyed. | **Owner** |
 | **D4** | Does a defaulted memory record self-history? | **No.** `.self-history` is the agent-accounting record, its fields defined by the AgentReport ticket, and it is developer machinery. A user memory records states, ledger entries and environments — what *their* workspace did. | **Owner** |

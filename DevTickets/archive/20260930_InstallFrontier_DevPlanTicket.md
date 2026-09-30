@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Implemented 2026-09-30.** All seven work packages landed as specified. D1 (refuse, point at `bootstrap`), D2 (no `.cgs` beside a State, pushed leftovers untouched and ignored by `verify`), D3 (a disagreeing hand-typed `default_branch` on a `private, writable` entry is rejected by name), D4 (a `.gts` whose commit a remote no longer holds is refused before cloning) and D5 (`settings.UseCase` is obeyed by `initialise`; the suite injects the nested case at `Installer._use_case_of`, no user flag) were all followed as recommended. New client method `initialise_gts`; released as a minor.
+
 > **Ticket review — 2026-09-30, after ModulePackagisation.** Renumbered `main_1-2` → `main_1-1`: [ModulePackagisation](../archive/20260930_ModulePackagisation_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Merged and renumbered in the priority-1 reorganisation of 2026-09-30**,

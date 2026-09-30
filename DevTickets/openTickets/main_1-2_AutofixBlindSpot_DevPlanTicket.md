@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, after InstallFrontier.** Renumbered `main_1-3` → `main_1-2`: [InstallFrontier](../archive/20260930_InstallFrontier_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > **Ticket review — 2026-09-30, after ModulePackagisation.** Renumbered `main_1-4` → `main_1-3`: [ModulePackagisation](../archive/20260930_ModulePackagisation_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Diagnosis ticket**, opened from a live incident on this project's own
@@ -13,7 +15,7 @@
 
 > **Renumbered 1-4 → 1-6 and narrowed in the priority-1 reorganisation of
 > 2026-09-30** (1-4 → 1-5 in that pass, then → 1-6 when
-> [DefaultUserMemory](main_1-2_DefaultUserMemory_DevPlanTicket.md) took 1-5). The old WP1 — validating a commit message *before*
+> [DefaultUserMemory](main_1-1_DefaultUserMemory_DevPlanTicket.md) took 1-5). The old WP1 — validating a commit message *before*
 > committing it — moved to
 > [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) WP4, with the
 > digest work, because preventing bad agent output is one subject and

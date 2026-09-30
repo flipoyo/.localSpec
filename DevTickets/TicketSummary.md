@@ -14,29 +14,22 @@ priority 2.
 
 | Goal | Tickets |
 |---|---|
-| **2. Constrained agentic behaviour** — no more week-long failures | 1-3 AutofixBlindSpot (AgentGuardrails, its other half, is done and archived) |
+| **2. Constrained agentic behaviour** — no more week-long failures | 1-2 AutofixBlindSpot (AgentGuardrails, its other half, is done and archived) |
 | **1. Class-first package, CLI-only public exposure** | none open: ClassFirstPackage and ModulePackagisation are both done and archived |
-| **3. A clear nested/standalone frontier** | 1-1 InstallFrontier, 1-2 DefaultUserMemory |
+| **3. A clear nested/standalone frontier** | 1-1 DefaultUserMemory (InstallFrontier, its other half, is done and archived) |
 
-### main_1-1: InstallFrontier
-Three owner-reported bugs that are one problem: nothing says which install mode a command belongs to. `initialise` half-builds a tree when the root is not a checkout; the branch rule has a privacy-blind implementation that runs before the first clone and a privacy-aware one that runs after, so a private/writable dependency fails with `No cloneable branch found`; neither command can absorb a `.gts`; and every State-writing command stores a `.cgs` beside the snapshot. Plan: `initialise` = nested, `bootstrap` = standalone, each refusing and naming the other; one branch rule; both inputs; a State is a `.gts`. **WP1–WP2 are a few lines and may land immediately.**
-
-### main_1-2: DefaultUserMemory
+### main_1-1: DefaultUserMemory
 `install.cgs` mounts no private repository by design, so a user install has a `.cgitsync/` that accumulates states, logs and ledger entries with **no `.memory` repository to fold them into** — the record exists and can never become one. Plan: create it automatically, locally, with no remote, on the first command that records something; the `.cgs` overrides the default; the branch is the one `memory_branch()` already computes, so publishing later needs no rename; and a defaulted memory is never pushed, because publishing is a developer's privilege. Branch `main`, not `memory-dev`: this only adds a default, it migrates no stored format.
 
-### main_1-3: AutofixBlindSpot
+### main_1-2: AutofixBlindSpot
 `autofix` starts from the last logged error, and a commit whose message was mangled by the shell raises none — `git commit` succeeded. Plan: a second, non-error-driven `Situation` source that inspects a repository's tip commit directly. Ranked last because AgentGuardrails' commit-message check removes the common path (a commit made *by* `cgitsync`); this ticket covers what it cannot reach, a bare `git commit` outside the tool.
 
 ### Sequencing
 
-Three tickets landed in order: AgentGuardrails, then ClassFirstPackage, then ModulePackagisation. `orchestre/` and `operations/` are packages now, and `cli/expert.py` is the only module left over 2000 lines (exempt, recorded in `scripts/oo_conformance_baseline.json`).
+Four tickets landed in order: AgentGuardrails, ClassFirstPackage, ModulePackagisation, then InstallFrontier (the nested/standalone frontier is enforced: `initialise` and `bootstrap` each refuse the other's job by name, both take a `.cgs` or a `.gts`, and a State is a `.gts` only).
 
-1. **1-1 WP1–WP2 may jump the queue** — the owner's reported failure, a few lines, independent of everything else.
-2. **1-1 WP7 edits `orchestre/installer.py`** (about 600 lines) rather than the old 6796-line file; the split it was waiting for has landed.
-3. **1-2 DefaultUserMemory** edits `orchestre/memory_commands.py`; its class-work dependency (`memory/repository.py`) is already satisfied.
-4. **1-3 last.**
-
-The dependency worth watching: 1-1 and 1-2 both touch what an install produces. Keep them from being in flight at the same time.
+1. **1-1 DefaultUserMemory** edits `orchestre/memory_commands.py`; its class-work dependency (`memory/repository.py`) is already satisfied, and the install path it touches now has the frontier rule to build on.
+2. **1-2 AutofixBlindSpot last.**
 
 ## main_2 — Priority 2: Architecture & Long-Term
 
@@ -92,7 +85,7 @@ configurations — kept out of 1-4, which already merges three tickets.
 the stale-citation check are one job in the right order. `shortTickets/` is
 now empty.
 
-**ModulePackagisation archived 2026-09-30**, compacting the priority-1 ranks a third time (1-2..1-4 became 1-1..1-3). **AgentGuardrails archived 2026-09-30**, after the priority-1 ranks were compacted (1-2..1-6 became 1-1..1-5). **ClassFirstPackage archived the same day**, compacting them again (1-2..1-5 became 1-1..1-4).
+**InstallFrontier archived 2026-09-30**, compacting the priority-1 ranks a fourth time (1-2..1-3 became 1-1..1-2). **ModulePackagisation archived 2026-09-30**, compacting the priority-1 ranks a third time (1-2..1-4 became 1-1..1-3). **AgentGuardrails archived 2026-09-30**, after the priority-1 ranks were compacted (1-2..1-6 became 1-1..1-5). **ClassFirstPackage archived the same day**, compacting them again (1-2..1-5 became 1-1..1-4).
 
 **AsOfRetrieval moved to main_2-5.** It serves none of the three goals, is
 built on machinery that already exists, blocks nothing, and nothing waits

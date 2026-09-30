@@ -85,6 +85,7 @@ file to match, in the same change that noticed the drift.
 
 ## Architecture — single-implementation rules
 
+- `initialise` is the nested install and `bootstrap` the standalone one; each refuses the other's job by name before touching the disk. — `AdditionalSpecs.md` §The install frontier
 - `.gts` prevails over `.cgs`: a hand-edited `.cgs` must never widen write access behind an attested snapshot. — `AdditionalSpecs.md` §Architectural Overview
 - `parse_repo_id()` in `cgs_format.py` is the only repo-identifier parser in the codebase. — `CLAUDE.md` §Architecture boundary
 - `git_branch.py` is the only implementation of the `.cgs` branch fallback chain and the privacy rule. — `CLAUDE.md` §Architecture boundary
