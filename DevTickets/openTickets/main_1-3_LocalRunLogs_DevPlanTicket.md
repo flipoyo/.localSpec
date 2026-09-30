@@ -16,6 +16,12 @@
 > deleted (D1 below), so no stored memory is migrated; only what the next
 > fold takes changes.
 
+> **Decisions answered by the owner — 2026-09-30. Ready to implement.**
+> D1: leave the run logs already pushed where they are. D2: keep the last
+> 200 run logs locally, deleting the oldest on each new run. Both as
+> recommended; §4 records them and the work packages below include D2's
+> bound.
+
 ## Abstract — read this first
 
 **The one-line version.** `memory push` moves `.cgitsync/logs/` into the
@@ -65,8 +71,9 @@ those directories moves into the mount on every `memory push`, and on every
 
 - `logs` leaves the fold. Run logs stay in `.cgitsync/logs/` and are never
   committed into the memory repository.
-- `.cgitsync/logs/` becomes a plain local directory with no history. How it
-  is kept from growing without bound is D2.
+- `.cgitsync/logs/` becomes a plain local directory with no history, bounded
+  to the 200 most recent run logs (D2): each new run deletes the oldest
+  beyond that.
 - Nothing else changes: the ledger, States, Environment records and commit
   logs are folded and pushed exactly as today (MemoryArchitecture D1, as
   answered by the owner).
@@ -76,22 +83,25 @@ those directories moves into the mount on every `memory push`, and on every
 | WP | Touches | Deliverable |
 |---|---|---|
 | **WP1** | `orchestre/client.py` | Remove `logs` from `_FOLD_SUBDIRS`. |
+| **WP1b** | `orchestre/command_run_logger.py`, `orchestre/document_loader.py` | **The bound (D2).** When a run log is created — both writers: `CommandRunLogger` and `write_gts_snapshot`, whose file names start with the command, not the time — delete the oldest `*.log` files in `.cgitsync/logs/` beyond the 200 most recent, by modification time, never touching the one just created. Put the rule in one place both call. Failure to delete only warns, like every other recording failure. The number is one named constant. |
 | **WP2** | `memory/pending.py`, `memory_commands.py` | Anything that reads run logs from the folded half as well as the pending one keeps working for the logs already folded, and stops expecting new ones there. |
-| **WP3** | `tests/` | After `memory push`, `.cgitsync/logs/` still holds the run logs and the mount gains none; `autofix` still finds a failure logged before a `push` that folded the memory. |
+| **WP3** | `tests/` | After `memory push`, `.cgitsync/logs/` still holds the run logs and the mount gains none; `autofix` still finds a failure logged before a `push` that folded the memory; with 205 logs present, a new run leaves exactly 200, the newest ones. |
 | **WP4** | `AdditionalSpecs.md` (*Memory architecture*, *Memory vocabulary*), `tutorials/05_memory.md`, `docs/Text/user_guide.tex` | Say that run logs are local and never pushed. |
 
-## 4. Decisions
+## 4. Decisions — answered by the owner, 2026-09-30
 
-| D | Question | Recommendation | Whose call |
-|---|---|---|---|
-| **D1** | The run logs already folded into a memory repository: leave them, or remove them in a commit? | **Leave them.** Removing them rewrites nothing, but it is a change to published content for no gain, and leaving them is what keeps this off `memory-dev`. | Owner |
-| **D2** | Local run logs now accumulate with no fold to empty the directory. Bound them? | **Keep the last N (say 200) and delete older ones** on each new run, the same way a shell history is bounded. `autofix` only ever needs the most recent. | Owner |
+| D | Question | Owner's answer |
+|---|---|---|
+| **D1** | Run logs already folded into a memory repository: leave or remove? | **Leave them.** Nothing already published is moved or deleted, which keeps this ticket on `main`. |
+| **D2** | Bound the local run logs? | **Keep the last 200**, deleting the oldest on each new run. `autofix` only ever needs the most recent. |
 
 ## 5. Acceptance
 
 - A `memory push` commits no new file under `logs/` into the memory
   repository; `.cgitsync/logs/` still holds every run log written since.
 - `autofix` finds the failing command after a `push` that folded the memory.
+- `.cgitsync/logs/` never holds more than 200 run logs after a run, and the
+  ones kept are the most recent.
 - The ledger, States, Environment records and commit logs are folded and
   pushed exactly as before; `verify` passes on this project's own tree.
 - `pixi run lint`, `pixi run test`, `cgitsync status` with `errors=0`,

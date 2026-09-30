@@ -15,13 +15,13 @@ owner's idea — a memory is always local; a USER tree holds no private
 repository, a DEV tree does and syncs its memory — was adopted.
 
 ### main_1-1: UserDevProfile
-New, from the owner's idea. A tree holding no private repository is USER, one holding any is DEV, read off `effective_private` in one place; `status` prints `profile=user|dev`; a DEV tree with no memory entry is told its memory is not synced. Four owner decisions (where the rule lives, warn vs refuse, shared vs per-developer memory branch, whether a read-only private makes a tree DEV).
+New, from the owner's idea. A tree holding no private repository is USER, one holding any is DEV, read off `effective_private` in one place; `status` prints `profile=user|dev`; a DEV tree with no memory entry is told its memory is not synced. Decisions answered 2026-09-30: rule in `git_tree.py`; any private repository makes a tree DEV; one shared memory branch; and a DEV tree with no memory is offered, in a terminal, to create one (provider, owner, name asked, repository created with `gh`/`glab`/`tea`, entry added to the `.cgs`), otherwise warned that its work has no memory back-up.
 
 ### main_1-2: UserInstallPath
 One install command for someone evaluating the tool, without Pixi or a clone. A user install must stay a USER tree: no private repository, local memory only.
 
 ### main_1-3: LocalRunLogs
-From the owner's answer to MemoryArchitecture's D1: a memory push keeps sending the ledger, States, environments and commit logs, but the run logs stay local. Also fixes a real gap: a fold moves the logs `autofix` reads out of its reach.
+From the owner's answer to MemoryArchitecture's D1: a memory push keeps sending the ledger, States, environments and commit logs, but the run logs stay local. Also fixes a real gap: a fold moves the logs `autofix` reads out of its reach. Decisions answered 2026-09-30: logs already pushed stay; local logs are capped at the last 200.
 
 ## main_2 — Priority 2
 

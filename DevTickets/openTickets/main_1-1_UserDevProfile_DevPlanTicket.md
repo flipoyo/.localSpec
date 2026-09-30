@@ -22,6 +22,16 @@
 > `AdditionalSpecs.md`'s *Memory architecture* section (formerly the MemoryArchitecture ticket) carries
 > the strategy as architecture.
 
+> **Decisions answered by the owner — 2026-09-30. Ready to implement.**
+> D1 `git_tree.py`; D3 one shared branch; D4 any private repository makes a
+> tree DEV — all as recommended. **D2 was answered differently and is the
+> largest part of the work:** a DEV tree with no declared memory is *offered a
+> fix*, not only warned — cgitsync asks for the provider, the owner and the
+> repository name, proposes creating the repository with the provider's own
+> tool, and adds the entry to the `.cgs`; only if all of that fails or is
+> declined does it warn that the work has no memory back-up and no global
+> ledger record. §5 holds the answers verbatim; WP3 is rewritten to match.
+
 ## Abstract — read this first
 
 **The one-line version.** Every workspace's memory is a local repository
@@ -75,7 +85,8 @@ graph TD
    push` and by the fold `push`/`tag`/`freeze` already run.
 4. **The `.cgs` still names the remote.** Being DEV says the memory *should*
    be synced; the declared `.memory` entry says *where*. A DEV tree with no
-   memory entry has nowhere to sync to, and is told so (D2).
+   memory entry has nowhere to sync to, so cgitsync offers to set one up and,
+   failing that, warns (D2).
 
 This is a second axis, independent of the install frontier. `UseCase`
 (`STANDALONE`/`NESTED`, `settings.py`) says where the running ComplexGitSync
@@ -88,7 +99,7 @@ A standalone install can be DEV and a nested one USER.
 |---|---|
 | "Published" means "the `.cgs` declares a memory" (`DefaultMemory.declared`) | Unchanged as the *where*; the profile adds the *whether* |
 | Nothing says whether a tree is a user's or a developer's | `status` prints `profile=user` or `profile=dev` in its summary line, and `status --json` carries it (additive field) |
-| A DEV tree without a memory entry silently gets a local-only default | It still gets one (the record is never lost), and `status`/`memory status` say it is a DEV tree whose memory is not synced, with the entry to add |
+| A DEV tree without a memory entry silently gets a local-only default | It still gets one (the record is never lost). The first recording command offers, in a terminal, to create and declare a memory repository; without a terminal, or once declined, it warns instead (D2) |
 | A USER tree that declares a memory entry is impossible to tell apart | Impossible by construction: a memory entry is itself private, so declaring one makes the tree DEV |
 
 ## 3. Why this makes the multi-person case easier
@@ -113,23 +124,34 @@ removes half of it:
 
 | WP | Touches | Deliverable |
 |---|---|---|
-| **WP1** | `git_repo.py` or `git_tree.py` (D1) | One place that answers USER or DEV for a loaded tree, from `effective_private`. No second copy of the rule anywhere. |
+| **WP1** | `git_tree.py` (D1) | One place that answers USER or DEV for a loaded tree, from `effective_private`. No second copy of the rule anywhere. |
 | **WP2** | `status_render.py`, `json_render.py`, `orchestre/` | `profile=user|dev` in the `status` summary line and an additive `profile` field in `status --json`. |
-| **WP3** | `orchestre/default_memory.py`, `memory status` | On a DEV tree with no declared memory, `memory status` says the memory is not synced and prints the entry to add (D2). On a USER tree, today's notice is unchanged. |
+| **WP3a** | `orchestre/memory_commands.py` (or a small new collaborator if the size ratchet requires it) | **The proposal, as data.** A client method, say `memory_setup_proposal()`, returning for a DEV tree with no declared memory: provider (default `github`), owner (guessed — see D2), repository name (default `.memory`), the `.cgs` entry `MemoryRepository.mount_entry` would add, and the creation command `provider.py` would run (`gh` for GitHub, `glab` for GitLab, `tea` for Codeberg — the mapping `cgitsync repo create` already uses). Pure answer, no side effect, no prompt. |
+| **WP3b** | `orchestre/`, reusing `repo_create`, `add_memory_repo_cgs`, `memory_adopt` | **The fix, as one call.** A client method, say `memory_setup(provider, owner, name)`, that runs the three existing steps in order — create the repository with the provider's tool, add the entry to the `.cgs` (edited as text, comments kept), adopt the local default memory (`memory adopt` already does this: it discards only the default's `.git` and recommits the folded files as found, so every record is kept though the local commits are not) — and stops at the first failure, reporting which step failed and what was left done. No new transport, no credential read by cgitsync. |
+| **WP3c** | `cli/` | **The questions, in a terminal only.** On the first recording command in a DEV tree with no declared memory, if stdin and stdout are a terminal and neither `--json` nor a non-interactive mode is in force: ask provider, owner and name with the WP3a defaults pre-filled, show the creation command, ask for confirmation, then call WP3b. The same call is also a command of its own, `cgitsync memory setup [--provider] [--owner] [--name]`, so the warning in WP3d can name it and a user can run it later; it goes in the README command table, `docs/Text/user_guide.tex` and, as a client method, `docs/Text/api_python.tex`. The answer "no" is remembered in `.cgitsync/` so the question is asked once; later runs only warn. |
+| **WP3d** | `orchestre/default_memory.py`, `memory status`, `status` | **The warning, everywhere else.** Without a terminal (CI, `--json`, a Python caller), after a declined proposal, or after WP3b failed: warn, in plain words, that *this work has no memory back-up and no global ledger record of the contribution*, and print the exact commands that fix it. `memory status` always says so on such a tree. A USER tree's notice is unchanged. |
 | **WP4** | `AdditionalSpecs.md`, `CLAUDE.md`, README, `tutorials/05_memory.md`, `docs/Text/user_guide.tex` | State the rule once in `AdditionalSpecs.md` (a section beside *The install frontier*), point at it from the others. |
 | **WP5** | `tests/` | A tree from `install.cgs` is USER; this project's developer tree is DEV; a tree whose only private repository is read-only is DEV; `--json` carries the field; a USER memory is never pushed and a DEV memory with an entry is. |
 
-**Order.** WP1 → WP2 → WP3 → WP4 → WP5. WP1 is the whole rule; everything
-else only reports it.
+**Order.** WP1 → WP2 → WP3a → WP3b → WP3c → WP3d → WP4 → WP5. WP1 is the
+whole rule; WP3a–d are D2's answer; the CLI (WP3c) only collects answers and
+calls WP3b, per the CLI-mirrors-the-API rule.
 
-## 5. Decisions
+## 5. Decisions — answered by the owner, 2026-09-30
 
-| D | Question | Recommendation | Whose call |
-|---|---|---|---|
-| **D1** | Where does the rule live? | `git_tree.py`, beside `propagate_privacy`: the profile is a fact about the whole tree, computed from the privacy state that module already owns. `git_repo.RepoScope` is about which repositories one command may write, a different question. | Owner |
-| **D2** | A DEV tree with no memory entry: warn, or refuse to record? | **Warn.** Refusing would lose the record, which is worse than an unsynced one; the default local memory keeps it until the entry is added and `memory adopt` runs. | Owner |
-| **D3** | Two developers on one project branch: one shared `.memory` branch (today, repaired by `autofix`), or one branch per developer? | **Keep one shared branch for now**; the per-developer question belongs to Omniscience, which this ticket narrows but does not answer. | Owner |
-| **D4** | Does a read-only private repository alone (a `distant` mount) make a tree DEV? | **Yes.** The owner's words are "a USER holds no private at all"; any private repository, writable or not, is configuration only a developer mounts. | Owner |
+| D | Question | Owner's answer |
+|---|---|---|
+| **D1** | Where does the rule live? | **`git_tree.py`**, beside `propagate_privacy` (as recommended). |
+| **D2** | A DEV tree with no memory entry: warn, or refuse? | **Propose a fix.** In the owner's words: *"a DEV tree without memory declared in .cgs must propose a fix, by adding a memory repo in cgs. cgitsync should ask who is the GitProvider (default github), the owner (can be guessed by the cgs and the other repo, ie the main owner of private repos, or the owner of the project repos if no more info), and the repo name (.memory by default) — cgitsync propose the automatic creation of the repo with the appropriate gh or glab command (for github and gitlab, check if there is one for codeberg). If everything fails, warn the DEV that there is no memory back-up for his work, and therefore no global ledger records of the contribution."* Codeberg: `tea`, which `provider.py` already maps it to. |
+| **D2a** | …and when it cannot ask (no terminal, CI, `--json`, a Python caller)? | **Warn only**, with the exact commands that fix it. No prompt, no silent creation. |
+| **D2b** | …and when is the proposal made? | **On the first recording command** in such a tree. A declined proposal is remembered in `.cgitsync/`; afterwards only the warning is shown. |
+| **D3** | Two developers on one project branch? | **One shared `.memory` branch** (as recommended); divergence stays `autofix`'s job, the per-developer question stays Omniscience's. |
+| **D4** | Does a read-only private repository alone make a tree DEV? | **Yes, any private repository** (as recommended). |
+
+**Owner guess, precisely (D2).** The most frequent owner among the tree's
+private repositories (by `effective_private`); if there is none or a tie
+cannot be broken, the owner of the project's root repository; if that is
+unknown too, no default is offered and the question must be answered.
 
 ## 6. Acceptance
 
@@ -138,7 +160,15 @@ else only reports it.
   `errors=0`.
 - `status --json` carries `profile`, and no existing field changed.
 - A USER memory is never pushed; a DEV memory with a declared entry is
-  pushed exactly as today; a DEV tree without one is warned, not refused.
+  pushed exactly as today; a DEV tree without one is offered the fix in a
+  terminal and warned everywhere else, never refused.
+- In a terminal, accepting the proposal on a fresh DEV tree ends with the
+  repository created by the provider's tool, the entry in the `.cgs` with
+  its comments intact, and the local default memory adopted with every record;
+  the test fakes the provider tool, no network call is made.
+- Declining is asked once; the next recording command only warns. Without a
+  terminal, no question is ever asked.
+- The owner guess follows D2's rule, with a test for each of its three cases.
 - The rule is stated once, in `AdditionalSpecs.md`, and the digest carries
   one line for it.
 - `pixi run lint`, `pixi run test`, `pixi run bump-build` per `src/` change;
