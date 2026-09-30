@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Implemented 2026-09-30.** `operations.py` and `orchestre.py` are now the packages `operations/` and `orchestre/`; `ComplexGitSyncClient` keeps its 93 public method signatures and every name callers imported. D1 was settled the other way from the recommendation: `Orchestre` was kept, as the small holder of the one `GitTree`, because callers reach the tree as `client.orchestre.git_tree` and no test may be edited. D2 (composition) and D3 (`cli/` exempt) were followed. Three test files changed, two of them the previous ticket's own tests, for a moved path or a renamed example. Released as a patch: no command, flag, exit code or `--json` field changed, and the README says `src/ComplexGitSync/` is not a public interface.
+
 > **Ticket review — 2026-09-30, after ClassFirstPackage.** Renumbered `main_1-2` → `main_1-1`: [ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **State after ClassFirstPackage (implemented 2026-09-30).** Its step in the

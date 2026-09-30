@@ -4,7 +4,7 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-30, after ClassFirstPackage.** Renumbered `main_1-5` → `main_1-4`: [ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+> **Ticket review — 2026-09-30, after ModulePackagisation.** Renumbered `main_1-4` → `main_1-3`: [ModulePackagisation](../archive/20260930_ModulePackagisation_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Diagnosis ticket**, opened from a live incident on this project's own
 > tree, per the owner's instruction to correct what happened and write up
@@ -13,7 +13,7 @@
 
 > **Renumbered 1-4 → 1-6 and narrowed in the priority-1 reorganisation of
 > 2026-09-30** (1-4 → 1-5 in that pass, then → 1-6 when
-> [DefaultUserMemory](main_1-3_DefaultUserMemory_DevPlanTicket.md) took 1-5). The old WP1 — validating a commit message *before*
+> [DefaultUserMemory](main_1-2_DefaultUserMemory_DevPlanTicket.md) took 1-5). The old WP1 — validating a commit message *before*
 > committing it — moved to
 > [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) WP4, with the
 > digest work, because preventing bad agent output is one subject and
@@ -155,7 +155,7 @@ to guess* — whenever the last recorded command there succeeded.
 Two independent gaps compound here, either one enough on its own:
 
 - **A commit made outside `cgitsync` is invisible to it.** `cgitsync
-  commit` (`orchestre.py:3285`) takes `message: str` as a real Python
+  commit` (`orchestre/tree_commands.py`, `TreeCommands.commit`) takes `message: str` as a real Python
   argument — no shell involved, no backtick hazard — and logs
   `commit_start`/`commit_end` events. A plain `git commit -m "..."`, run
   directly against a mounted repository the way this incident's commit
@@ -181,7 +181,7 @@ something is wrong is to read the *result* — the tip commit's own message
 |---|---|---|
 | **WP1** | `autofix/base.py`, a new `autofix/repair_commit_message.py` | A second, non-error-driven entry point: `FromCliRepair` (or a sibling dispatcher) gains a mode that inspects the *tip commit* of every writable/project repository directly — `git log -1 --format=%B` — rather than only `.cgitsync/logs/*.log`. `Situation` gains an optional `commit_message: str \| None` alongside `source_error`, so a `Repair.matches()` can pattern-match on either source without every existing repair needing to change. `MalformedCommitMessageRepair.matches()` flags a message that violates AgentConduct §2's shape or looks shell-mangled (a bare word where a backtick-quoted phrase would be — heuristically, a bare `` `<runnable-name>` `` reduced to something matching `git rev-parse --abbrev-ref HEAD`'s own output space, i.e. an existing branch name, is the strongest signal this incident actually offers; a run of two consecutive spaces where a phrase silently substituted to empty is the second). |
 | **WP2** | `autofix/repair_commit_message.py`, `git_runner.py` | `repair()` offers a corrected message (reconstructed from context where recoverable, otherwise asks the caller to supply one) via `git commit --amend -m <message>` — but only after checking the commit is not already the same as its upstream (mirroring `clone_guard.py`'s "which commits does no remote hold" question in reverse: here the concern is a commit *is* already shared). A commit whose ref matches its remote's is amend-and-force-push territory — hard-to-reverse, shared-state — so `repair()` must refuse by default and require an explicit `force=True` the caller only sets after the owner has actually said yes, the same posture `initialise_cgs`'s `force_reclone` already uses for a comparably destructive default-off action. Never silently rewrites already-pushed history. |
-| **WP3** | `tests/`, `.agent/.local/.localSpec/AdditionalSpecs.md` | An integration test for WP1/WP2 building a repository with a tip commit that violates the rule, confirming `autofix` finds and offers to repair it without touching an already-shared commit uninvited. `AdditionalSpecs.md`'s `orchestre.py`/`autofix/` rows updated to state the new validation point and the second `Situation` source, per `CLAUDE.md`'s *before-committing* checklist item 6. |
+| **WP3** | `tests/`, `.agent/.local/.localSpec/AdditionalSpecs.md` | An integration test for WP1/WP2 building a repository with a tip commit that violates the rule, confirming `autofix` finds and offers to repair it without touching an already-shared commit uninvited. `AdditionalSpecs.md`'s `orchestre/`/`autofix/` rows updated to state the new validation point and the second `Situation` source, per `CLAUDE.md`'s *before-committing* checklist item 6. |
 
 WP1 alone would have caught this incident's rule violations (length,
 trailer) before any shell ever saw the message — it does not, and cannot,
@@ -202,7 +202,7 @@ which WP1 can never see no matter how strict it gets.
   not-yet-pushed commit may amend directly.
 - The real `701a98f` incident (or an equivalent fixture built from it) is
   covered by a regression test.
-- `.localSpec/AdditionalSpecs.md`'s `orchestre.py`/`autofix/` rows describe
+- `.localSpec/AdditionalSpecs.md`'s `orchestre/`/`autofix/` rows describe
   the new validation point and the second `Situation` source.
 - `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
   `errors=0`.

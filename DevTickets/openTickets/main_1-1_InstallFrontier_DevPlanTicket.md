@@ -4,7 +4,7 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-30, after ClassFirstPackage.** Renumbered `main_1-3` → `main_1-2`: [ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+> **Ticket review — 2026-09-30, after ModulePackagisation.** Renumbered `main_1-2` → `main_1-1`: [ModulePackagisation](../archive/20260930_ModulePackagisation_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Merged and renumbered in the priority-1 reorganisation of 2026-09-30**,
 > from three tickets that were all the same subject seen from different
@@ -137,8 +137,8 @@ this failure, which is why the file was left as it is.
 
 **Cause.**
 
-- `initialise` clones **dependencies only**. `orchestre.py`'s comment in the
-  initialise body says so: *"Root is already checked out at CGSHOME;
+- `initialise` clones **dependencies only**. `orchestre/installer.py`'s comment in the
+  initialise body (`Installer.initialise`) says so: *"Root is already checked out at CGSHOME;
   initialise clones only the dependencies declared by the .cgs."* Cloning the
   root is `bootstrap`'s job.
 - `_attach_existing_root` is where that assumption is checked, and it does not
@@ -216,22 +216,25 @@ anything reading `document.source_cgs_path`.
 
 | WP | Touches | Deliverable |
 |---|---|---|
-| **WP1** | `orchestre.py::_attach_existing_root` and the initialise body | **Refuse before touching disk.** Ask "is CGSHOME a git repository?" *before* `_pending_clone_entries` runs, and refuse by name when it is not: *`<path>` is not a git repository. `initialise` builds the dependencies of a project whose root is already checked out here. To clone the whole tree, root included, run `cgitsync bootstrap <spec> <name>`.* (Wording per D1.) A detached `HEAD` stays allowed. Per D5, also refuse when `settings.resolve_use_case(CGSHOME)` is `STANDALONE`, and make `bootstrap` refuse a target that already holds a tree, naming `initialise`. **This WP is a few lines and may land ahead of everything else in the pile** — it is the owner's reported failure. |
+| **WP1** | `orchestre/client.py::_attach_existing_root` (a shared private helper the split left on the client) and `orchestre/installer.py`'s initialise body | **Refuse before touching disk.** Ask "is CGSHOME a git repository?" *before* `_pending_clone_entries` runs, and refuse by name when it is not: *`<path>` is not a git repository. `initialise` builds the dependencies of a project whose root is already checked out here. To clone the whole tree, root included, run `cgitsync bootstrap <spec> <name>`.* (Wording per D1.) A detached `HEAD` stays allowed. Per D5, also refuse when `settings.resolve_use_case(CGSHOME)` is `STANDALONE`, and make `bootstrap` refuse a target that already holds a tree, naming `initialise`. **This WP is a few lines and may land ahead of everything else in the pile** — it is the owner's reported failure. |
 | **WP2** | `cli/_shared.py`, README install section, `docs/Text/user_guide.tex` | The `Try clean-init method` hint prints only when clean-init could plausibly help; for WP1's refusal it is replaced by the `bootstrap` pointer. Docs state the root-must-be-a-checkout rule and that a user install is `bootstrap install.cgs <name>`. |
 | **WP3** | `registry.py::build_registry_from_cgs_document`, `discovery.py`'s nested loader, `git_branch.py` | **One branch rule.** Route a `private, writable` entry's *initial* target branch through the same computation `git_tree_branch.py` uses after load. No second copy: the privacy-aware answer moves into `git_branch.py` if it is not already the only one there. |
-| **WP4** | `orchestre.py::_select_clone_ref` | **A real third rung.** When the computed `private_local_branch(...)` name is absent on the remote — the normal case for a first `initialise`, since that branch is created lazily — fall back to the shared repository's own active branch rather than reporting no cloneable branch. |
+| **WP4** | `orchestre/client.py::_select_clone_ref` (shared private helper, left on the client) | **A real third rung.** When the computed `private_local_branch(...)` name is absent on the remote — the normal case for a first `initialise`, since that branch is created lazily — fall back to the shared repository's own active branch rather than reporting no cloneable branch. |
 | **WP5** | `cgs_format.py`, `examples/molonari-light.cgs`, `examples/molonari.cgs`, `tutorials/04_private_repos.md` | Once WP3 makes a hand-typed `default_branch` unnecessary on a private/writable entry, settle what happens to the field (D3) and fix the examples. Defence in depth while it is still authored by hand: a `private, writable` entry whose declared `default_branch` disagrees with `private_local_branch(project_name, ...)` is a near-certain authoring error and is reported as one. |
-| **WP6** | `orchestre.write_gts_snapshot`, `_FOLD_SUBDIRS`, `states.state_path` docstring, `tree_env.source_document` | **A State is a `.gts`.** Remove both `shutil.copy2` calls and drop `.cgs` from `_FOLD_SUBDIRS` (per D2 for the stable copy). Find every reader first and give each the `.gts` instead — `registry.to_cgs()`, as `memory reboot` already does; that export is deliberate and stays. Leftovers already pushed into memories stay where they are; `verify` must not report one as corruption. |
-| **WP7** | `orchestre.initialise`/`initialise_cgs`/`bootstrap`/`clone_cgs`, `cli/minimalist.py`, `AdditionalSpecs.md`, `digest.md`, `settings.py`, README §2, `docs/`, `examples/` | **Both inputs, one clone path, and the rule written down.** Each command accepts `.cgs` or `.gts`; `.gts` mode reuses the snapshot loader and must respect `UnsupportedSnapshotFormatError` and tree-relative paths. One shared clone path, so the two commands differ only in how CGSHOME is derived and whether the root is cloned. §1's rule and table go into `AdditionalSpecs.md`, one line into `digest.md`, `settings.UseCase`'s docstring drops "never obeyed". Add the standalone-administers-nested test. Rebuild the PDFs. |
+| **WP6** | `orchestre/document_loader.py::DocumentLoader.write_gts_snapshot`, `orchestre/client.py`'s `_FOLD_SUBDIRS`, `states.state_path` docstring, `tree_env.source_document` | **A State is a `.gts`.** Remove both `shutil.copy2` calls and drop `.cgs` from `_FOLD_SUBDIRS` (per D2 for the stable copy). Find every reader first and give each the `.gts` instead — `registry.to_cgs()`, as `memory reboot` already does; that export is deliberate and stays. Leftovers already pushed into memories stay where they are; `verify` must not report one as corruption. |
+| **WP7** | `orchestre/installer.py`'s `Installer.initialise`/`initialise_cgs`/`bootstrap`/`clone_cgs`, `cli/minimalist.py`, `AdditionalSpecs.md`, `digest.md`, `settings.py`, README §2, `docs/`, `examples/` | **Both inputs, one clone path, and the rule written down.** Each command accepts `.cgs` or `.gts`; `.gts` mode reuses the snapshot loader and must respect `UnsupportedSnapshotFormatError` and tree-relative paths. One shared clone path, so the two commands differ only in how CGSHOME is derived and whether the root is cloned. §1's rule and table go into `AdditionalSpecs.md`, one line into `digest.md`, `settings.UseCase`'s docstring drops "never obeyed". Add the standalone-administers-nested test. Rebuild the PDFs. |
 
 **Order.** WP1 → WP2 (the reported failure, small, independent) → WP3 → WP4
 → WP5 (the branch rule, one subject) → WP6 (independent of all of it) → WP7.
 
 **Sequencing against the pile.** WP1–WP2 may go first, before anything else.
-WP7 rewrites `initialise`/`bootstrap` substantially, and
-[ModulePackagisation](main_1-1_ModulePackagisation_DevPlanTicket.md) moves
-those same methods into `orchestre/installer.py` — **do WP7 after that
-split**, where it edits a file of a few hundred lines instead of one of 6955.
+WP7 rewrites `initialise`/`bootstrap` substantially.
+[ModulePackagisation](../archive/20260930_ModulePackagisation_DevPlanTicket.md)
+has landed: those methods now live in `orchestre/installer.py`, so WP7 edits
+a file of about 600 lines instead of one of 6955. `write_gts_snapshot` is in
+`orchestre/document_loader.py`, and the helpers the install path shares
+(`_pending_clone_entries`, `_attach_existing_root`, `_select_clone_ref`) are
+still private methods of `orchestre/client.py`.
 
 Tests: `initialise` on a non-git CGSHOME raises the named refusal and **no
 dependency directory is created** (the half-built tree is the harm); a
