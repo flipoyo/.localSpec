@@ -4,7 +4,7 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Renumbered `main_2-3` → `main_2-1`: ranked above AsOfRetrieval and AutofixBlindSpot per the owner's order. The owner's multi-developer case ([UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md) §3) makes a sync running while someone works more likely, which is the workload §1 said would prompt this.
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Renumbered `main_2-3` → `main_2-1`: ranked above AsOfRetrieval and AutofixBlindSpot per the owner's order. The owner's multi-developer case ([UserDevProfile](main_1-1_UserDevProfile_DevPlanTicket.md) §3) makes a sync running while someone works more likely, which is the workload §1 said would prompt this.
 
 > **Ticket review — 2026-09-22.** §1's prediction happened for real: two
 > machines ("cgsN"/"cgsDbg") both wrote `.memory`'s ledger seq 16 after
@@ -32,7 +32,7 @@
 > what races should cover them once they exist.
 
 > **Ticket review — 2026-09-18.** Moved from `memory-dev_2-2` to
-> `main_2-3`: [MemoryArchitecture](main_1-1_MemoryArchitecture_DevPlanTicket.md)
+> `main_2-3`: [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md)
 > moved onto `main` in the same pass, and this ticket's own concurrency
 > work is scoped to the State area and ledger, not to anything still
 > exclusive to `memory-dev`. It stays last in the pile — still stand-by,
@@ -41,7 +41,7 @@
 > Split out of `.localSpec/DevTickets/archive/20260912_StateMemory_DevPlanTicket.md`
 > §3.5, which declared it out of scope and asked for a ticket of its own.
 > Stand-by, and it gets more important with every memory milestone — see
-> [MemoryArchitecture](main_1-1_MemoryArchitecture_DevPlanTicket.md).
+> [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md).
 
 ## Abstract — read this first
 
@@ -84,7 +84,7 @@ graph TD
 ## 1. What races
 
 Two things, both under `.working/` — the live-write area
-([WorkingTransitionState](memory-dev_1-2_WorkingTransitionState_DevPlanTicket.md)
+([WorkingTransitionState](../archive/20260917_WorkingTransitionState_DevPlanTicket.md)
 gives it a directory of its own, separate from `.working/.memory/`, which
 only a `memory push` fold ever touches. Two concurrent `memory push`
 calls can still race on the fold itself; the same lock this ticket

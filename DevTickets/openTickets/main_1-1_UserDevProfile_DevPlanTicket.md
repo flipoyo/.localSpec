@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, MemoryArchitecture closed.** Renumbered `main_1-2` → `main_1-1`: [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md) was archived, so the priority-1 ranks were compacted.
+
 > Opened from the owner's short ticket `ReorderPriority-mem-multiUser.md`
 > (closed 2026-09-30, `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`):
 > *"One idea for unifying the strategy for answering would be 1. treat always
@@ -17,7 +19,7 @@
 > missing is the rule the owner names in point 2 — a stated, checked
 > difference between a USER tree and a DEV tree — and what follows from it
 > for syncing and for the multi-person case. This ticket builds that;
-> [MemoryArchitecture](main_1-1_MemoryArchitecture_DevPlanTicket.md) carries
+> `AdditionalSpecs.md`'s *Memory architecture* section (formerly the MemoryArchitecture ticket) carries
 > the strategy as architecture.
 
 ## Abstract — read this first
@@ -91,7 +93,7 @@ A standalone install can be DEV and a nested one USER.
 
 ## 3. Why this makes the multi-person case easier
 
-The open design in [MemoryArchitecture](main_1-1_MemoryArchitecture_DevPlanTicket.md)
+The open design in [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md)
 §2.3 and [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) is
 *several people's memories of one project meeting in one journal*. The rule
 removes half of it:

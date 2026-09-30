@@ -4,17 +4,17 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Promoted `main_2-1` → `main_1-1`. The owner's direction that AutofixBlindSpot is not prioritary before this ticket, UserInstallPath, StateLocking or AsOfRetrieval, and their idea for unifying the memory strategy, make this the reference the next memory work is read against again. The idea is recorded as an owner direction in §2.3 below, and built by [UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md).
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Promoted `main_2-1` → `main_1-1`. The owner's direction that AutofixBlindSpot is not prioritary before this ticket, UserInstallPath, StateLocking or AsOfRetrieval, and their idea for unifying the memory strategy, make this the reference the next memory work is read against again. The idea is recorded as an owner direction in §2.3 below, and built by [UserDevProfile](../openTickets/main_1-1_UserDevProfile_DevPlanTicket.md).
 
 > **Ticket review — 2026-09-22.** Considered and left at `main_2-1`
 > (unchanged) during the backlog reorganisation that promoted
-> [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
-> [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md),
-> [AgentReport](../archive/20260924_AgentReport_DevPlanTicket.md),
-> [DiscoverRoundTrip](../archive/20260928_DiscoverRoundTrip_DevPlanTicket.md) and
-> [CitationRot](main_2-3_TicketTreeMove_DevPlanTicket.md) to priority 1. This
-> ticket, [UserInstallPath](main_1-3_UserInstallPath_DevPlanTicket.md) and
-> [StateLocking](main_2-1_StateLocking_DevPlanTicket.md) are real,
+> [ProjectSpecSplit](20260922_ProjectSpecSplit_DevPlanTicket.md),
+> [AgentContract](20260923_AgentContract_DevPlanTicket.md),
+> [AgentReport](20260924_AgentReport_DevPlanTicket.md),
+> [DiscoverRoundTrip](20260928_DiscoverRoundTrip_DevPlanTicket.md) and
+> [CitationRot](../openTickets/main_2-3_TicketTreeMove_DevPlanTicket.md) to priority 1. This
+> ticket, [UserInstallPath](../openTickets/main_1-2_UserInstallPath_DevPlanTicket.md) and
+> [StateLocking](../openTickets/main_2-1_StateLocking_DevPlanTicket.md) are real,
 > analysed work — priority 2's own definition — but none is a prerequisite
 > for `data-repo` starting, and each says so in its own words: this one is
 > "now the architecture reference the landed code implements," not open
@@ -34,10 +34,23 @@
 > landed (`.cgitsync`/`.memory`, State, the ledger, `memory explore`,
 > `memory reboot`), so this document is now the architecture reference the
 > landed code implements, not an open memory-dev design. It keeps its rank
-> ahead of [UserInstallPath](main_1-3_UserInstallPath_DevPlanTicket.md) and
-> [StateLocking](main_2-1_StateLocking_DevPlanTicket.md) because both still
-> cite it. [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) is
+> ahead of [UserInstallPath](../openTickets/main_1-2_UserInstallPath_DevPlanTicket.md) and
+> [StateLocking](../openTickets/main_2-1_StateLocking_DevPlanTicket.md) because both still
+> cite it. [Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md) is
 > the one piece of this design still active and stays on `memory-dev`.
+
+> **Closed — 2026-09-30, on the owner's word.** Archived before M6 lands,
+> which §6 said it would wait for; the owner chose to move what remains
+> instead. D1 and D4 are answered (below), so all six decisions are. The
+> reference role — "the one document a reader opens to find out what the
+> memory system is" — moved to `AdditionalSpecs.md`'s *Memory architecture*
+> section, beside *Memory vocabulary*. M6 and the multi-developer question
+> moved to [Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md), which
+> already carried them. The one piece of new work D1's answer creates is
+> [LocalRunLogs](../openTickets/main_1-3_LocalRunLogs_DevPlanTicket.md). The last
+> ambiguous uses of *register* for the ledger were renamed in the same change.
+> "Each milestone states what it does not do" stays marked not re-audited, as
+> the owner chose.
 
 > **Audit — 2026-09-30.** This ticket designs and builds nothing, so
 > "implementing" it means making its §6 acceptance true and keeping the
@@ -46,7 +59,7 @@
 > register* is renamed *the hash-chained ledger* everywhere it meant the
 > ledger (the specs, the `memory/` docstrings, the `verify` help text, the user guide, the API guide and two tests; the first pass missed the line-wrapped and bare uses and an independent review found them), and §3 and §6
 > below carry the status of each decision and each acceptance item. **It
-> stays open**, as §6 says it must: M6 ([Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md))
+> stays open**, as §6 says it must: M6 ([Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md))
 > has not landed, and two decisions below (D1 and D4) landed
 > in code differently from what this ticket recommended and need the
 > owner's word, not an agent's.
@@ -117,7 +130,7 @@ no new transport: the provider registry in `git_repo.py` already carries
 everything a memory repository needs.
 
 **Paths superseded by M12
-([WorkingTransitionState](memory-dev_1-2_WorkingTransitionState_DevPlanTicket.md),
+([WorkingTransitionState](20260917_WorkingTransitionState_DevPlanTicket.md),
 2026-09-17).** Every `.cgitsync/...` path above is where things lived
 before that milestone. After it: `.cgitsync` is renamed `.working`, and
 what M5 mounted at `.cgitsync/` — the memory repository itself — nests one
@@ -220,8 +233,8 @@ true for `merge`/`checkout` as well as for `add`/`commit`/`push`.
 > tree holding at least one is a DEV tree, whose memory is synced to the
 > remote its `.cgs` names. The consequence for this section: **users never
 > share a memory, so the multi-person problem below is a multi-developer
-> problem only.** [UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md)
-> builds the rule; [DefaultUserMemory](../archive/20260930_DefaultUserMemory_DevPlanTicket.md)
+> problem only.** [UserDevProfile](../openTickets/main_1-1_UserDevProfile_DevPlanTicket.md)
+> builds the rule; [DefaultUserMemory](20260930_DefaultUserMemory_DevPlanTicket.md)
 > already built its USER half.
 
 This layer was designed as an **index**: one repository naming, for each
@@ -236,7 +249,7 @@ tree on the same day; both memories are valid; neither is a prefix of the
 other. A hash chain gives tamper-evidence, not a merge rule, and this
 architecture has said from the start that it does not merge chains.
 
-[Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) is the
+[Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md) is the
 architecture. The shape, in one line: a repository mounted like every other
 private/writable one, holding one content-addressed file per record, whose
 chain is **Git's own commit history** — so `cgitsync` and a person with
@@ -284,7 +297,7 @@ that published them and reachable from a State's hash.
 That is one file per State beside the ledger, not a field in an entry — a
 message has no length limit and an entry must stay small and fixed. The
 entry carries a digest of it, so the file cannot be edited without trace.
-[CommitMemory](../archive/20260917_CommitMemory_DevPlanTicket.md) was the
+[CommitMemory](20260917_CommitMemory_DevPlanTicket.md) was the
 milestone and it has landed; §3's D5 is where "what may a memory contain"
 settles it.
 
@@ -312,7 +325,9 @@ The ledger is small and grows by one entry per operation. States are whole
 | Everything, always | Simplest to explain and unbounded in size: a year of `status` calls is a year of snapshots |
 | Ledger only | Smallest, and it throws away the ability to restore a tree from its memory, which is half the reason to keep one |
 
-> **D1 status — 2026-09-30: landed differently from the recommendation, awaiting the owner.**
+> **D1 answered by the owner — 2026-09-30: keep pushing everything except the run logs,**
+> which stay local ([LocalRunLogs](../openTickets/main_1-3_LocalRunLogs_DevPlanTicket.md)).
+> What landed before that answer:
 > `memory push` folds and pushes **everything** pending — the ledger, States,
 > run logs and Environment records (`_FOLD_SUBDIRS = lgr, state, logs, env`, plus commit logs folded separately) —
 > the first row below's alternative, "Everything, always". There is no
@@ -370,7 +385,9 @@ measure. Pushing a ledger entry per `status` call is noise; pushing only
 per `freeze` may lose the intermediate history that makes a chain worth
 keeping.
 
-> **D4 status — 2026-09-30: landed differently from the recommendation, awaiting the owner.**
+> **D4 answered by the owner — 2026-09-30: the current behaviour is accepted.** A sync happens
+> on `memory push` and before `push`/`tag`/`freeze`, never in the background, and never for a
+> USER memory. What landed, as recorded before that answer:
 > A sync is never a daemon and is always a command someone typed, but it is
 > not only `memory push`: `push`, `tag` and `freeze` each fold and send the
 > memory first (`PushFoldsMemory`, archived), so a project push publishes it
@@ -425,7 +442,7 @@ Two sub-questions remain open, and M3 needs them:
   per command and the answer reused, and a data backend is asked only when
   the command actually touched a repository that uses it. A Git-only
   workspace never pays to record that it has no DVC. The data workstream's
-  [DataBackendContract](data-repo_2-3_DataBackendContract_DevPlanTicket.md)
+  [DataBackendContract](../openTickets/data-repo_2-3_DataBackendContract_DevPlanTicket.md)
   owns the discovery itself.
 
 With those two settled, D6 is closed.
@@ -434,7 +451,7 @@ With those two settled, D6 is closed.
 more.** The wider question the owner asked on 2026-09-19 — the OS, the
 interpreter, the platform, the provider CLI, and what it takes to rebuild
 an environment rather than describe one — is
-[TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md)'s, and
+[TreeEnvironment](20260920_TreeEnvironment_DevPlanTicket.md)'s, and
 its answer sits beside the State rather than inside an entry. The five
 strings D6 settled stay exactly as they are: they are what lets one entry,
 cut out of its chain, still say what made it.
@@ -459,8 +476,8 @@ one lands.
 | **M9** | MemoryOnboarding — **landed 2026-09-17** | The steps a person runs once per project — create the repository, mount it, push it, merge it — are commands rather than instructions |
 | **M10** | MemoryExplore — **landed 2026-09-18** | A memory a person can read: what was published, by branch, and the ledger's own order made legible |
 | **M11** | MemoryReboot — **landed 2026-09-18** | Starting a memory's history over, on purpose, without losing the chapter before it |
-| **M12** | WorkingTransitionState — **landed 2026-09-17**, name deferred | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded. The frontier landed; the owner's name for it did not — `.cgitsync` keeps its name and [WorkingAreaRename](memory-dev_2-2_WorkingAreaRename_DevPlanTicket.md) holds that question |
-| **M13** | [TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md) — **implemented** | A memory says what machine it ran on, not only what tree it saw: an Environment record beside each State, naming the platform, the interpreter and the tools a restore needs |
+| **M12** | WorkingTransitionState — **landed 2026-09-17**, name deferred | `.memory`'s worktree is clean except while `memory push` is folding — so `merge`/`checkout`/`tag`/`freeze-release` reconcile it like any other private/local repository, with nothing excluded. The frontier landed; the owner's name for it did not — `.cgitsync` keeps its name and [WorkingAreaRename](../openTickets/memory-dev_2-2_WorkingAreaRename_DevPlanTicket.md) holds that question |
+| **M13** | [TreeEnvironment](20260920_TreeEnvironment_DevPlanTicket.md) — **implemented** | A memory says what machine it ran on, not only what tree it saw: an Environment record beside each State, naming the platform, the interpreter and the tools a restore needs |
 
 The order is a dependency chain, not a preference. M2 before M3 because a
 chain of entries pointing at timestamp-named directories records nothing
@@ -471,7 +488,7 @@ before it grows a protocol.
 M6 is no longer next in the chain: with one shared `.memory` repository its
 original subject — an index of where each memory lives — is answered by the
 branch list. What remains is the multi-user problem, and
-[Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) now carries a
+[Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md) now carries a
 design for it: a register whose chain is Git's own commit history, so a
 person can append with `git commit` and nobody can shorten it without every
 clone disagreeing on the next fetch. It stays stand-by until its D1 is
@@ -490,14 +507,14 @@ and left the first five steps of getting there as printed instructions: a
 all to turn a `.cgitsync` that is already full of States into that
 repository. Every one of those steps is run once per project and met by
 everyone, which is why they are the ones an early adopter judges the tool
-on. [MemoryOnboarding](memory-dev_1-2_MemoryOnboarding_DevPlanTicket.md)
+on. [MemoryOnboarding](20260917_MemoryOnboarding_DevPlanTicket.md)
 carries them, along with Tutorial 5, which walks the whole sequence.
 
 M8 came before M9 in the numbering, not after, because building M9 exposed
 it: this project manages its own source tree, editable-installed, so
 checking out an older branch and then merging into it runs the checkout's
 older build against the newer one's workspace — the 2026-09-16 incident.
-[SelfHostedMerge](../archive/20260917_SelfHostedMerge_DevPlanTicket.md) makes
+[SelfHostedMerge](20260917_SelfHostedMerge_DevPlanTicket.md) makes
 `checkout` and `merge` one process instead of two, which is what M9's own
 first step needed in order to run for real. It landed on 2026-09-17 and
 unblocked the first merge of `memory-dev` into `main`, which M9's §2 then
@@ -523,7 +540,7 @@ worktree is never actually clean, and a real `git checkout` on it — which
 fails for real reasons, not cosmetic ones. Caught live on this project's
 own tree: `merge --all memory-dev --into main` moved three repositories
 onto `main` and aborted on `.memory` mid-sweep. `.working`
-([WorkingTransitionState](memory-dev_1-2_WorkingTransitionState_DevPlanTicket.md))
+([WorkingTransitionState](20260917_WorkingTransitionState_DevPlanTicket.md))
 gives the live-write job its own directory, so `.memory` goes back to
 being an ordinary private/local repository everywhere, D3's forking
 behaviour included, with nothing excluded from anything.
@@ -565,9 +582,9 @@ Their filenames say so: an open memory ticket is
 `memory-dev_<priority>-<rank>_<Name>_DevPlanTicket.md`, and each one
 carries a `*Branch: memory-dev*` line under its `*Created:*` line. A ticket
 whose filename opens with `main_` is `main` work — including
-[CliContract](../archive/20260916_CliContract_DevPlanTicket.md),
-[UserInstallPath](main_1-3_UserInstallPath_DevPlanTicket.md) and
-[CgshomeDefault](../archive/20260916_CgshomeDefault_DevPlanTicket.md), which the
+[CliContract](20260916_CliContract_DevPlanTicket.md),
+[UserInstallPath](../openTickets/main_1-2_UserInstallPath_DevPlanTicket.md) and
+[CgshomeDefault](20260916_CgshomeDefault_DevPlanTicket.md), which the
 milestones ask questions of without being memory work themselves. The
 convention is stated in
 [TICKETLIFECYCLE.md](../../../../.distant/ticket/TICKETLIFECYCLE.md) §3 and named for
@@ -589,7 +606,7 @@ this project in `.localSpec/AdditionalSpecs.md`.
   it.
 
   **This refusal still stands, and the shared journal does not violate
-  it.** [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md)
+  it.** [Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md)
   §0.1 proposes that the distant journal be a *DAG* rather than a chain:
   records name their predecessors, a fork is two records with one parent,
   and closing it is a third record naming both. Nothing is merged — both
@@ -620,15 +637,15 @@ is.
 | Item | Status | Evidence |
 |---|---|---|
 | §1's four definitions in `AdditionalSpecs.md`, none contradicted in `src/` | **Met** | *Memory vocabulary* section; the one word that meant three things (*register*) now means only the legacy `.lgr`, and every docstring that said *hash-chained register* for the ledger now says *ledger* |
-| §3's decisions answered by the owner, reasoning kept | **Partly** | D2, D3 and D6 answered by the owner; D5 met in code; **D1 and D4 landed differently from the recommendation and are awaiting the owner** (status lines above) |
-| The milestone tickets exist and name this file | **Met** | M1–M5, M7–M13 are archived with their work; M6 is [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md), open on `memory-dev` |
+| §3's decisions answered by the owner, reasoning kept | **Met** | D2, D3 and D6 answered earlier; D5 met in code; D1 and D4 answered by the owner on 2026-09-30 (above) |
+| The milestone tickets exist and name this file | **Met** | M1–M5, M7–M13 are archived with their work; M6 is [Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md), open on `memory-dev` |
 | Each states what it does not do | **Not re-audited** | Every archived milestone carries its own scope section; this pass did not reread all twelve |
-| Last milestone landed | **No** | M6 is stand-by until its D1 is answered; hence this ticket stays open |
+| Last milestone landed | **No — moved** | M6 is stand-by; on the owner's word it is tracked by Omniscience alone and this ticket closes |
 
 ### 6.2 Direction added 2026-09-30
 
 The owner's rule — every memory local first, a tree holding no private
 repository a USER tree whose memory is never synced, one holding any a DEV
 tree whose memory is — is §2.3's new direction. Its USER half landed with
-`DefaultUserMemory`; [UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md)
+`DefaultUserMemory`; [UserDevProfile](../openTickets/main_1-1_UserDevProfile_DevPlanTicket.md)
 builds the rest.

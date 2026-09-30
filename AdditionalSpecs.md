@@ -929,6 +929,54 @@ declares is pushed to the remote it names. A memory holds no absolute path and
 no user name: paths are written against the tree as `$CGSTREE/...`, and commit
 messages travel exactly as written (`MemoryArchitecture`, D5).
 
+## Memory architecture
+
+What a workspace remembers, how it survives the machine, and what the memory
+system refuses to be. This section is the reference the MemoryArchitecture
+ticket used to be (archived 2026-09-30); the words it uses are fixed in
+*Memory vocabulary* above.
+
+**Three layers.**
+
+1. **Local.** Every command writes States, ledger entries, Environment
+   records, commit logs and run logs into `.cgitsync/` on the machine it runs
+   on. This is complete on its own: a machine with no network keeps a valid,
+   verifiable memory.
+2. **Memory repository.** `memory push` folds the pending content into
+   `.cgitsync/.memory`, a local git repository, and commits it there. When
+   the `.cgs` declares that repository — `github:<owner>/.memory`, private and
+   writable, one branch per project named by the private/local rule in
+   `git_branch.py` — the commit is also pushed. When it does not, the tool
+   makes the repository itself and never pushes it (`default_memory.py`).
+3. **Journal.** Where several developers' memories of one project would
+   meet. Not built; `Omniscience` (on `memory-dev`) is its design and carries
+   the multi-developer question.
+
+**Local first, and only a developer's memory is synced.** Every memory is a
+local repository before it is anything else. A tree holding no private
+repository is a USER tree, and its memory never leaves the disk; a tree
+holding at least one is a DEV tree, and its memory is synced to the remote
+its `.cgs` names (owner direction, 2026-09-30). The USER half is built; the
+rule that names the profile is the `UserDevProfile` ticket's.
+
+**The owner's decisions** (MemoryArchitecture §3, all answered):
+
+| D | Question | Answer |
+|---|---|---|
+| D1 | What a push sends | The ledger, States, Environment records and commit logs. Run logs are to stay local (`LocalRunLogs` ticket); until it lands, they are folded too |
+| D2 | One memory repository per project, or one for all | One for all, `flipoyo/.memory`, one branch per project. Cost, kept on record: a reader of `.memory` can read every project's branch |
+| D3 | How a memory repository is addressed | Declared in the `.cgs` like any private entry; its branch forks and merges with the project's. ComplexGitSync never creates a repository on a provider |
+| D4 | When a sync happens | On `memory push`, and before `push`, `tag` and `freeze`, which fold and send the memory first; a failed send only warns. Never in the background, and never for a USER memory |
+| D5 | What a memory may contain | No absolute path except the tree's own root, no user name, no credential; arguments scrubbed before hashing; commit messages exactly as written |
+| D6 | How much toolchain an entry carries | All five versions (cgitsync, git, pixi, dvc, git-lfs) on every entry, `none` when a tool is absent, each asked at most once per command |
+
+**What it refuses to do.** It is not a backup of the working tree: restoring
+means re-cloning from a State. It is not a sync service: no daemon, no
+scheduler, every network operation is a command someone typed. It works
+offline. It does not merge chains: a local memory is a strict chain, and a
+divergence between two machines is re-sequenced by `autofix`
+(`repair_divergent_user`), never merged silently.
+
 ## Local Git Register and Sync Ledger (`.lgr`)
 
 Each project maintains a project-local register file named `<Project_name>.lgr`.
@@ -1684,7 +1732,7 @@ CLI display requirements:
 
 **A change that migrates a stored memory format is developed on
 `memory-dev`.** The memory work was seven dependent milestones — see the
-MemoryArchitecture ticket in [DevTickets/openTickets/](DevTickets/openTickets/) — that between them renamed
+MemoryArchitecture ticket in [DevTickets/archive/](DevTickets/archive/) — that between them renamed
 the state area, rewrote the ledger, moved code into a new `memory/`
 package and added a network protocol. Interleaving those with releases on
 `main` would put a half-migrated memory format in front of users, and the

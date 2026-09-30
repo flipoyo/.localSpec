@@ -134,7 +134,7 @@ unquoted) `-m` argument: not a `cgitsync` error, not a `git` error, a
 correct commit made from a corrupted string.
 
 This is also, separately, a rule violation independent of the shell
-damage: [AgentConduct.md](../../../.distant/dev-sync/AgentConduct.md) §2-3
+damage: [AgentConduct.md](../../../../.distant/dev-sync/AgentConduct.md) §2-3
 requires plain English, three lines at most, and no co-authorship trailer
 on any commit — the drafted message before it even reached a shell was
 already too long and already carried a forbidden trailer.

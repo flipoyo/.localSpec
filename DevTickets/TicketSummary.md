@@ -14,14 +14,14 @@ MemoryArchitecture, UserInstallPath, StateLocking or AsOfRetrieval, and the
 owner's idea — a memory is always local; a USER tree holds no private
 repository, a DEV tree does and syncs its memory — was adopted.
 
-### main_1-1: MemoryArchitecture
-The architecture reference every memory ticket cites: States, the ledger, the memory repository and the still-open multi-person journal. Now carries the owner's 2026-09-30 direction in §2.3: every memory is local first; users never share a memory, so the multi-person problem is a multi-developer one only.
-
-### main_1-2: UserDevProfile
+### main_1-1: UserDevProfile
 New, from the owner's idea. A tree holding no private repository is USER, one holding any is DEV, read off `effective_private` in one place; `status` prints `profile=user|dev`; a DEV tree with no memory entry is told its memory is not synced. Four owner decisions (where the rule lives, warn vs refuse, shared vs per-developer memory branch, whether a read-only private makes a tree DEV).
 
-### main_1-3: UserInstallPath
+### main_1-2: UserInstallPath
 One install command for someone evaluating the tool, without Pixi or a clone. A user install must stay a USER tree: no private repository, local memory only.
+
+### main_1-3: LocalRunLogs
+From the owner's answer to MemoryArchitecture's D1: a memory push keeps sending the ledger, States, environments and commit logs, but the run logs stay local. Also fixes a real gap: a fold moves the logs `autofix` reads out of its reach.
 
 ## main_2 — Priority 2
 
@@ -55,6 +55,8 @@ The project's own shared journal, whose chain is Git's commit history: appended 
 ---
 
 ## Rationale for Reordering
+
+**2026-09-30, MemoryArchitecture closed.** On the owner's word it was archived before M6: its reference role moved to `AdditionalSpecs.md`'s *Memory architecture* section and M6 to Omniscience. D1's answer opened LocalRunLogs at 1-3; UserDevProfile and UserInstallPath moved up to 1-1 and 1-2.
 
 **2026-09-30, from `ReorderPriority-mem-multiUser`.** The owner ranked AutofixBlindSpot below MemoryArchitecture, UserInstallPath, StateLocking and AsOfRetrieval, and proposed one memory strategy for everyone. MemoryArchitecture (reference) and the new UserDevProfile (the rule) went to priority 1 with UserInstallPath, the USER side of the same split; StateLocking, AsOfRetrieval, TicketTreeMove and AutofixBlindSpot follow at priority 2 in that order. The paragraphs below describe earlier reviews; their ranks are the ones of their day.
 
