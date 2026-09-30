@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, after AgentGuardrails.** Renumbered `main_1-4` → `main_1-3`: [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > **Merged and renumbered in the priority-1 reorganisation of 2026-09-30**,
 > from three tickets that were all the same subject seen from different
 > sides: `InitialiseNonGitRoot` (owner, `shortTickets/install-bug-cgs.md`,
@@ -227,7 +229,7 @@ anything reading `document.source_cgs_path`.
 
 **Sequencing against the pile.** WP1–WP2 may go first, before anything else.
 WP7 rewrites `initialise`/`bootstrap` substantially, and
-[ModulePackagisation](main_1-3_ModulePackagisation_DevPlanTicket.md) moves
+[ModulePackagisation](main_1-2_ModulePackagisation_DevPlanTicket.md) moves
 those same methods into `orchestre/installer.py` — **do WP7 after that
 split**, where it edits a file of a few hundred lines instead of one of 6955.
 

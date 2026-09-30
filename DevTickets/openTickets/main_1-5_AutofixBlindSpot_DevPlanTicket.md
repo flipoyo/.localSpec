@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, after AgentGuardrails.** Renumbered `main_1-6` → `main_1-5`: [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > **Diagnosis ticket**, opened from a live incident on this project's own
 > tree, per the owner's instruction to correct what happened and write up
 > autofix's gap rather than patch around it silently. §1-§2 are the
@@ -11,9 +13,9 @@
 
 > **Renumbered 1-4 → 1-6 and narrowed in the priority-1 reorganisation of
 > 2026-09-30** (1-4 → 1-5 in that pass, then → 1-6 when
-> [DefaultUserMemory](main_1-5_DefaultUserMemory_DevPlanTicket.md) took 1-5). The old WP1 — validating a commit message *before*
+> [DefaultUserMemory](main_1-4_DefaultUserMemory_DevPlanTicket.md) took 1-5). The old WP1 — validating a commit message *before*
 > committing it — moved to
-> [AgentGuardrails](main_1-1_AgentGuardrails_DevPlanTicket.md) WP4, with the
+> [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) WP4, with the
 > digest work, because preventing bad agent output is one subject and
 > detecting it afterwards is another. That guardrail closes the case where
 > `cgitsync commit` is the one committing. **This ticket is now only about
@@ -191,7 +193,7 @@ which WP1 can never see no matter how strict it gets.
 ## 4. Acceptance criteria
 
 - (The "refuse before committing" criterion moved with WP1 to
-  [AgentGuardrails](main_1-1_AgentGuardrails_DevPlanTicket.md).)
+  [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md).)
 - `cgitsync autofix` can be pointed at a repository's own tip commit, not
   only at the last logged error, and correctly identifies a message that
   violates the house style or shows signs of shell-substitution damage.

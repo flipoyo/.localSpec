@@ -4,14 +4,16 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, after AgentGuardrails.** Renumbered `main_1-2` → `main_1-1`: [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > **Formed in the priority-1 reorganisation of 2026-09-30**, from the code
 > half of `DevSpecsConformance` (opened from
 > `shortTickets/DevSpecs-in-digest.md`). The documentation half — writing
 > the rules into `AdditionalSpecs.md` and `digest.md` — is
-> [AgentGuardrails](main_1-1_AgentGuardrails_DevPlanTicket.md), which must
+> [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md), which must
 > land first: this ticket is measured against the rule that ticket writes
 > down. The two oversized modules are
-> [ModulePackagisation](main_1-3_ModulePackagisation_DevPlanTicket.md).
+> [ModulePackagisation](main_1-2_ModulePackagisation_DevPlanTicket.md).
 >
 > This ticket serves the owner's first structural goal: *package structure
 > based on class first, with a universal CLI API-only public exposure of the
@@ -29,7 +31,7 @@ disk.
 packages (§3), three decisions (§4), acceptance (§5).
 
 **Why it exists.** The rule was in `DevSpecs.md` and never in `digest.md`, so
-no session read it — [AgentGuardrails](main_1-1_AgentGuardrails_DevPlanTicket.md)
+no session read it — [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md)
 §1 is that story, and this ticket is the bill. The correction is finite and
 mechanical, which is exactly why it is worth doing as one pass rather than
 one module at a time whenever somebody notices.
@@ -102,7 +104,7 @@ own it. Six of the 13 are under `memory/`.
 
 `operations.py` is a fourteenth in substance, escaping the table only because
 `BranchTopologyReport` carries one method. It is over 2000 lines and goes to
-[ModulePackagisation](main_1-3_ModulePackagisation_DevPlanTicket.md).
+[ModulePackagisation](main_1-2_ModulePackagisation_DevPlanTicket.md).
 
 ### 1.2 `__all__` — 27 of 53 modules have none
 
@@ -157,7 +159,7 @@ without anything saying so. WP6.
 ### 1.5 Over the class cap
 
 Only two, under D1's counting: `memory/self_history.py` (4 behaviour classes)
-and `orchestre.py` (handled by 1-3). `git_repo.py`, `git_tree.py` and
+and `orchestre.py` (handled by 1-2). `git_repo.py`, `git_tree.py` and
 `environment_spec.py` all *look* over the cap and are not.
 
 ## 2. What conforms

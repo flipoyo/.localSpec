@@ -358,7 +358,7 @@ ring, never a higher one.
 | 4 — ADAPTER | `cli/` package (`_shared.py`, `minimalist.py`, `expert.py`, `configuration.py`, `environment.py`, `suggest.py`, `__init__.py` assembling them) |
 | 3 — ORCHESTRATION | `orchestre.py` (`Orchestre`, `ComplexGitSyncClient`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operations.py`, `registry.py`, `toolchain.py`, `tree_env.py` |
-| 1 — FILESYSTEM | `paths.py`, `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.agent/.local/.localSpec/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `environment`, `agent_contract`, `self_history`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
+| 1 — FILESYSTEM | `paths.py`, `commit_message.py` (reads `pyproject.toml`; the commit-message rule), `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.agent/.local/.localSpec/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `environment`, `agent_contract`, `self_history`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
 | 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `environment_spec.py`, `ledger_entry.py`, `integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The five import rules (machine-checked)
@@ -561,6 +561,39 @@ cgs_format.py            CgsDocument and the complete .cgs boundary
 orchestre.py             GtsDocument runtime document
 errors.py                exception hierarchy
 ```
+
+---
+
+## Module shape
+
+*Added 2026-09-30 by the AgentGuardrails ticket, from the owner's rules
+stated in conversation. `DevSpecs.md` §Object-Oriented Design says domain
+concepts are classes; this section is how this project reads it, and what
+`digest.md` cites.*
+
+- **One major class names the module.** Every `.py` has one clear major
+  class that gives the module its file name, and at most two or three
+  classes in all. A second or third class is a subsidiary of the first.
+- **Only behaviour counts against that cap.** A *behaviour class* has
+  methods of its own beyond dunders. Enums, exception types and
+  method-less value objects ride with the class they describe and are not
+  counted — `git_repo.py` is eight enums around `GitRepo`, `RepoAddress`
+  and `WorkingRepo`, and conforms.
+- **Over 2000 lines, a module becomes a directory** of its own name, split
+  so each file keeps one major class. `orchestre.py` and `operations.py`
+  are past that line today (see the ModulePackagisation ticket).
+- **`memory/` and the ledger are class-based.** No domain concept there
+  lives in module-level functions, and none writes to disk from one: a
+  writer is a method on the thing it writes.
+- **`cli/` is the one exemption.** It is derived from client methods
+  implemented elsewhere, collects arguments and prints, and holds no
+  domain concept to name a module after. It is exempt from the class
+  rules, not from the 2000-line rule's spirit — `cli/expert.py` is held at
+  its current size by the ceiling ratchet.
+
+Where the code does not yet conform, the tickets that correct it
+(ClassFirstPackage, ModulePackagisation) say by how much; this section
+states the rule, not the current state of `src/`.
 
 ---
 
