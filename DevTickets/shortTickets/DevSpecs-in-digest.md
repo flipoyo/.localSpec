@@ -1,1 +1,0 @@
-DevSpecs are fundamentals. The most important about package architecture and API access must be in digest.com. 

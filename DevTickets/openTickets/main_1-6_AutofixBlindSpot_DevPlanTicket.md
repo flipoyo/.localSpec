@@ -1,4 +1,4 @@
-# AutofixCommitHygiene — autofix only reacts to an error cgitsync already logged; a mangled commit message never raises one
+# AutofixBlindSpot — autofix only reacts to an error cgitsync already logged, and this whole class of defect raises none
 
 *Created: 2026-09-24*
 
@@ -8,6 +8,19 @@
 > tree, per the owner's instruction to correct what happened and write up
 > autofix's gap rather than patch around it silently. §1-§2 are the
 > diagnosis; §3 is the correction plan.
+
+> **Renumbered 1-4 → 1-6 and narrowed in the priority-1 reorganisation of
+> 2026-09-30** (1-4 → 1-5 in that pass, then → 1-6 when
+> [DefaultUserMemory](main_1-5_DefaultUserMemory_DevPlanTicket.md) took 1-5). The old WP1 — validating a commit message *before*
+> committing it — moved to
+> [AgentGuardrails](main_1-1_AgentGuardrails_DevPlanTicket.md) WP4, with the
+> digest work, because preventing bad agent output is one subject and
+> detecting it afterwards is another. That guardrail closes the case where
+> `cgitsync commit` is the one committing. **This ticket is now only about
+> the case it cannot reach**: a commit made by a bare `git commit` outside
+> `cgitsync`, which leaves no logged error for `autofix` to start from. It
+> is ranked last in the priority-1 pile because the guardrail removes the
+> common path, not because the blind spot stopped mattering.
 
 ## Abstract — read this first
 
@@ -43,7 +56,7 @@ this incident produced none.
 **What you will find.** §1 the incident, reproduced from the real
 repository. §2 the root cause: `autofix`'s `Situation`/`matches()` model
 has exactly one way to learn about trouble, and this class of defect never
-reaches it. §3 four work packages. §4 acceptance criteria.
+reaches it. §3 three work packages. §4 acceptance criteria.
 
 **Who it is for.** Whoever picks up `autofix` work next — a peer
 workstream to [Autofix](../archive/20260923_Autofix_DevPlanTicket.md),
@@ -164,10 +177,9 @@ something is wrong is to read the *result* — the tip commit's own message
 
 | WP | Touches | Deliverable |
 |---|---|---|
-| **WP1** | `orchestre.py::commit` | Validate `message` against `AgentConduct.md` §2 before running `git.commit(...)`: starts with `<project_name><version>` (from `pyproject.toml`), at most three lines, and contains none of `` ` ``, `$(`, or a bare trailing `Co-Authored-By:`/`Generated with` line. Raise `GitSyncError` naming exactly which rule failed rather than committing a string already known to be wrong — the same "refuse rather than guess" stance `NoMatchingRepairError` already takes. This closes the loophole at the one place `cgitsync` actually controls, though it cannot help a commit made by a bare `git commit` outside it (WP2 is for that case). |
-| **WP2** | `autofix/base.py`, a new `autofix/repair_commit_message.py` | A second, non-error-driven entry point: `FromCliRepair` (or a sibling dispatcher) gains a mode that inspects the *tip commit* of every writable/project repository directly — `git log -1 --format=%B` — rather than only `.cgitsync/logs/*.log`. `Situation` gains an optional `commit_message: str \| None` alongside `source_error`, so a `Repair.matches()` can pattern-match on either source without every existing repair needing to change. `MalformedCommitMessageRepair.matches()` flags a message that violates AgentConduct §2's shape or looks shell-mangled (a bare word where a backtick-quoted phrase would be — heuristically, a bare `` `<runnable-name>` `` reduced to something matching `git rev-parse --abbrev-ref HEAD`'s own output space, i.e. an existing branch name, is the strongest signal this incident actually offers; a run of two consecutive spaces where a phrase silently substituted to empty is the second). |
-| **WP3** | `autofix/repair_commit_message.py`, `git_runner.py` | `repair()` offers a corrected message (reconstructed from context where recoverable, otherwise asks the caller to supply one) via `git commit --amend -m <message>` — but only after checking the commit is not already the same as its upstream (mirroring `clone_guard.py`'s "which commits does no remote hold" question in reverse: here the concern is a commit *is* already shared). A commit whose ref matches its remote's is amend-and-force-push territory — hard-to-reverse, shared-state — so `repair()` must refuse by default and require an explicit `force=True` the caller only sets after the owner has actually said yes, the same posture `initialise_cgs`'s `force_reclone` already uses for a comparably destructive default-off action. Never silently rewrites already-pushed history. |
-| **WP4** | `tests/`, `.agent/.local/.localSpec/AdditionalSpecs.md` | Unit tests for WP1's validator (each AgentConduct §2 rule, individually violated, is rejected; a conforming message passes) and an integration test for WP2/WP3 building a repository with a tip commit that violates the rule, confirming `autofix` finds and offers to repair it without touching an already-shared commit uninvited. `AdditionalSpecs.md`'s `orchestre.py`/`autofix/` rows updated to state the new validation point and the second `Situation` source, per `CLAUDE.md`'s *before-committing* checklist item 6. |
+| **WP1** | `autofix/base.py`, a new `autofix/repair_commit_message.py` | A second, non-error-driven entry point: `FromCliRepair` (or a sibling dispatcher) gains a mode that inspects the *tip commit* of every writable/project repository directly — `git log -1 --format=%B` — rather than only `.cgitsync/logs/*.log`. `Situation` gains an optional `commit_message: str \| None` alongside `source_error`, so a `Repair.matches()` can pattern-match on either source without every existing repair needing to change. `MalformedCommitMessageRepair.matches()` flags a message that violates AgentConduct §2's shape or looks shell-mangled (a bare word where a backtick-quoted phrase would be — heuristically, a bare `` `<runnable-name>` `` reduced to something matching `git rev-parse --abbrev-ref HEAD`'s own output space, i.e. an existing branch name, is the strongest signal this incident actually offers; a run of two consecutive spaces where a phrase silently substituted to empty is the second). |
+| **WP2** | `autofix/repair_commit_message.py`, `git_runner.py` | `repair()` offers a corrected message (reconstructed from context where recoverable, otherwise asks the caller to supply one) via `git commit --amend -m <message>` — but only after checking the commit is not already the same as its upstream (mirroring `clone_guard.py`'s "which commits does no remote hold" question in reverse: here the concern is a commit *is* already shared). A commit whose ref matches its remote's is amend-and-force-push territory — hard-to-reverse, shared-state — so `repair()` must refuse by default and require an explicit `force=True` the caller only sets after the owner has actually said yes, the same posture `initialise_cgs`'s `force_reclone` already uses for a comparably destructive default-off action. Never silently rewrites already-pushed history. |
+| **WP3** | `tests/`, `.agent/.local/.localSpec/AdditionalSpecs.md` | An integration test for WP1/WP2 building a repository with a tip commit that violates the rule, confirming `autofix` finds and offers to repair it without touching an already-shared commit uninvited. `AdditionalSpecs.md`'s `orchestre.py`/`autofix/` rows updated to state the new validation point and the second `Situation` source, per `CLAUDE.md`'s *before-committing* checklist item 6. |
 
 WP1 alone would have caught this incident's rule violations (length,
 trailer) before any shell ever saw the message — it does not, and cannot,
@@ -178,9 +190,8 @@ which WP1 can never see no matter how strict it gets.
 
 ## 4. Acceptance criteria
 
-- `cgitsync commit` refuses a message that violates AgentConduct.md §2
-  (too long, wrong prefix, forbidden trailer, contains `` ` `` or `$(`)
-  before committing anything, naming which rule failed.
+- (The "refuse before committing" criterion moved with WP1 to
+  [AgentGuardrails](main_1-1_AgentGuardrails_DevPlanTicket.md).)
 - `cgitsync autofix` can be pointed at a repository's own tip commit, not
   only at the last logged error, and correctly identifies a message that
   violates the house style or shows signs of shell-substitution damage.

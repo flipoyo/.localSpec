@@ -6,21 +6,46 @@ Summary of all open planning tickets: what each ticket tackles, ranked by curren
 
 ---
 
-## main_1 — Priority 1: Core Robustness (Merge-First)
+## main_1 — Priority 1: three structural goals
 
-### main_1-3: InitialiseNonGitRoot
-`install.cgs` is fine (adding `relative_path = "."` changes nothing). `initialise` never clones the root, and when CGSHOME is not a git checkout it clones the other repos anyway, then fails with a message that names nothing. Plan: refuse up front and point at `bootstrap`, drop the misleading "Try clean-init" hint, document the root-must-exist rule.
+Reorganised 2026-09-30 around the owner's three goals. Every priority-1
+ticket serves exactly one of them; anything that served none moved to
+priority 2.
 
-### main_1-4: AutofixCommitHygiene
-`cgitsync autofix` starts from the last logged error, but a mangled commit message (shell substitution) succeeds at the Git level — never becomes an error, never caught. Four work packages to detect commit hygiene failures without relying on Git's exit code, diagnose shell-quote damage, and let autofix help when a message got corrupted in transit.
+| Goal | Tickets |
+|---|---|
+| **2. Constrained agentic behaviour** — no more week-long failures | 1-1 AgentGuardrails, 1-6 AutofixBlindSpot |
+| **1. Class-first package, CLI-only public exposure** | 1-2 ClassFirstPackage, 1-3 ModulePackagisation |
+| **3. A clear nested/standalone frontier** | 1-4 InstallFrontier, 1-5 DefaultUserMemory |
 
-### main_1-5: PrivateLocalBranchAtClone
-Private/local branch naming rule has two implementations; the privacy-aware one runs after the tree exists, but the blind one runs at first clone — so initialise fails with "no cloneable branch found" for a private repo. Three work packages unify them and add a test that clone works before anything else can run on it.
+### main_1-1: AgentGuardrails
+Two cheap guardrails, both missing. `digest.md` holds 25 rules and not one comes from `DevSpecs.md`, so the rules that shape every change are absent from the file a session loads in full — which is why `src/` drifted. And `cgitsync commit` will commit any string it is handed, which is how commit `701a98f` reached the public remote with every backtick phrase shell-substituted. Plan: write the owner's *Module shape* rules into `AdditionalSpecs.md`, put DevSpecs first in the digest, make `--check-digest` fail when a declared spec contributes no line, and refuse a commit message that breaks AgentConduct §2. **Smallest ticket in the pile and the only one that makes the others land more reliably — do it first.**
 
-### main_1-6: AsOfRetrieval
-Query: "what was this tree at time *T*?" The chain already records it in order; what's missing is the command. One command, built on two existing pieces: the chain's order + UniversalClock's monotonicity check. Minimal work package, ready to implement, no owner decision needed.
+### main_1-2: ClassFirstPackage
+The bill for 1-1's gap, measured by an AST pass over all 53 modules: 13 modules and 3676 lines carry a domain concept with **no class at all** — `memory/ledger_store.py` among them, 548 lines owning a hash-chained ledger with no `LedgerStore` — 27 of 53 modules declare no `__all__`, and nine module-level functions write to disk. Also: 93 public client methods and nothing checking they map to CLI commands. Plan: `memory/` first, then the seven outside it, then `__all__`, then a conformance script that cannot regrow, then the CLI-mirror test. Pure refactors; no test edited.
 
----
+### main_1-3: ModulePackagisation
+The 2000-line rule, applied. `orchestre.py` is 6955 lines in which `ComplexGitSyncClient` holds 141 methods across 5550 lines, while the `Orchestre` class that is supposed to be the coordination layer has **one**. Plan: split it and `operations.py` (2193) into packages of collaborator classes behind an unchanged facade — same 93 public methods, no caller changed, one method group per commit. `cli/` is exempt.
+
+### main_1-4: InstallFrontier
+Three owner-reported bugs that are one problem: nothing says which install mode a command belongs to. `initialise` half-builds a tree when the root is not a checkout; the branch rule has a privacy-blind implementation that runs before the first clone and a privacy-aware one that runs after, so a private/writable dependency fails with `No cloneable branch found`; neither command can absorb a `.gts`; and every State-writing command stores a `.cgs` beside the snapshot. Plan: `initialise` = nested, `bootstrap` = standalone, each refusing and naming the other; one branch rule; both inputs; a State is a `.gts`. **WP1–WP2 are a few lines and may land immediately.**
+
+### main_1-5: DefaultUserMemory
+`install.cgs` mounts no private repository by design, so a user install has a `.cgitsync/` that accumulates states, logs and ledger entries with **no `.memory` repository to fold them into** — the record exists and can never become one. Plan: create it automatically, locally, with no remote, on the first command that records something; the `.cgs` overrides the default; the branch is the one `memory_branch()` already computes, so publishing later needs no rename; and a defaulted memory is never pushed, because publishing is a developer's privilege. Branch `main`, not `memory-dev`: this only adds a default, it migrates no stored format.
+
+### main_1-6: AutofixBlindSpot
+`autofix` starts from the last logged error, and a commit whose message was mangled by the shell raises none — `git commit` succeeded. Plan: a second, non-error-driven `Situation` source that inspects a repository's tip commit directly. Ranked last because 1-1's guardrail removes the common path (a commit made *by* `cgitsync`); this ticket covers what it cannot reach, a bare `git commit` outside the tool.
+
+### Sequencing
+
+1. **1-1 first, whole.** Its *Module shape* section is what 1-2 and 1-3 are measured against. Starting either before the rule is written down repeats the mistake the ticket is about.
+2. **1-4 WP1–WP2 may jump the queue** — the owner's reported failure, a few lines, independent of everything else.
+3. **1-2 before 1-3.** `memory/` and the seven outside it are independent of `orchestre.py`; doing them first means the packagisation split moves code that is already class-shaped.
+4. **1-3 before 1-4 WP7.** Packagisation creates `orchestre/installer.py`; the install-frontier rewrite then edits a few hundred lines instead of 6955. Doing it the other way round means the split gets re-litigated around freshly changed behaviour.
+5. **1-5 DefaultUserMemory after 1-2**, whose class work covers `memory/repository.py`, and ideally after 1-3, so it edits `orchestre/memory_commands.py` rather than the 6955-line file.
+6. **1-6 last.**
+
+The dependency worth watching: 1-3 and 1-4 both rewrite `initialise`/`bootstrap`. They must not be in flight at the same time.
 
 ## main_2 — Priority 2: Architecture & Long-Term
 
@@ -33,10 +58,11 @@ Separate install stories: Pixi for contributors (full dev environment), one comm
 ### main_2-3: StateLocking
 Two cgitsync processes touching one workspace: who wins? Needs a lightweight per-workspace lock (directory-level advisory lock, or a marker file) and a timeout so a dead process doesn't block forever. Two work packages: add the lock primitive, add backoff + logging when a lock is held.
 
-### main_2-4: CitationRot
-Five docstrings in `src/` point at tickets by their open path; those tickets were archived and renamed — paths go dead. Fix: update the five citations + add a CI check that catches it next time. Small maintenance ticket, low architectural impact.
+### main_2-4: TicketTreeMove
+Merged with `shortTickets/mv-tickets.md`: move `DevTickets/` out of the `.localSpec` mount into its own `.dev` mount, so the private repos split by purpose — specifications in `.localSpec`, the planning surface in `.dev`. Paired with the original CitationRot work because the move rewrites every `.localSpec/DevTickets/...` path in `src/` and every relative link inside the tickets at once. Build the link check first, then move, then re-run it: that turns the largest breakage this tree can suffer into a list the check prints.
 
----
+### main_2-5: AsOfRetrieval
+"What was this tree at time *T*?" — one query built on the chain's own order and the monotonicity check UniversalClock landed. Moved down from priority 1 on 2026-09-30: it serves none of the three structural goals, blocks nothing, and nothing waits on it. Ready to pick up whenever.
 
 ## data-repo — Priority 2: Data Pipeline (Separate Workstream)
 
@@ -57,8 +83,31 @@ Record every observable fact about a cgitsync run (not just errors, but timing, 
 
 ## Rationale for Reordering
 
-**Merge issues go first** because they block the owner on real work (main_1-2 was stuck). MergeUX is the blockedpath; AutofixCommitHygiene makes autofix useful for merge fallout; PrivateLocalBranchAtClone is a prerequisite for initialise to work in the merge scenario; AsOfRetrieval is a clean, no-risk add-on that unblocks timeline queries.
+**2026-09-30 — reorganised around three structural goals.** See the table
+and sequencing notes under *main_1* above. Six tickets became five: the
+`DevSpecs`-in-digest work split along its natural seam (write the rules
+down → 1-1; correct the code → 1-2), `AutofixCommitHygiene`'s prevention
+half joined 1-1 while its detection half stayed as 1-5, and three tickets
+about the install path (`InitialiseNonGitRoot`, `ReinforceGitTreeState`,
+`PrivateLocalBranchAtClone`) merged into 1-4 — the third's own diagnosis
+concludes that standalone never shows its bug, which is the frontier the
+other two draw.
 
-**CitationRot moved to main_2-4** because it's a maintenance task (fix five links + add a test), not an architectural weakness. It's worth doing but not before merge robustness is solid.
+**The last two short tickets landed 2026-09-30.** `memory-install` became
+1-5 DefaultUserMemory, under goal 3 — *publishing a memory is a DEV
+privilege* is a behavioural difference between the two install
+configurations — kept out of 1-4, which already merges three tickets.
+`mv-tickets` folded into 2-4, renamed TicketTreeMove, because the move and
+the stale-citation check are one job in the right order. `shortTickets/` is
+now empty.
 
-**Priority-2 tickets** are solid designs with no owner blockers — they can land in any order. Data-repo and memory-dev are separate workstreams, unblocked by priority-1 finishing.
+**AsOfRetrieval moved to main_2-5.** It serves none of the three goals, is
+built on machinery that already exists, blocks nothing, and nothing waits
+on it.
+
+**CitationRot stays at main_2-4** — a maintenance task (fix five links, add
+a test), not a structural weakness.
+
+**Priority-2 tickets** are solid designs with no owner blockers and can land
+in any order. `data-repo` and `memory-dev` are separate workstreams,
+unblocked by priority 1 finishing.

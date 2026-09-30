@@ -9,8 +9,8 @@
 > [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
 > [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md),
 > [AgentReport](../archive/20260924_AgentReport_DevPlanTicket.md),
-> [DiscoverRoundTrip](main_1-2_DiscoverRoundTrip_DevPlanTicket.md) and
-> [CitationRot](main_1-3_CitationRot_DevPlanTicket.md) to priority 1. This
+> [DiscoverRoundTrip](../archive/20260928_DiscoverRoundTrip_DevPlanTicket.md) and
+> [CitationRot](main_2-4_TicketTreeMove_DevPlanTicket.md) to priority 1. This
 > ticket, [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
 > [StateLocking](main_2-3_StateLocking_DevPlanTicket.md) are real,
 > analysed work — priority 2's own definition — but none is a prerequisite

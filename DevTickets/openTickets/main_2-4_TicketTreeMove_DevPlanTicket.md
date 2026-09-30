@@ -1,4 +1,4 @@
-# CitationRot — source files citing tickets that have since been archived
+# TicketTreeMove — move `DevTickets/` to `.dev`, and fix the citations that will not survive it
 
 *Created: 2026-09-19*
 
@@ -41,6 +41,22 @@
 > **Found while auditing the planning surface on 2026-09-19.** Not
 > reported by anyone: it was found by checking every ticket path cited in
 > `src/` against the filesystem, which nothing does today.
+
+> **Merged and renamed 2026-09-30**, from `CitationRot` (2026-09-19) and
+> `shortTickets/mv-tickets.md` (owner, 2026-09-30): *"DevTickets should be
+> in `.dev` not `.localSpec`. It is a more intuitive organisation of private
+> repos."* The two belong together and in that order: this ticket already
+> lists five source citations that point at ticket paths which no longer
+> exist, and the move rewrites **every** such path at once — every
+> `.localSpec/DevTickets/...` reference in `src/`, plus every relative link
+> inside the tickets themselves (`../AdditionalSpecs.md`,
+> `../../.distant/...`). Building the check first (§3) and then moving turns
+> the largest breakage this tree can suffer into a list the check prints.
+> Moving first means finding out one dead link at a time.
+>
+> The sections below are the original ticket, unchanged, and remain
+> accurate: §1 the five stale citations, §2 why they recur by design, §3 the
+> check, §4 the two decisions. §6 is the move itself.
 
 ## Abstract — read this first
 
@@ -161,7 +177,35 @@ is absent** — it is a private mount, and a user who installed from
 | **D1** | Cite tickets by path, or by name only? | **By name only, for a ticket still open.** `AdditionalSpecs.md` already states the principle for a different reason — "`src/` cites this section, not a ticket: an archived ticket is a historical record and is never edited, and a live schema must not sit inside one." A docstring saying "see the WorkingTransitionState ticket" survives every rename the lifecycle performs. An *archived* ticket's path is stable and may be cited in full | Implementer |
 | **D2** | Does the check gate `pixi run lint`, or only `check-ceilings`? | `check-ceilings`, which is where the other docstring check lives and which is not on the commit path. A dead documentation link should not block a commit that fixes a bug | **Owner** |
 
-## 5. Acceptance
+## 6. The move
+
+`DevTickets/` today is a directory inside the `.localSpec` mount
+(`github:flipoyo/.localSpec`, branch `ComplexGitSync`), alongside
+`AdditionalSpecs.md`, `audit.md`, `digest.md` and `AGENT.md`. The owner wants
+it in its own `.dev` mount under `.agent/.local/`, so the private repos split
+by purpose: specifications in `.localSpec`, the planning surface in `.dev`.
+
+What the move touches, and why it is worth doing with §3's check in hand:
+
+| Touches | Why |
+|---|---|
+| `examples/complexgitsync4dev.cgs` | a new private, writable entry for `.dev` at `.agent/.local/.dev`; `.localSpec` keeps the rest |
+| every relative link **inside** a ticket | `../AdditionalSpecs.md`, `../README.md`, `../../.distant/ticket/TICKETLIFECYCLE.md` all change depth |
+| `src/` citations | §3's grep pattern is literally `.localSpec/DevTickets/` — the check must learn the new path, and every citation must move with it |
+| `scripts/spec_tree.py` | `DECLARED_SPEC_FILES` is hand-maintained and names paths in the tree |
+| `CLAUDE.md` *Layout*, `AdditionalSpecs.md`, `DevTickets/README.md` | all describe where the planning surface lives |
+| `digest.md` | citations resolve against the declared universe |
+
+**Do §3's check first, then the move, then re-run it.** A move with a working
+link check is a mechanical change with a printed list of everything it broke;
+a move without one is exactly how the five citations in §1 came to exist.
+
+**Order.** §1's five citations → §3's check (D2 says where it runs) → the
+move → re-run everything: `--check`, `--check-digest`, `check-ceilings`, and
+`cgitsync status` from the tree's own root, which is what proves the new
+mount actually resolves.
+
+## 7. Acceptance
 
 - The five citations name their archived tickets, or name the ticket
   without a path.
@@ -169,5 +213,11 @@ is absent** — it is a private mount, and a user who installed from
   resolve.
 - `pixi run check-ceilings` reports stale citations, and passes cleanly in
   a checkout with no `.localSpec` mounted.
-- `pixi run lint` and `pixi run test` pass; `cgitsync status` shows
-  `errors=0`.
+- `DevTickets/` lives in a `.dev` mount at `.agent/.local/.dev`, declared in
+  `examples/complexgitsync4dev.cgs`, and a fresh bootstrap of that spec
+  produces it.
+- No relative link inside any ticket, and no citation in `src/`, points at
+  the old location; `spec_tree.py --check` and `--check-digest` exit 0.
+- `pixi run lint` and `pixi run test` pass; `cgitsync status`, run from the
+  tree's own root, shows `errors=0` — which is what proves the new mount
+  resolves.

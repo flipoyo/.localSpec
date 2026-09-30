@@ -24,8 +24,8 @@
 > tickets ahead of it changed: [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
 > [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md) and
 > [AgentReport](../archive/20260924_AgentReport_DevPlanTicket.md) now lead as
-> "finalize the agentic," and [DiscoverRoundTrip](main_1-2_DiscoverRoundTrip_DevPlanTicket.md)/
-> [CitationRot](main_1-3_CitationRot_DevPlanTicket.md) were promoted ahead
+> "finalize the agentic," and [DiscoverRoundTrip](../archive/20260928_DiscoverRoundTrip_DevPlanTicket.md)/
+> [CitationRot](main_2-4_TicketTreeMove_DevPlanTicket.md) were promoted ahead
 > of this one. This ticket stays last in the pile: still ready, no owner
 > decision needed, but nothing else is waiting on it the way the five
 > ahead of it are waited on.
@@ -39,6 +39,14 @@
 > half). Filed last in the `main` priority-1 pile per the owner's
 > instruction: *"enqueue what remains at the end of the reorder
 > priority1."*
+
+> **Moved to priority 2 in the reorganisation of 2026-09-30**, `main_1-6` →
+> `main_2-5`. Nothing changed about the work or its readiness: the priority-1
+> pile was reorganised around three structural goals — class-first package
+> structure, constrained agentic behaviour, and the nested/standalone install
+> frontier — and this ticket serves none of them. It is a feature built on
+> machinery that already exists, it blocks nothing, and no other ticket waits
+> on it. It stays ready to pick up the moment the structural work is done.
 
 ## Abstract — read this first
 
