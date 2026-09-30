@@ -4,12 +4,40 @@
 
 *Branch: main*
 
+> **Implemented 2026-09-30.** Archived with the work done; where it differs
+> from the plan below, stated plainly:
+>
+> - **Two tables, not one.** The plan in §2 asked for one six-column table.
+>   `AgenticManifest.md` holds two: *Mounts* (mount, repository, side, role)
+>   and *Spec files* (file, mount, digest: `cited` or `exempt: <reason>`).
+>   One row per mount with a list of files and exemptions in a cell would
+>   not have parsed without guessing; the `specs` and `exempt` columns
+>   became the second table.
+> - **D1 to D4 were taken at this ticket's own recommendations** (manifest in
+>   `.localSpec`, a Markdown table, not loaded at session start, roles left
+>   to `AGENT.md`), because the owner did not answer them. They stand until
+>   the owner says otherwise.
+> - **WP4 found no other script holding a mount list.** `bump_build.py`,
+>   `check_module_ceilings.py`, `check_oo_conformance.py` and the `pixi.toml`
+>   tasks name no mount as a list; `pixi.toml` points `bump-version` at one
+>   path, `.versioning/scripts/bump_version.py`, which is a path to a script
+>   and not a list. Nothing was changed there.
+> - **Left behind, found on review, then fixed by the worker in the same change:** the comments in
+>   `examples/complexgitsync4dev.cgs`, three stale lines in `.gitignore`, a
+>   docstring in `tests/unit/test_documents.py`, and the "release skill"
+>   wording in `tests/unit/test_bump_version.py` still use the old mount
+>   names, so the "no file names them as a mount" bullet in §5 was not yet met
+>   for every file. All of them, plus the misaligned table in tutorial 04 and a
+>   doubled exemption message in the script, were then fixed. `DevTickets/TicketSummary.md` was already
+>   out of date and was not touched.
+> - Version: patch, `3.7.2`, since only scripts, specs and docs changed.
+
 > Opened from a conversation with the owner (2026-09-30), after the
 > DefaultUserMemory change: *"write a DevPlanTicket for updating the
 > specTree and the subsequent scripts/.py and agentic control manifest.md"*.
 > Nothing stood behind that request in `shortTickets/`; this ticket is its
 > written record. Ranked `1-2`, behind
-> [AutofixBlindSpot](main_1-1_AutofixBlindSpot_DevPlanTicket.md); the owner
+> [AutofixBlindSpot](../openTickets/main_1-1_AutofixBlindSpot_DevPlanTicket.md); the owner
 > may re-rank it (`shortTickets/ReorderPriority-mem-multiUser.md` is open).
 
 ## Abstract — read this first
@@ -60,7 +88,7 @@ Checked on 2026-09-30:
 | `DIGEST_EXEMPT` | hand-written exemptions | will need one per new file, written by hand again |
 | `pixi run check-spectree` | "Spec tree intact", `reachable: 14/14` | true of 14 files, silent about the rest |
 
-The cause is the one [SpecTree](../archive/20260925_SpecTree_DevPlanTicket.md)
+The cause is the one [SpecTree](20260925_SpecTree_DevPlanTicket.md)
 D1 chose on purpose: a hand-maintained list, because a glob would pull in
 files that are not specs. That reasoning still holds. What it lacked is a
 single place where a person says *which mounts exist and what each is for*,

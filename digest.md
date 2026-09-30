@@ -63,6 +63,7 @@ file to match, in the same change that noticed the drift.
 
 ## Before a task is finished
 
+- CI never writes a version: a bump is a release decision made by a reader, through `pixi run bump-version`. — `Versioning.md`
 - `pixi run lint` and `pixi run test` must both pass before any task is considered closed. — `CLAUDE.md` §1
 - Run `pixi run bump-build` for any change under `src/`. — `CLAUDE.md` §1
 - `cgitsync status`, run from the tree's own root, must show `errors=0` before a task is finished. — `CLAUDE.md` §1
@@ -85,6 +86,7 @@ file to match, in the same change that noticed the drift.
 
 ## Architecture — single-implementation rules
 
+- Every mount under `.agent/` that `examples/complexgitsync4dev.cgs` declares is named in `AgenticManifest.md`, and every spec file in it is listed there; `pixi run check-spectree` fails when they disagree. — `AgenticManifest.md`
 - A memory the `.cgs` does not declare is created locally by ComplexGitSync and never pushed, even with a remote added by hand; only `memory adopt` opts in. — `AdditionalSpecs.md` §Architectural Overview
 - `initialise` is the nested install and `bootstrap` the standalone one; each refuses the other's job by name before touching the disk. — `AdditionalSpecs.md` §The install frontier
 - `.gts` prevails over `.cgs`: a hand-edited `.cgs` must never widen write access behind an attested snapshot. — `AdditionalSpecs.md` §Architectural Overview

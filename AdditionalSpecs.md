@@ -480,8 +480,10 @@ are non-trivial — keep them in sync rather than let the header rot.
 rather than to `src/`. `main_1-7_SpecTree_DevPlanTicket.md` has the
 design in full; in short:
 
-- **The graph.** Nodes are `DECLARED_SPEC_FILES` — a hand-maintained list
-  of rule/spec documents, not a glob over every `.md` under `.agent/`
+- **The graph.** Nodes are `DECLARED_SPEC_FILES`, read from
+  [AgenticManifest.md](AgenticManifest.md) — the one hand-written list of
+  the mounts under `.agent/` and their spec documents (`--check` also fails
+  when that list and the developer `.cgs`'s mounts disagree) — not a glob over every `.md` under `.agent/`
   (that would pull in a mounted documentation repository's own theme
   docs and every planning ticket). Edges are markdown links, resolved
   relative to the linking file, plus backtick-quoted bare filenames
@@ -1735,7 +1737,7 @@ a State's hash. See *What a State's name is computed from*, below.
 | Who | Does | With |
 |---|---|---|
 | **Worker** — the agent changing `src/` | Bumps `__build__`, as part of that change | `pixi run bump-build` (`scripts/bump_build.py`) — writes one file |
-| **Orchestrator** — independent, quotes the work | Decides MAJOR/MINOR/PATCH, runs `bump-version`, tags, writes the release row | `pixi run bump-version {major,minor,patch} [--pre <stage>] [--release]` (`.agent/.local/release/scripts/bump_version.py` — private, see ProjectSpecSplit) |
+| **Orchestrator** — independent, quotes the work | Decides MAJOR/MINOR/PATCH, runs `bump-version`, tags, writes the release row | `pixi run bump-version {major,minor,patch} [--pre <stage>] [--release]` (`.agent/.local/.versioning/scripts/bump_version.py` — private, see ProjectSpecSplit) |
 | **CI** | Verifies: lint, tests, tree reconstitution | Never writes a version; needs no credentials to |
 
 **CI cannot make the MAJOR/MINOR/PATCH judgement** — no diff distinguishes
@@ -1798,7 +1800,7 @@ latexmk -pdf MASTER.tex`, plus each `c_*.tex`) and commit the result in the
 same change.
 
 `bump_version.py` is orchestrator tooling and lives in
-`.agent/.local/release/scripts/` — private, not in the public
+`.agent/.local/.versioning/scripts/` — private, not in the public
 `ComplexGitSync` repository — so a public-only checkout structurally cannot
 cut a release (ProjectSpecSplit). It moved there from
 `.agent/.local/.localSpec/scripts/`, where WP4 first placed it, once the
