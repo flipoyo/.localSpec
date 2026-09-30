@@ -339,6 +339,14 @@ the rule; everything else points here.
   back-up and no global ledger record, and names the command that fixes it;
   a Python caller gets it as `MemorySetupWarning`. `memory status` says the
   same on such a tree.
+- **The one command a developer runs, at any time: `cgitsync memory setup
+  [--provider P] [--owner O] [--name N] [--cgs FILE]`** (client:
+  `memory_setup`). It needs no offer and ignores an earlier "no": run it
+  whenever a DEV tree has no memory declared, and it creates the repository,
+  declares it in the `.cgs` and adopts the local memory, stopping at the
+  first step that fails. On a tree that already declares a memory, or a USER
+  tree, it says there is nothing to set up. `tutorials/05_memory.md` §2 is
+  where a reader meets it.
 - `status` prints `profile=user|dev` on its summary line and `status --json`
   carries a `profile` field (additive).
 
@@ -1011,7 +1019,7 @@ its `.cgs` names (owner direction, 2026-09-30). The rule is stated once, in
 |---|---|---|
 | D1 | What a push sends | The ledger, States, Environment records and commit logs. Run logs are to stay local (`LocalRunLogs` ticket); until it lands, they are folded too |
 | D2 | One memory repository per project, or one for all | One for all, `flipoyo/.memory`, one branch per project. Cost, kept on record: a reader of `.memory` can read every project's branch |
-| D3 | How a memory repository is addressed | Declared in the `.cgs` like any private entry; its branch forks and merges with the project's. ComplexGitSync never creates a repository on a provider |
+| D3 | How a memory repository is addressed | Declared in the `.cgs` like any private entry; its branch forks and merges with the project's. ComplexGitSync holds no credential and calls no provider API: when a memory repository must be created, it runs the provider's own tool (`gh`, `glab`, `tea`) — `cgitsync repo create`, or all three steps at once with `cgitsync memory setup` (*Creating a repository*, *The tree profile*). Corrected 2026-10-01: this row used to say ComplexGitSync never creates a repository on a provider, which stopped being true when `repo create` landed |
 | D4 | When a sync happens | On `memory push`, and before `push`, `tag` and `freeze`, which fold and send the memory first; a failed send only warns. Never in the background, and never for a USER memory |
 | D5 | What a memory may contain | No absolute path except the tree's own root, no user name, no credential; arguments scrubbed before hashing; commit messages exactly as written |
 | D6 | How much toolchain an entry carries | All five versions (cgitsync, git, pixi, dvc, git-lfs) on every entry, `none` when a tool is absent, each asked at most once per command |
@@ -1358,6 +1366,9 @@ Three answers, and none of them is an exception for the ordinary cases:
 - **unavailable** — the tool is missing or signed out. The command to run is
   returned, and the exit code is `2` (*could not run*) — which is what this
   project did for repository creation before it could do any of it.
+
+`cgitsync memory setup` (*The tree profile*) is the one other caller: it runs
+`repo create` as its first step, so the same three answers apply.
 
 Everything else about a repository is still plain Git.
 
