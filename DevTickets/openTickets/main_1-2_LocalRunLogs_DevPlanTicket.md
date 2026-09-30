@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, UserDevProfile closed.** Renumbered `main_1-3` → `main_1-2`: [UserDevProfile](../archive/20260930_UserDevProfile_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > Opened from the owner's answer to MemoryArchitecture's D1 (2026-09-30),
 > when that ticket was closed
 > ([MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md)):

@@ -4,9 +4,11 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, UserDevProfile closed.** Renumbered `main_1-2` → `main_1-1`: [UserDevProfile](../archive/20260930_UserDevProfile_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > **Ticket review — 2026-09-30, MemoryArchitecture closed.** Renumbered `main_1-3` → `main_1-2`: [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md) was archived, so the priority-1 ranks were compacted.
 
-> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Promoted `main_2-2` → `main_1-3`, after MemoryArchitecture and the new [UserDevProfile](main_1-1_UserDevProfile_DevPlanTicket.md), per the owner's order. A user install is now also a **USER** tree in UserDevProfile's sense — it holds no private repository, so its memory is local and never synced — and whatever install route this ticket settles on must keep it that way.
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Promoted `main_2-2` → `main_1-3`, after MemoryArchitecture and the new [UserDevProfile](../archive/20260930_UserDevProfile_DevPlanTicket.md), per the owner's order. A user install is now also a **USER** tree in UserDevProfile's sense — it holds no private repository, so its memory is local and never synced — and whatever install route this ticket settles on must keep it that way.
 
 > **Ticket review — 2026-09-19.** Rank unchanged — the priority-1 and
 > priority-2 piles are numbered independently — but

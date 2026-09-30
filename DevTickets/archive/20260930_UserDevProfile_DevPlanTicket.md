@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Implemented — 2026-09-30, archived.** WP1–WP5 landed in `cgitsync3.9.0`: `WorkingGitTree.profile` in `git_tree.py`; `profile=` in `status` and `status --json`; `orchestre/memory_setup.py` (`MemorySetup`, `MemorySetupWarning`) behind the client methods `memory_setup_proposal`, `memory_setup`, `memory_setup_decline`; `cli/memory_prompt.py` for `cgitsync memory setup` and the terminal-only offer after a recording command; the rule stated once in `AdditionalSpecs.md`, *The tree profile*; `tests/integration/test_user_dev_profile.py`. Quoted by an independent orchestrator at 94/100. Owner decisions taken while closing: the import-ceiling raises are kept, and `memory setup` edits the `.cgs` the tree was built from even when it sits outside the workspace. Answers that leave nothing to create count as a decline, so the question is still asked only once.
+
 > **Ticket review — 2026-09-30, MemoryArchitecture closed.** Renumbered `main_1-2` → `main_1-1`: [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md) was archived, so the priority-1 ranks were compacted.
 
 > Opened from the owner's short ticket `ReorderPriority-mem-multiUser.md`

@@ -330,8 +330,11 @@ the rule; everything else points here.
   (`gh`, `glab` or `tea`). Accepting runs `memory setup`: create the
   repository with the provider's tool, add the entry to the `.cgs` with its
   comments kept, adopt the local memory — stopping at the first step that
-  fails. Declining is remembered in `.cgitsync/memory-setup-declined`, so it
-  is asked once. With no terminal (`--json`, CI, a Python caller), after a
+  fails. The `.cgs` edited is the one the tree was built from, even when a
+  `bootstrap` left it outside the workspace (owner, 2026-09-30); its path is
+  shown before asking, and `--cgs` names another. Declining — or answering
+  so that nothing can be created — is remembered in
+  `.cgitsync/memory-setup-declined`, so it is asked once. With no terminal (`--json`, CI, a Python caller), after a
   refusal or after a failed step, it only warns that the work has no memory
   back-up and no global ledger record, and names the command that fixes it;
   a Python caller gets it as `MemorySetupWarning`. `memory status` says the
@@ -486,7 +489,10 @@ fit, and do not raise the number quietly. The owner granted such a raise on
 change needs it, on the grounds that the project is already held by many
 other invariants. That allowance is a ceiling to ask against, not a target
 to fill: the ratchet still tightens automatically every time a module
-shrinks, and `--write-baseline` records both directions at once.
+shrinks, and `--write-baseline` records both directions at once. On 2026-09-30 the owner also approved the internal-import raises
+UserDevProfile needed (`orchestre/client.py` 57, `cli/expert.py` 33,
+`orchestre/memory_commands.py` 50, `cli/_shared.py` 23): import counts are
+not covered by the standing allowance and are asked for each time.
 Directional targets, for context: ≤500 LOC hard / ≤350 target per module,
 ≤7 public symbols, ≤6 internal imports. Cyclomatic complexity is enforced
 separately and absolutely via `ruff`'s `C90` selector (`pyproject.toml`,

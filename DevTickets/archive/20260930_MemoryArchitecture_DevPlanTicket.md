@@ -4,7 +4,7 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Promoted `main_2-1` → `main_1-1`. The owner's direction that AutofixBlindSpot is not prioritary before this ticket, UserInstallPath, StateLocking or AsOfRetrieval, and their idea for unifying the memory strategy, make this the reference the next memory work is read against again. The idea is recorded as an owner direction in §2.3 below, and built by [UserDevProfile](../openTickets/main_1-1_UserDevProfile_DevPlanTicket.md).
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Promoted `main_2-1` → `main_1-1`. The owner's direction that AutofixBlindSpot is not prioritary before this ticket, UserInstallPath, StateLocking or AsOfRetrieval, and their idea for unifying the memory strategy, make this the reference the next memory work is read against again. The idea is recorded as an owner direction in §2.3 below, and built by [UserDevProfile](20260930_UserDevProfile_DevPlanTicket.md).
 
 > **Ticket review — 2026-09-22.** Considered and left at `main_2-1`
 > (unchanged) during the backlog reorganisation that promoted
@@ -13,7 +13,7 @@
 > [AgentReport](20260924_AgentReport_DevPlanTicket.md),
 > [DiscoverRoundTrip](20260928_DiscoverRoundTrip_DevPlanTicket.md) and
 > [CitationRot](../openTickets/main_2-3_TicketTreeMove_DevPlanTicket.md) to priority 1. This
-> ticket, [UserInstallPath](../openTickets/main_1-2_UserInstallPath_DevPlanTicket.md) and
+> ticket, [UserInstallPath](../openTickets/main_1-1_UserInstallPath_DevPlanTicket.md) and
 > [StateLocking](../openTickets/main_2-1_StateLocking_DevPlanTicket.md) are real,
 > analysed work — priority 2's own definition — but none is a prerequisite
 > for `data-repo` starting, and each says so in its own words: this one is
@@ -34,7 +34,7 @@
 > landed (`.cgitsync`/`.memory`, State, the ledger, `memory explore`,
 > `memory reboot`), so this document is now the architecture reference the
 > landed code implements, not an open memory-dev design. It keeps its rank
-> ahead of [UserInstallPath](../openTickets/main_1-2_UserInstallPath_DevPlanTicket.md) and
+> ahead of [UserInstallPath](../openTickets/main_1-1_UserInstallPath_DevPlanTicket.md) and
 > [StateLocking](../openTickets/main_2-1_StateLocking_DevPlanTicket.md) because both still
 > cite it. [Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md) is
 > the one piece of this design still active and stays on `memory-dev`.
@@ -47,7 +47,7 @@
 > section, beside *Memory vocabulary*. M6 and the multi-developer question
 > moved to [Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md), which
 > already carried them. The one piece of new work D1's answer creates is
-> [LocalRunLogs](../openTickets/main_1-3_LocalRunLogs_DevPlanTicket.md). The last
+> [LocalRunLogs](../openTickets/main_1-2_LocalRunLogs_DevPlanTicket.md). The last
 > ambiguous uses of *register* for the ledger were renamed in the same change.
 > "Each milestone states what it does not do" stays marked not re-audited, as
 > the owner chose.
@@ -233,7 +233,7 @@ true for `merge`/`checkout` as well as for `add`/`commit`/`push`.
 > tree holding at least one is a DEV tree, whose memory is synced to the
 > remote its `.cgs` names. The consequence for this section: **users never
 > share a memory, so the multi-person problem below is a multi-developer
-> problem only.** [UserDevProfile](../openTickets/main_1-1_UserDevProfile_DevPlanTicket.md)
+> problem only.** [UserDevProfile](20260930_UserDevProfile_DevPlanTicket.md)
 > builds the rule; [DefaultUserMemory](20260930_DefaultUserMemory_DevPlanTicket.md)
 > already built its USER half.
 
@@ -326,7 +326,7 @@ The ledger is small and grows by one entry per operation. States are whole
 | Ledger only | Smallest, and it throws away the ability to restore a tree from its memory, which is half the reason to keep one |
 
 > **D1 answered by the owner — 2026-09-30: keep pushing everything except the run logs,**
-> which stay local ([LocalRunLogs](../openTickets/main_1-3_LocalRunLogs_DevPlanTicket.md)).
+> which stay local ([LocalRunLogs](../openTickets/main_1-2_LocalRunLogs_DevPlanTicket.md)).
 > What landed before that answer:
 > `memory push` folds and pushes **everything** pending — the ledger, States,
 > run logs and Environment records (`_FOLD_SUBDIRS = lgr, state, logs, env`, plus commit logs folded separately) —
@@ -583,7 +583,7 @@ Their filenames say so: an open memory ticket is
 carries a `*Branch: memory-dev*` line under its `*Created:*` line. A ticket
 whose filename opens with `main_` is `main` work — including
 [CliContract](20260916_CliContract_DevPlanTicket.md),
-[UserInstallPath](../openTickets/main_1-2_UserInstallPath_DevPlanTicket.md) and
+[UserInstallPath](../openTickets/main_1-1_UserInstallPath_DevPlanTicket.md) and
 [CgshomeDefault](20260916_CgshomeDefault_DevPlanTicket.md), which the
 milestones ask questions of without being memory work themselves. The
 convention is stated in
@@ -647,5 +647,5 @@ is.
 The owner's rule — every memory local first, a tree holding no private
 repository a USER tree whose memory is never synced, one holding any a DEV
 tree whose memory is — is §2.3's new direction. Its USER half landed with
-`DefaultUserMemory`; [UserDevProfile](../openTickets/main_1-1_UserDevProfile_DevPlanTicket.md)
+`DefaultUserMemory`; [UserDevProfile](20260930_UserDevProfile_DevPlanTicket.md)
 builds the rest.
