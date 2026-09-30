@@ -4,6 +4,8 @@
 
 *Branch: memory-dev*
 
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Scope narrowed, rank unchanged. The owner's rule — a USER tree holds no private repository and its memory is never synced; only a DEV tree's is ([UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md)) — means the "several people" this journal serves are **developers only**. Users never contribute to it. Whether two developers on one project branch keep sharing one `.memory` branch, or each get their own for this journal to merge, is UserDevProfile's D3, handed to this ticket.
+
 > **Ticket review — 2026-09-22.** Rank unchanged — `memory-dev`'s
 > priority-2 pile is numbered independently of `main`'s and `data-repo`'s —
 > but confirmed last in reading order across the whole backlog, on the

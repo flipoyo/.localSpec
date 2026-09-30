@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Renumbered `main_2-4` → `main_2-3`: the owner's order did not name it; it keeps its place relative to AsOfRetrieval and stays above AutofixBlindSpot.
+
 > **Ticket review — 2026-09-23.** Renumbered again, `main_1-4` → `main_1-3`:
 > [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md)
 > finished and archived, compacting the pile by one. Everything below is

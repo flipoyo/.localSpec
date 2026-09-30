@@ -6,47 +6,36 @@ Summary of all open planning tickets: what each ticket tackles, ranked by curren
 
 ---
 
-## main_1 — Priority 1: three structural goals
+## main_1 — Priority 1: one memory strategy, for users and developers
 
-Reorganised 2026-09-30 around the owner's three goals. Every priority-1
-ticket serves exactly one of them; anything that served none moved to
-priority 2.
+Re-ranked 2026-09-30 from the owner's short ticket
+`ReorderPriority-mem-multiUser`: AutofixBlindSpot is not prioritary before
+MemoryArchitecture, UserInstallPath, StateLocking or AsOfRetrieval, and the
+owner's idea — a memory is always local; a USER tree holds no private
+repository, a DEV tree does and syncs its memory — was adopted.
 
-| Goal | Tickets |
-|---|---|
-| **2. Constrained agentic behaviour** — no more week-long failures | 1-2 AutofixBlindSpot (AgentGuardrails, its other half, is done and archived) |
-| **1. Class-first package, CLI-only public exposure** | none open: ClassFirstPackage and ModulePackagisation are both done and archived |
-| **3. A clear nested/standalone frontier** | 1-1 DefaultUserMemory (InstallFrontier, its other half, is done and archived) |
+### main_1-1: MemoryArchitecture
+The architecture reference every memory ticket cites: States, the ledger, the memory repository and the still-open multi-person journal. Now carries the owner's 2026-09-30 direction in §2.3: every memory is local first; users never share a memory, so the multi-person problem is a multi-developer one only.
 
-### main_1-1: DefaultUserMemory
-`install.cgs` mounts no private repository by design, so a user install has a `.cgitsync/` that accumulates states, logs and ledger entries with **no `.memory` repository to fold them into** — the record exists and can never become one. Plan: create it automatically, locally, with no remote, on the first command that records something; the `.cgs` overrides the default; the branch is the one `memory_branch()` already computes, so publishing later needs no rename; and a defaulted memory is never pushed, because publishing is a developer's privilege. Branch `main`, not `memory-dev`: this only adds a default, it migrates no stored format.
+### main_1-2: UserDevProfile
+New, from the owner's idea. A tree holding no private repository is USER, one holding any is DEV, read off `effective_private` in one place; `status` prints `profile=user|dev`; a DEV tree with no memory entry is told its memory is not synced. Four owner decisions (where the rule lives, warn vs refuse, shared vs per-developer memory branch, whether a read-only private makes a tree DEV).
 
-### main_1-2: AutofixBlindSpot
-`autofix` starts from the last logged error, and a commit whose message was mangled by the shell raises none — `git commit` succeeded. Plan: a second, non-error-driven `Situation` source that inspects a repository's tip commit directly. Ranked last because AgentGuardrails' commit-message check removes the common path (a commit made *by* `cgitsync`); this ticket covers what it cannot reach, a bare `git commit` outside the tool.
+### main_1-3: UserInstallPath
+One install command for someone evaluating the tool, without Pixi or a clone. A user install must stay a USER tree: no private repository, local memory only.
 
-### Sequencing
+## main_2 — Priority 2
 
-Four tickets landed in order: AgentGuardrails, ClassFirstPackage, ModulePackagisation, then InstallFrontier (the nested/standalone frontier is enforced: `initialise` and `bootstrap` each refuse the other's job by name, both take a `.cgs` or a `.gts`, and a State is a `.gts` only).
+### main_2-1: StateLocking
+Two cgitsync processes in one workspace race on the state area and the ledger, and the loser wins silently. More likely now that developers sync their memories while they work.
 
-1. **1-1 DefaultUserMemory** edits `orchestre/memory_commands.py`; its class-work dependency (`memory/repository.py`) is already satisfied, and the install path it touches now has the frontier rule to build on.
-2. **1-2 AutofixBlindSpot last.**
+### main_2-2: AsOfRetrieval
+"What was this tree at time *T*?" — one query on the chain's own order. Design settled; ready to build.
 
-## main_2 — Priority 2: Architecture & Long-Term
+### main_2-3: TicketTreeMove
+Five `src/` docstrings cite tickets by their open path, which archiving renames; add the check, then move `DevTickets/` to its own mount.
 
-### main_2-1: MemoryArchitecture
-A project's memory — the ledger, states, environment records — lives locally and is answerable from one place. Four work packages: finish the typing contract, add a retrieval interface that pairs with AsOfRetrieval, wire everything through ClockProtocol for full determinism, add verification that a ledger's own hash-chain is unbroken.
-
-### main_2-2: UserInstallPath
-Separate install stories: Pixi for contributors (full dev environment), one command for end users (just the tool + docs). One work package: move Pixi/editable-package logic into contributor docs and a separate `Makefile`/shell script, leaving the public `install.cgs` self-contained.
-
-### main_2-3: StateLocking
-Two cgitsync processes touching one workspace: who wins? Needs a lightweight per-workspace lock (directory-level advisory lock, or a marker file) and a timeout so a dead process doesn't block forever. Two work packages: add the lock primitive, add backoff + logging when a lock is held.
-
-### main_2-4: TicketTreeMove
-Merged with `shortTickets/mv-tickets.md`: move `DevTickets/` out of the `.localSpec` mount into its own `.dev` mount, so the private repos split by purpose — specifications in `.localSpec`, the planning surface in `.dev`. Paired with the original CitationRot work because the move rewrites every `.localSpec/DevTickets/...` path in `src/` and every relative link inside the tickets at once. Build the link check first, then move, then re-run it: that turns the largest breakage this tree can suffer into a list the check prints.
-
-### main_2-5: AsOfRetrieval
-"What was this tree at time *T*?" — one query built on the chain's own order and the monotonicity check UniversalClock landed. Moved down from priority 1 on 2026-09-30: it serves none of the three structural goals, blocks nothing, and nothing waits on it. Ready to pick up whenever.
+### main_2-4: AutofixBlindSpot
+`autofix` starts from the last logged error, and a commit whose message the shell mangled raises none. Plan: a second, non-error-driven source that inspects a repository's tip commit. Demoted from 1-1 by the owner.
 
 ## data-repo — Priority 2: Data Pipeline (Separate Workstream)
 
@@ -58,7 +47,7 @@ Seven tickets spanning data schema, backend contract, authoring, materialisation
 ## memory-dev — Priority 2: Memory Workstream (Separate Workstream)
 
 ### memory-dev_2-1: Omniscience
-Record every observable fact about a cgitsync run (not just errors, but timing, environment, which tickets were served, which agents acted). Separate ledger from the state chain; enables diagnostics + analytics over the project's own development.
+The project's own shared journal, whose chain is Git's commit history: appended to by everyone, rewritable by nobody without every clone noticing. Since 2026-09-30 its "everyone" means developers only — a USER memory is never synced.
 
 ### memory-dev_2-2: WorkingAreaRename
 `.cgitsync/working` → `.cgitsync/.working` (dot-prefix to signal "transient, not a public API"). One-line rename with a migration path for existing workspaces.
@@ -66,6 +55,8 @@ Record every observable fact about a cgitsync run (not just errors, but timing, 
 ---
 
 ## Rationale for Reordering
+
+**2026-09-30, from `ReorderPriority-mem-multiUser`.** The owner ranked AutofixBlindSpot below MemoryArchitecture, UserInstallPath, StateLocking and AsOfRetrieval, and proposed one memory strategy for everyone. MemoryArchitecture (reference) and the new UserDevProfile (the rule) went to priority 1 with UserInstallPath, the USER side of the same split; StateLocking, AsOfRetrieval, TicketTreeMove and AutofixBlindSpot follow at priority 2 in that order. The paragraphs below describe earlier reviews; their ranks are the ones of their day.
 
 **2026-09-30 — reorganised around three structural goals.** (Ranks in this paragraph and the next are those before AgentGuardrails was archived and the pile compacted.) See the table
 and sequencing notes under *main_1* above. Six tickets became five: the

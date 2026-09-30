@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Demoted `main_1-1` → `main_2-4`: the owner's words, *"AutoFixBlindSpot is not prioritary before MemoryArchitecture, UserInstallPath, StateLocking or AsofRetrieval."* Its content is unchanged.
+
 > **Ticket review — 2026-09-30, after DefaultUserMemory.** Renumbered `main_1-2` → `main_1-1`: [DefaultUserMemory](../archive/20260930_DefaultUserMemory_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Ticket review — 2026-09-30, after InstallFrontier.** Renumbered `main_1-3` → `main_1-2`: [InstallFrontier](../archive/20260930_InstallFrontier_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.

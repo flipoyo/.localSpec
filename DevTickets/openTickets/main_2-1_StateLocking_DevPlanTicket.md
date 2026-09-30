@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Renumbered `main_2-3` → `main_2-1`: ranked above AsOfRetrieval and AutofixBlindSpot per the owner's order. The owner's multi-developer case ([UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md) §3) makes a sync running while someone works more likely, which is the workload §1 said would prompt this.
+
 > **Ticket review — 2026-09-22.** §1's prediction happened for real: two
 > machines ("cgsN"/"cgsDbg") both wrote `.memory`'s ledger seq 16 after
 > the same ancestor, forking the chain exactly as this ticket's own words
@@ -30,7 +32,7 @@
 > what races should cover them once they exist.
 
 > **Ticket review — 2026-09-18.** Moved from `memory-dev_2-2` to
-> `main_2-3`: [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md)
+> `main_2-3`: [MemoryArchitecture](main_1-1_MemoryArchitecture_DevPlanTicket.md)
 > moved onto `main` in the same pass, and this ticket's own concurrency
 > work is scoped to the State area and ledger, not to anything still
 > exclusive to `memory-dev`. It stays last in the pile — still stand-by,
@@ -39,7 +41,7 @@
 > Split out of `.localSpec/DevTickets/archive/20260912_StateMemory_DevPlanTicket.md`
 > §3.5, which declared it out of scope and asked for a ticket of its own.
 > Stand-by, and it gets more important with every memory milestone — see
-> [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md).
+> [MemoryArchitecture](main_1-1_MemoryArchitecture_DevPlanTicket.md).
 
 ## Abstract — read this first
 

@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Promoted `main_2-2` → `main_1-3`, after MemoryArchitecture and the new [UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md), per the owner's order. A user install is now also a **USER** tree in UserDevProfile's sense — it holds no private repository, so its memory is local and never synced — and whatever install route this ticket settles on must keep it that way.
+
 > **Ticket review — 2026-09-19.** Rank unchanged — the priority-1 and
 > priority-2 piles are numbered independently — but
 > [TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md) now sits
@@ -16,13 +18,13 @@
 > check wants to print, so adopt it there once WP1 lands.
 
 > **Ticket review — 2026-09-18.** Renumbered from `main_2-1` to `main_2-2`:
-> [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md) moved
+> [MemoryArchitecture](main_1-1_MemoryArchitecture_DevPlanTicket.md) moved
 > onto `main` in the same pass and keeps first place in this pile because
 > both open items below still cite it.
 
 > **Memory review — 2026-09-12. Priority 2-2** (was 1-3). Moved to
 > stand-by behind the memory path of
-> [MemoryArchitecture](main_2-1_MemoryArchitecture_DevPlanTicket.md). Two
+> [MemoryArchitecture](main_1-1_MemoryArchitecture_DevPlanTicket.md). Two
 > things the memory work changes here:
 >
 > - **D1's version scheme now has a second reader.**

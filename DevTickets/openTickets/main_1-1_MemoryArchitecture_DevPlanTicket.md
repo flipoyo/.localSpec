@@ -4,15 +4,17 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Promoted `main_2-1` → `main_1-1`. The owner's direction that AutofixBlindSpot is not prioritary before this ticket, UserInstallPath, StateLocking or AsOfRetrieval, and their idea for unifying the memory strategy, make this the reference the next memory work is read against again. The idea is recorded as an owner direction in §2.3 below, and built by [UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md).
+
 > **Ticket review — 2026-09-22.** Considered and left at `main_2-1`
 > (unchanged) during the backlog reorganisation that promoted
 > [ProjectSpecSplit](../archive/20260922_ProjectSpecSplit_DevPlanTicket.md),
 > [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md),
 > [AgentReport](../archive/20260924_AgentReport_DevPlanTicket.md),
 > [DiscoverRoundTrip](../archive/20260928_DiscoverRoundTrip_DevPlanTicket.md) and
-> [CitationRot](main_2-4_TicketTreeMove_DevPlanTicket.md) to priority 1. This
-> ticket, [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
-> [StateLocking](main_2-3_StateLocking_DevPlanTicket.md) are real,
+> [CitationRot](main_2-3_TicketTreeMove_DevPlanTicket.md) to priority 1. This
+> ticket, [UserInstallPath](main_1-3_UserInstallPath_DevPlanTicket.md) and
+> [StateLocking](main_2-1_StateLocking_DevPlanTicket.md) are real,
 > analysed work — priority 2's own definition — but none is a prerequisite
 > for `data-repo` starting, and each says so in its own words: this one is
 > "now the architecture reference the landed code implements," not open
@@ -32,8 +34,8 @@
 > landed (`.cgitsync`/`.memory`, State, the ledger, `memory explore`,
 > `memory reboot`), so this document is now the architecture reference the
 > landed code implements, not an open memory-dev design. It keeps its rank
-> ahead of [UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
-> [StateLocking](main_2-3_StateLocking_DevPlanTicket.md) because both still
+> ahead of [UserInstallPath](main_1-3_UserInstallPath_DevPlanTicket.md) and
+> [StateLocking](main_2-1_StateLocking_DevPlanTicket.md) because both still
 > cite it. [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) is
 > the one piece of this design still active and stays on `memory-dev`.
 
@@ -193,6 +195,22 @@ true for `merge`/`checkout` as well as for `add`/`commit`/`push`.
 > ensure the multi-user contribution to the global memory of a project. I do
 > not have a clear view yet, and it will be a problem of multi private/local
 > sync into a single private/distant project journal."*
+
+> **Owner direction — 2026-09-30**, from
+> `.localSpec/DevTickets/archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`:
+> *"treat always the .memory as local for user and DEV. Identified DEV from
+> User, a USER holds no private at all. DEV does, so the local memory is
+> synced. This way it may be easier to treat the multi-user and multi-Dev
+> case."*
+>
+> Adopted. Every memory is local first, for everyone; a tree holding no
+> private repository is a USER tree, whose memory never leaves the disk; a
+> tree holding at least one is a DEV tree, whose memory is synced to the
+> remote its `.cgs` names. The consequence for this section: **users never
+> share a memory, so the multi-person problem below is a multi-developer
+> problem only.** [UserDevProfile](main_1-2_UserDevProfile_DevPlanTicket.md)
+> builds the rule; [DefaultUserMemory](../archive/20260930_DefaultUserMemory_DevPlanTicket.md)
+> already built its USER half.
 
 This layer was designed as an **index**: one repository naming, for each
 project, where its memory lived. With one shared `.memory` repository that
@@ -515,7 +533,7 @@ Their filenames say so: an open memory ticket is
 carries a `*Branch: memory-dev*` line under its `*Created:*` line. A ticket
 whose filename opens with `main_` is `main` work — including
 [CliContract](../archive/20260916_CliContract_DevPlanTicket.md),
-[UserInstallPath](main_2-2_UserInstallPath_DevPlanTicket.md) and
+[UserInstallPath](main_1-3_UserInstallPath_DevPlanTicket.md) and
 [CgshomeDefault](../archive/20260916_CgshomeDefault_DevPlanTicket.md), which the
 milestones ask questions of without being memory work themselves. The
 convention is stated in

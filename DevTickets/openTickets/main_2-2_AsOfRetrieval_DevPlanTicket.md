@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Renumbered `main_2-5` → `main_2-2`: the owner ranked it above AutofixBlindSpot.
+
 > **Ticket review — 2026-09-23.** Renumbered again, `main_1-5` → `main_1-4`:
 > [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md)
 > finished and archived, compacting the pile by one. Everything below is
@@ -25,7 +27,7 @@
 > [AgentContract](../archive/20260923_AgentContract_DevPlanTicket.md) and
 > [AgentReport](../archive/20260924_AgentReport_DevPlanTicket.md) now lead as
 > "finalize the agentic," and [DiscoverRoundTrip](../archive/20260928_DiscoverRoundTrip_DevPlanTicket.md)/
-> [CitationRot](main_2-4_TicketTreeMove_DevPlanTicket.md) were promoted ahead
+> [CitationRot](main_2-3_TicketTreeMove_DevPlanTicket.md) were promoted ahead
 > of this one. This ticket stays last in the pile: still ready, no owner
 > decision needed, but nothing else is waiting on it the way the five
 > ahead of it are waited on.
