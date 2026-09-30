@@ -89,6 +89,7 @@ file to match, in the same change that noticed the drift.
 
 - Every mount under `.agent/` that `examples/complexgitsync4dev.cgs` declares is named in `AgenticManifest.md`, and every spec file in it is listed there; `pixi run check-spectree` fails when they disagree. — `AgenticManifest.md`
 - A memory the `.cgs` does not declare is created locally by ComplexGitSync and never pushed, even with a remote added by hand; only `memory adopt` opts in. — `AdditionalSpecs.md` §Architectural Overview
+- Only a plain `X.Y.Z` version is ever published, from a tag, through trusted publishing with no stored token; the source archive never carries the developer mounts; pushing a tag or publishing is the owner's action. — `AdditionalSpecs.md` §Publishing a release
 - `initialise` is the nested install and `bootstrap` the standalone one; each refuses the other's job by name before touching the disk. — `AdditionalSpecs.md` §The install frontier
 - A tree holding any private repository is DEV and its memory is synced; one holding none is USER and its memory never leaves the disk; `WorkingGitTree.profile` is the only place that rule lives, and a DEV tree with no declared memory is offered one or warned, never refused. — `AdditionalSpecs.md` §The tree profile
 - `.gts` prevails over `.cgs`: a hand-edited `.cgs` must never widen write access behind an attested snapshot. — `AdditionalSpecs.md` §Architectural Overview

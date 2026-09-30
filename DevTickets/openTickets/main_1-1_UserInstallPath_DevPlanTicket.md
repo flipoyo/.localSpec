@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Prepared — 2026-10-01; open until the owner's release actions.** Owner answers taken: D2 the name stays `ComplexGitSync` (`complexgitsync` on the index), D3 Linux only, D4 a tag workflow, written but unpublished. Built and measured locally: WP-U3 metadata and sdist allow-list, WP-U4 the CI `installed` job and `scripts/smoke_installed.sh`, WP-U5 `release.yml` (written, never run), WP-U6 `CHANGELOG.md` (by hand, `bump-version` does not touch it), WP-U7 the README and getting-started split, WP-U2 "only plain `X.Y.Z` is published". An independent orchestrator quoted it 94/100. **Still the owner's, outside this repository:** WP-U1 (the index returned HTTP 404 for `complexgitsync`, so the name looked free, which says nothing about ownership), registering the trusted publisher and the `pypi`/`testpypi` environments, the TestPyPI dry run, and the first tag. Two acceptance lines — the published package page, and a tag producing a release — stay unmet until then; archive this ticket once they are.
+
 > **Ticket review — 2026-09-30, UserDevProfile closed.** Renumbered `main_1-2` → `main_1-1`: [UserDevProfile](../archive/20260930_UserDevProfile_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Ticket review — 2026-09-30, MemoryArchitecture closed.** Renumbered `main_1-3` → `main_1-2`: [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md) was archived, so the priority-1 ranks were compacted.

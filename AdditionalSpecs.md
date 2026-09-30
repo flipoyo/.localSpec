@@ -2001,3 +2001,37 @@ that record's terms version — absent, not fatal, when nothing has been
 signed yet. See the **AgentContract** ticket (cited by name, not path, per
 its own lifecycle rule) for the record's own content-addressing and why it
 lives beside `AgentConduct.md` rather than under `.cgitsync/`.
+
+### Publishing a release
+
+*Added 2026-10-01 (UserInstallPath).* Pixi is how this project is developed
+and tested; it is not how a user runs it. A user installs the published
+package with `pipx install complexgitsync` and needs Git and Python 3.11 or
+newer, nothing else — no clone, no Pixi, no developer mount. The package
+name is `ComplexGitSync`, which the index normalises to `complexgitsync`
+(owner, 2026-10-01). The first release claims **Linux only**, the platform
+CI validates, and `pyproject.toml`'s classifiers say so.
+
+- **Only plain `X.Y.Z` is published.** SemVer's `3.1.0-alpha.1` and
+  PEP 440's `3.1.0a1` are different grammars and nothing translates between
+  them, so a pre-release is never uploaded; `release.yml` refuses one. A
+  plain `X.Y.Z` is valid in both.
+- **The artefact is built and proved before anything is published.** The
+  source archive holds only the package, `README.md`, `LICENSE`,
+  `CHANGELOG.md`, `install.cgs` and `examples/` — never `CLAUDE.md`,
+  `AGENT.md`, `.agent/` or the contributor tooling. CI's `installed` job and
+  the release workflow's `build` job both build it, run `twine check`, install
+  the wheel with `pipx`, and run `scripts/smoke_installed.sh` outside the
+  checkout: a real local workspace (`validate`, `bootstrap` from a local bare
+  remote, `status` ready with `errors=0`), with `CGSHOME` unset because it
+  outranks the directory.
+- **A release is cut from a tag, with no stored token.** `release.yml` runs on
+  a tag `vX.Y.Z` (and, as a dry run to TestPyPI, on manual dispatch), checks
+  that the tag equals the version `pyproject.toml` holds and that
+  `CHANGELOG.md` has a `## X.Y.Z` heading, then publishes through PyPI
+  trusted publishing. The owner's one-time setup on the package index —
+  registering the trusted publisher and creating the `pypi`/`testpypi`
+  environments — is not something this repository can do for them. Pushing a
+  tag, publishing, and running the workflow remotely are the owner's actions.
+- **`CHANGELOG.md` is written by a person.** `bump-version` never touches it;
+  the release workflow refuses a tag whose version has no entry.
