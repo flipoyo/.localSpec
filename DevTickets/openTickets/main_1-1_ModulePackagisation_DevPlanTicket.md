@@ -4,10 +4,19 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-30, after AgentGuardrails.** Renumbered `main_1-3` → `main_1-2`: [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+> **Ticket review — 2026-09-30, after ClassFirstPackage.** Renumbered `main_1-2` → `main_1-1`: [ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
+> **State after ClassFirstPackage (implemented 2026-09-30).** Its step in the
+> sequencing — *ModulePackagisation after ClassFirstPackage* — is satisfied, and
+> `operations.py` (2228 lines) and `orchestre.py` (6796 lines) are now the only
+> modules over 2000 lines besides the exempt `cli/expert.py`, as recorded in
+> `scripts/oo_conformance_baseline.json`. `orchestre.py` still holds four
+> behaviour classes, and `operations.py` is procedural: 22 public free functions
+> and no class of its own to own them. Both are this ticket's scope, and WP5
+> extends the checker that already exists.
 
 > **Renumbered 1-2 → 1-3 in the priority-1 reorganisation of 2026-09-30.**
-> Opened by [ClassFirstPackage](main_1-1_ClassFirstPackage_DevPlanTicket.md),
+> Opened by [ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md),
 > which corrects everything finite; this ticket takes the part that is a
 > design job. The rule it implements is the owner's,
 > stated in conversation 2026-09-30 and recorded in
@@ -111,7 +120,7 @@ claims to be — each method a delegation of a line or two.
 | `orchestre/environment_commands.py` | `EnvironmentCommands` | `environment`, `check_environment`, `build_installed_from`, `validate_branch_topology`, `validate_topology` | ~5 |
 | `orchestre/command_run_logger.py` | `CommandRunLogger` | as today | — |
 | `orchestre/runtime_state_store.py` | `RuntimeStateStore` | as today | — |
-| `orchestre/reports.py` | the five value objects | no behaviour; they do not count against the cap (1-1 D1) | — |
+| `orchestre/reports.py` | the five value objects | no behaviour; they do not count against the cap (ClassFirstPackage D1) | — |
 
 The grouping is not invented for this ticket: it is the one `cli/` already
 uses (minimalist / expert / configuration / environment), plus memory. That
@@ -124,7 +133,7 @@ class, or make it the coordinator the docstring claims. Whichever is chosen,
 ## 3. The proposed `operations/` package
 
 `operations.py` is the module
-[ClassFirstPackage](main_1-1_ClassFirstPackage_DevPlanTicket.md) §1.1 calls a
+[ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md) §1.1 calls a
 fourteenth offender: 2193
 lines, 22 public module-level functions, and seven "classes" that are one
 enum and six dataclasses — five with no methods at all. It has no behaviour
@@ -152,7 +161,7 @@ of the change can land separately.
 | **WP2** | `orchestre.py` → `orchestre/`, mechanical half | Create the package; move `CommandRunLogger`, `RuntimeStateStore`, `Orchestre` and the five value objects into their own files. `orchestre/__init__.py` re-exports everything `from .client import ComplexGitSyncClient` and the rest, so no import anywhere else in `src/` or `tests/` changes. No method moves yet. |
 | **WP3** | `orchestre/`, the real split | Move the method groups of §2 out of `ComplexGitSyncClient` into their collaborator classes, **one group per commit**, largest first (`memory_commands`, then `tree_commands`, then `installer`). After each commit the facade still exposes all 93 methods and `pixi run test` passes unedited. Settle `Orchestre` per D1. |
 | **WP4** | `CLAUDE.md`, `AdditionalSpecs.md` | Update the module responsibility table and the dependency-path diagram — required by `CLAUDE.md`'s before-committing checklist whenever responsibility moves, and this ticket moves a great deal of it. `CLAUDE.md`'s `orchestre.py` row is already inaccurate today (§1) and must end up true. |
-| **WP5** | `scripts/check_oo_conformance.py`, `scripts/ceiling_baseline.json` | Ratchet what is left: no module over 2000 lines, `cli/` excepted; `git_tree.py` and `git_runner.py` recorded at today's size so they cannot drift over. This extends the checker 1-1 WP5 builds — do not write a second one. |
+| **WP5** | `scripts/check_oo_conformance.py`, `scripts/ceiling_baseline.json` | Ratchet what is left: no module over 2000 lines, `cli/` excepted; `git_tree.py` and `git_runner.py` recorded at today's size so they cannot drift over. This extends `scripts/check_oo_conformance.py`, which ClassFirstPackage already built — do not write a second checker. |
 
 **Order.** WP1 → WP2 → WP3 → WP4 → WP5. Each `src/` commit carries
 `pixi run bump-build`.
@@ -179,7 +188,7 @@ not a licence to edit the test.
   recorded at its current size and cannot grow.
 - `orchestre/` and `operations/` are packages; every file in them has one
   major class that gives it its name, and at most three classes counting per
-  1-1's D1.
+  ClassFirstPackage's D1.
 - `ComplexGitSyncClient` exposes the same 93 public methods as before, each a
   delegation; no caller in `src/`, `tests/` or `cli/` changed its imports.
 - **No test file is modified by this ticket**, and `pixi run test` passes at

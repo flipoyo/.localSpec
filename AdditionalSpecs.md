@@ -270,7 +270,7 @@ human-readable summary.
 | `git_repo.py` | 0 | Per-repository identity types, state enumerations, provider registry, remote-URL construction. Also `RepoScope`, the one definition of which repositories a tree-wide command may touch: `private` marks a repository that configures the project rather than being it, shared with the author's other projects, read-only unless the `.cgs` entry adds `writable = true`. `RepoScope.includes` reads `effective_private`/`effective_writable`, the flags after `git_tree.propagate_privacy` has pushed each parent's privacy down; the declared `private`/`writable` are what gets serialized. `RepoScope` does not know about the memory mount, and since `memory-dev_WorkingTransitionState` (2026-09-17) nothing else needs to either: the mount sits at `.cgitsync/.memory`, one level inside the workspace's own live state area (`.cgitsync` itself — States, the ledger, logs), so it is an ordinary private/writable repository everywhere — `add`/`commit`/`push`/`pull`/`merge`/`tag`/`freeze-release` all reach it the same way they reach `.localSpec`/`.claude`, with no scope exclusion, no preflight exemption, and no `WorkingRepo` field marking it out. Only `memory push`'s own fold (`orchestre._fold_memory_pending`) ever writes into its worktree, moving `.cgitsync`'s pending `lgr`/`state`/`logs`/`commit-logs`/`.cgs` into the mount before committing — which is what makes the mount reliably clean the rest of the time. `memory push` still bypasses the ordinary write-scope refresh (it commits directly via `git_runner`, not through `commit_tree`/`push_tree`), so `orchestre.write_gts_snapshot` separately re-reads the mount's actual `commit_sha`/branch — read-only, every State, regardless of which command triggered it (`orchestre._refresh_memory_mount_state`, `memory-dev_MemoryRecordedRefresh`) — or `status`'s `HEAD ending with *` marker would appear the first time `memory push` moved it and never clear again. |
 | `git_branch.py` | 0 | The single owner of the `.cgs` branch fallback chain (`fallback_branch` → `default_branch` → `project.default_branch` → `DEFAULT_BRANCH`) and of the privacy rule that decides what a repository targets under a tree-wide branch move. A pure resolver: declared fields in, a `BranchResolution` (branch, `RefKind`, and the `BranchSource` that answered) out. Holds no tree, no root and no privacy *state* — `git_tree.py` owns those, and `git_tree_branch.py` owns branch state the same way (which branch the tree is on, and which branch each repository is actually on). Also owns the private/local naming rule: `private_local_branch` composes `<project name>` on `main` and `<project name>_<branch>` otherwise, and `PRIVATE_LOCAL_SEPARATOR` never leaves this module — `tests/unit/test_git_branch.py` fails if either escapes, the same guard the `"main"` literal already has. `resolve_propagated_ref` now answers three cases, not two: a project repo follows the move, private/distant never moves, private/local takes the derived branch. |
 | `ledger_entry.py` | 0 | Hash-chained register-entry construction and canonicalisation (pure chain math). |
-| `integrity.py` | 0 | `Finding` taxonomy and `verify_chain` — pure arithmetic checks over a register-entry sequence. |
+| `integrity.py` | 0 | `Finding` taxonomy and `ChainVerifier.verify` — pure arithmetic checks over a register-entry sequence. |
 | `json_render.py` | 0 | The machine-readable shape of what a command reports — `status`, `verify`, and the error object a JSON-capable command prints when it fails — with `SCHEMA_VERSION` and the serialiser. One module for every command's shape, so field names are decided once rather than re-invented per command, and `cli/` carries none of them. Separate from `status_render.py` on purpose: that renders one table for humans, where a column can be renamed when the wording improves; a JSON field cannot, because something is parsing it. The promise is **additive only**. See `.agent/.local/.localSpec/DevTickets/archive/20260916_CliContract_DevPlanTicket.md`. |
 | `status_render.py` | 0 | Pure text rendering for `cgitsync status`'s repository table, including the `SCOPE` column. That column is where the developer vocabulary is translated for end users: `private` reads as **private**, `writable` as **local**, private read-only as **distant**, and a repo that is not private as **project**. `_status_scope_label` is the only place that mapping lives; it reads the effective flags, so a repo nested in a private one is labelled like its parent. Docs, tutorials and CLI output use the user words; code, docstrings and this table keep `private`/`writable`. |
 | `config_document.py` | 0 (+ Ring-1 adapter) | Pure `ConfigDocument` base — dict wrapping, dot-path reads, the `validate()` hook. |
@@ -591,9 +591,19 @@ concepts are classes; this section is how this project reads it, and what
   rules, not from the 2000-line rule's spirit — `cli/expert.py` is held at
   its current size by the ceiling ratchet.
 
-Where the code does not yet conform, the tickets that correct it
-(ClassFirstPackage, ModulePackagisation) say by how much; this section
-states the rule, not the current state of `src/`.
+**Checked, not trusted.** `scripts/check_oo_conformance.py`
+(`pixi run check-oo`, and `tests/unit/test_oo_conformance.py` inside `pixi run
+test`) measures five lists — modules with no behaviour class, modules over
+the class cap, modules over 2000 lines, modules whose `__all__` is missing or
+incomplete, and module-level functions that write to disk — against
+`scripts/oo_conformance_baseline.json`. A list may shrink and never grow.
+`tests/unit/test_cli_mirrors_client.py` checks the CLI half: every CLI
+command calls a client method, and every public client method is reached from
+`cli/` or named, with its reason, as not being.
+
+Where the code does not yet conform, the baseline says by how much and the
+ModulePackagisation ticket corrects the rest; this section states the rule,
+not the current state of `src/`.
 
 ---
 
@@ -1406,7 +1416,7 @@ both from asking the wrong layer:
 - Whether `memory_adopt` should also handle self-history was first designed
   as a check against `.memory`'s own `nested_config` field on the loaded
   registry. That fails silently for the ordinary case, because
-  `registry.build_registry_from_gts_document` never sets `nested_config` at
+  `RegistryTranslator.from_gts_document` never sets `nested_config` at
   all (it is `.cgs`-only information — see `_apply_repo_identity` in
   `git_tree.py`) — not a bug to route around, just the wrong question:
   `.gts` does not need to re-answer "should I discover this," because a

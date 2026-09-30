@@ -4,7 +4,7 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-30, after AgentGuardrails.** Renumbered `main_1-5` → `main_1-4`: [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+> **Ticket review — 2026-09-30, after ClassFirstPackage.** Renumbered `main_1-4` → `main_1-3`: [ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > Opened from `shortTickets/memory-install.md` (owner, 2026-09-30):
 > *"For now memory is treated as a repo private local in `.cgs`. It is not
@@ -19,10 +19,10 @@
 > is a DEV privilege."*
 >
 > Filed under the owner's third structural goal, beside
-> [InstallFrontier](main_1-3_InstallFrontier_DevPlanTicket.md): *publishing a
+> [InstallFrontier](main_1-2_InstallFrontier_DevPlanTicket.md): *publishing a
 > memory is a DEV privilege* is a behavioural difference between the two
 > install configurations, which is what that goal is about. Kept separate
-> because 1-3 already merges three tickets and seven work packages.
+> because InstallFrontier already merges three tickets and seven work packages.
 >
 > **Branch `main`, not `memory-dev`:** `AdditionalSpecs.md` §Branches and
 > ticket topics — *"the test is migration, not subject matter"*. This work
@@ -125,15 +125,15 @@ project already owns, and any other choice buys a rename at exactly the
 moment the user is doing something unfamiliar. Reusing `memory_branch()` also
 keeps `git_branch.py` the only implementation of the naming rule, which
 `CLAUDE.md` requires and which
-[InstallFrontier](main_1-3_InstallFrontier_DevPlanTicket.md) §2.2 shows is
+[InstallFrontier](main_1-2_InstallFrontier_DevPlanTicket.md) §2.2 shows is
 already violated once. D2.
 
 ## 4. Work packages
 
 | WP | Touches | Deliverable |
 |---|---|---|
-| **WP1** | `memory/repository.py` | **Say what a defaulted memory is**, in the module that already owns what it takes for a memory to be a repository: the entry it would have had, its branch per §3, and the fact that it carries no remote. Still no Git here — this module runs none. *Note for sequencing:* this module is one of the 13 that [ClassFirstPackage](main_1-1_ClassFirstPackage_DevPlanTicket.md) gives a class to. Do that first, or this lands as more free functions to convert afterwards. |
-| **WP2** | `orchestre.py` (or `orchestre/memory_commands.py` after [ModulePackagisation](main_1-2_ModulePackagisation_DevPlanTicket.md)) | **Create it, once, at the moment D1 names.** `git init` at `.cgitsync/.memory`, the branch from WP1, an initial commit, and a ledger entry recording that the workspace defaulted a memory — so the record says where it came from. Idempotent: an existing mount, declared or defaulted, is left exactly as it is. |
+| **WP1** | `memory/repository.py` | **Say what a defaulted memory is**, in the module that already owns what it takes for a memory to be a repository: the entry it would have had, its branch per §3, and the fact that it carries no remote. Still no Git here — this module runs none. *Note for sequencing:* this module is one of the 13 that [ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md) gives a class to. Do that first, or this lands as more free functions to convert afterwards. |
+| **WP2** | `orchestre.py` (or `orchestre/memory_commands.py` after [ModulePackagisation](main_1-1_ModulePackagisation_DevPlanTicket.md)) | **Create it, once, at the moment D1 names.** `git init` at `.cgitsync/.memory`, the branch from WP1, an initial commit, and a ledger entry recording that the workspace defaulted a memory — so the record says where it came from. Idempotent: an existing mount, declared or defaulted, is left exactly as it is. |
 | **WP3** | `orchestre.py::memory_push`, `memory_status` | **Fold without a remote.** `memory push` commits into a defaulted memory and stops there instead of failing on a missing remote. `memory status` says plainly that this memory is local and unpublished, and how to publish it. Never push a defaulted memory, even if a remote appears — D3. |
 | **WP4** | `install.cgs`, README, `docs/Text/user_guide.tex`, `tutorials/` | **Document what a user now has.** `install.cgs`'s header currently explains that a user install mounts nothing private; it must also say that a memory is created locally regardless and is never published. One tutorial paragraph: where the memory is, what it records, and that publishing it is opting in. Rebuild the PDFs. |
 | **WP5** | `tests/` | An install from `install.cgs` gets a working memory: `memory push` folds, `memory status` and `memory self-history` answer, `verify` passes, and **no network call is attempted**. A tree whose `.cgs` declares a memory is untouched by all of it. |
@@ -141,18 +141,18 @@ already violated once. D2.
 **Order.** WP1 → WP2 → WP3 → WP4 → WP5.
 
 **Sequencing against the pile.** After
-[ClassFirstPackage](main_1-1_ClassFirstPackage_DevPlanTicket.md) (WP1's
+[ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md) (WP1's
 module is one of its 13) and, if possible, after
-[ModulePackagisation](main_1-2_ModulePackagisation_DevPlanTicket.md), so WP2
+[ModulePackagisation](main_1-1_ModulePackagisation_DevPlanTicket.md), so WP2
 and WP3 edit `orchestre/memory_commands.py` rather than the 6955-line file.
-Independent of [InstallFrontier](main_1-3_InstallFrontier_DevPlanTicket.md)'s
+Independent of [InstallFrontier](main_1-2_InstallFrontier_DevPlanTicket.md)'s
 code, though they answer the same question about what an install produces.
 
 ## 5. Decisions
 
 | D | Question | Recommendation | Whose call |
 |---|---|---|---|
-| **D1** | When is a defaulted memory created — at `initialise`/`bootstrap`, or lazily on the first command that would record something? | **Lazily, on the first write.** Creating a git repository inside someone's tree during an install they did not ask questions about is a surprise; creating it the first time there is genuinely something to remember is explainable in one line of output. It also keeps a refused `initialise` from leaving a repository behind — which is exactly the harm [InstallFrontier](main_1-3_InstallFrontier_DevPlanTicket.md) WP1 is about. | **Owner** |
+| **D1** | When is a defaulted memory created — at `initialise`/`bootstrap`, or lazily on the first command that would record something? | **Lazily, on the first write.** Creating a git repository inside someone's tree during an install they did not ask questions about is a surprise; creating it the first time there is genuinely something to remember is explainable in one line of output. It also keeps a refused `initialise` from leaving a repository behind — which is exactly the harm [InstallFrontier](main_1-2_InstallFrontier_DevPlanTicket.md) WP1 is about. | **Owner** |
 | **D2** | The defaulted branch name: `memory_branch()` as today, or something simpler? | **`memory_branch()`**, per §3 — no rename when a user later publishes, and no second implementation of the naming rule. | **Owner** |
 | **D3** | A user adds a remote to their defaulted memory by hand. Does `memory push` then push it? | **No, not until the `.cgs` declares it.** "Publishing is a DEV privilege" is the owner's rule, and the `.cgs` is where an intention to publish is stated. A remote found on a memory the `.cgs` does not declare is reported, not obeyed. | **Owner** |
 | **D4** | Does a defaulted memory record self-history? | **No.** `.self-history` is the agent-accounting record, its fields defined by the AgentReport ticket, and it is developer machinery. A user memory records states, ledger entries and environments — what *their* workspace did. | **Owner** |

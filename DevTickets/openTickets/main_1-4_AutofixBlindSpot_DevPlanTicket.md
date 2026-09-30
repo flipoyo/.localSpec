@@ -4,7 +4,7 @@
 
 *Branch: main*
 
-> **Ticket review — 2026-09-30, after AgentGuardrails.** Renumbered `main_1-6` → `main_1-5`: [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+> **Ticket review — 2026-09-30, after ClassFirstPackage.** Renumbered `main_1-5` → `main_1-4`: [ClassFirstPackage](../archive/20260930_ClassFirstPackage_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Diagnosis ticket**, opened from a live incident on this project's own
 > tree, per the owner's instruction to correct what happened and write up
@@ -13,7 +13,7 @@
 
 > **Renumbered 1-4 → 1-6 and narrowed in the priority-1 reorganisation of
 > 2026-09-30** (1-4 → 1-5 in that pass, then → 1-6 when
-> [DefaultUserMemory](main_1-4_DefaultUserMemory_DevPlanTicket.md) took 1-5). The old WP1 — validating a commit message *before*
+> [DefaultUserMemory](main_1-3_DefaultUserMemory_DevPlanTicket.md) took 1-5). The old WP1 — validating a commit message *before*
 > committing it — moved to
 > [AgentGuardrails](../archive/20260930_AgentGuardrails_DevPlanTicket.md) WP4, with the
 > digest work, because preventing bad agent output is one subject and

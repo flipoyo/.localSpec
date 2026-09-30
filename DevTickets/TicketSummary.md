@@ -14,36 +14,32 @@ priority 2.
 
 | Goal | Tickets |
 |---|---|
-| **2. Constrained agentic behaviour** — no more week-long failures | 1-5 AutofixBlindSpot (AgentGuardrails, its other half, is done and archived) |
-| **1. Class-first package, CLI-only public exposure** | 1-1 ClassFirstPackage, 1-2 ModulePackagisation |
-| **3. A clear nested/standalone frontier** | 1-3 InstallFrontier, 1-4 DefaultUserMemory |
+| **2. Constrained agentic behaviour** — no more week-long failures | 1-4 AutofixBlindSpot (AgentGuardrails, its other half, is done and archived) |
+| **1. Class-first package, CLI-only public exposure** | 1-1 ModulePackagisation (ClassFirstPackage, its other half, is done and archived) |
+| **3. A clear nested/standalone frontier** | 1-2 InstallFrontier, 1-3 DefaultUserMemory |
 
-### main_1-1: ClassFirstPackage
-The bill for the digest gap AgentGuardrails closed, measured by an AST pass over all 53 modules: 13 modules and 3676 lines carry a domain concept with **no class at all** — `memory/ledger_store.py` among them, 548 lines owning a hash-chained ledger with no `LedgerStore` — 27 of 53 modules declare no `__all__`, and nine module-level functions write to disk. Also: 93 public client methods and nothing checking they map to CLI commands. Plan: `memory/` first, then the seven outside it, then `__all__`, then a conformance script that cannot regrow, then the CLI-mirror test. Pure refactors; no test edited.
+### main_1-1: ModulePackagisation
+The 2000-line rule, applied. `orchestre.py` is 6955 lines in which `ComplexGitSyncClient` holds 141 methods across 5550 lines, while the `Orchestre` class that is supposed to be the coordination layer has **one**. Plan: split it and `operations.py` (2228) into packages of collaborator classes behind an unchanged facade — same 93 public methods, no caller changed, one method group per commit. `cli/` is exempt.
 
-### main_1-2: ModulePackagisation
-The 2000-line rule, applied. `orchestre.py` is 6955 lines in which `ComplexGitSyncClient` holds 141 methods across 5550 lines, while the `Orchestre` class that is supposed to be the coordination layer has **one**. Plan: split it and `operations.py` (2193) into packages of collaborator classes behind an unchanged facade — same 93 public methods, no caller changed, one method group per commit. `cli/` is exempt.
-
-### main_1-3: InstallFrontier
+### main_1-2: InstallFrontier
 Three owner-reported bugs that are one problem: nothing says which install mode a command belongs to. `initialise` half-builds a tree when the root is not a checkout; the branch rule has a privacy-blind implementation that runs before the first clone and a privacy-aware one that runs after, so a private/writable dependency fails with `No cloneable branch found`; neither command can absorb a `.gts`; and every State-writing command stores a `.cgs` beside the snapshot. Plan: `initialise` = nested, `bootstrap` = standalone, each refusing and naming the other; one branch rule; both inputs; a State is a `.gts`. **WP1–WP2 are a few lines and may land immediately.**
 
-### main_1-4: DefaultUserMemory
+### main_1-3: DefaultUserMemory
 `install.cgs` mounts no private repository by design, so a user install has a `.cgitsync/` that accumulates states, logs and ledger entries with **no `.memory` repository to fold them into** — the record exists and can never become one. Plan: create it automatically, locally, with no remote, on the first command that records something; the `.cgs` overrides the default; the branch is the one `memory_branch()` already computes, so publishing later needs no rename; and a defaulted memory is never pushed, because publishing is a developer's privilege. Branch `main`, not `memory-dev`: this only adds a default, it migrates no stored format.
 
-### main_1-5: AutofixBlindSpot
+### main_1-4: AutofixBlindSpot
 `autofix` starts from the last logged error, and a commit whose message was mangled by the shell raises none — `git commit` succeeded. Plan: a second, non-error-driven `Situation` source that inspects a repository's tip commit directly. Ranked last because AgentGuardrails' commit-message check removes the common path (a commit made *by* `cgitsync`); this ticket covers what it cannot reach, a bare `git commit` outside the tool.
 
 ### Sequencing
 
-AgentGuardrails landed first, as planned: its *Module shape* section in `AdditionalSpecs.md` is what 1-1 and 1-2 are measured against.
+AgentGuardrails and then ClassFirstPackage landed first, as planned: the *Module shape* section in `AdditionalSpecs.md` is what 1-1 is measured against, and `scripts/check_oo_conformance.py` (built by ClassFirstPackage) is the instrument its WP5 extends. `operations.py` and `orchestre.py` are now the only modules over 2000 lines besides the exempt `cli/expert.py`.
 
-1. **1-3 WP1–WP2 may jump the queue** — the owner's reported failure, a few lines, independent of everything else.
-2. **1-1 before 1-2.** `memory/` and the seven outside it are independent of `orchestre.py`; doing them first means the packagisation split moves code that is already class-shaped.
-3. **1-2 before 1-3 WP7.** Packagisation creates `orchestre/installer.py`; the install-frontier rewrite then edits a few hundred lines instead of 6955. Doing it the other way round means the split gets re-litigated around freshly changed behaviour.
-4. **1-4 DefaultUserMemory after 1-1**, whose class work covers `memory/repository.py`, and ideally after 1-2, so it edits `orchestre/memory_commands.py` rather than the 6955-line file.
-5. **1-5 last.**
+1. **1-2 WP1–WP2 may jump the queue** — the owner's reported failure, a few lines, independent of everything else.
+2. **1-1 before 1-2 WP7.** Packagisation creates `orchestre/installer.py`; the install-frontier rewrite then edits a few hundred lines instead of 6796. Doing it the other way round means the split gets re-litigated around freshly changed behaviour.
+3. **1-3 DefaultUserMemory ideally after 1-1**, so it edits `orchestre/memory_commands.py` rather than the 6796-line file. Its class-work dependency (`memory/repository.py`) is already satisfied.
+4. **1-4 last.**
 
-The dependency worth watching: 1-2 and 1-3 both rewrite `initialise`/`bootstrap`. They must not be in flight at the same time.
+The dependency worth watching: 1-1 and 1-2 both rewrite `initialise`/`bootstrap`. They must not be in flight at the same time.
 
 ## main_2 — Priority 2: Architecture & Long-Term
 
@@ -99,7 +95,7 @@ configurations — kept out of 1-4, which already merges three tickets.
 the stale-citation check are one job in the right order. `shortTickets/` is
 now empty.
 
-**AgentGuardrails archived 2026-09-30**, after the priority-1 ranks were compacted (1-2..1-6 became 1-1..1-5).
+**AgentGuardrails archived 2026-09-30**, after the priority-1 ranks were compacted (1-2..1-6 became 1-1..1-5). **ClassFirstPackage archived the same day**, compacting them again (1-2..1-5 became 1-1..1-4).
 
 **AsOfRetrieval moved to main_2-5.** It serves none of the three goals, is
 built on machinery that already exists, blocks nothing, and nothing waits
