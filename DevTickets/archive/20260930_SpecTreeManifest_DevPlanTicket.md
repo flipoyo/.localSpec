@@ -37,7 +37,7 @@
 > specTree and the subsequent scripts/.py and agentic control manifest.md"*.
 > Nothing stood behind that request in `shortTickets/`; this ticket is its
 > written record. Ranked `1-2`, behind
-> [AutofixBlindSpot](../openTickets/main_1-1_AutofixBlindSpot_DevPlanTicket.md); the owner
+> [AutofixBlindSpot](20261001_AutofixBlindSpot_DevPlanTicket.md); the owner
 > may re-rank it (`shortTickets/ReorderPriority-mem-multiUser.md` is open).
 
 ## Abstract — read this first

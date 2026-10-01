@@ -12,7 +12,7 @@
 > and nothing was in a position to stop it. The code corrections those
 > tickets also carried now live in
 > [ClassFirstPackage](main_1-2_ClassFirstPackage_DevPlanTicket.md) and
-> [AutofixBlindSpot](main_1-6_AutofixBlindSpot_DevPlanTicket.md).
+> [AutofixBlindSpot](20261001_AutofixBlindSpot_DevPlanTicket.md).
 >
 > This ticket serves the owner's second structural goal: *well constrained
 > agentic behaviour, to avoid week-long failures in dev implementation.*
@@ -157,7 +157,7 @@ first rules to state.
 | **WP1** | `AdditionalSpecs.md`, `CLAUDE.md` | Write §3.1's *Module shape* section. First, because everything else cites it. |
 | **WP2** | `digest.md` | Add §3.2 as the **first** section. Update the file's own abstract, which claims to hold "every `MUST`/`NEVER` rule this spec tree states" — a claim §1 disproves. |
 | **WP3** | `scripts/spec_tree.py` | `--check-digest` also checks that every file in `DECLARED_SPEC_FILES` is cited by at least one digest line (failure per D1). It still cannot verify a line says what its source says — that stays editorial — but "this spec contributes no rule at all" is a graph property, and it is the one that was violated. |
-| **WP4** | `orchestre.py::commit` (or `orchestre/tree_commands.py`, after [ModulePackagisation](main_1-3_ModulePackagisation_DevPlanTicket.md)) | **Refuse a bad message before committing.** Validate against `AgentConduct.md` §2: starts with `<project-name><version>` read from `pyproject.toml`, at most three lines, and contains none of `` ` ``, `$(`, or a trailing `Co-Authored-By:`/`Generated with` line. Raise `GitSyncError` naming exactly which rule failed — the same "refuse rather than guess" stance `NoMatchingRepairError` already takes. This closes the loophole at the one place `cgitsync` controls; a bare `git commit` outside it is [AutofixBlindSpot](main_1-6_AutofixBlindSpot_DevPlanTicket.md)'s problem. |
+| **WP4** | `orchestre.py::commit` (or `orchestre/tree_commands.py`, after [ModulePackagisation](main_1-3_ModulePackagisation_DevPlanTicket.md)) | **Refuse a bad message before committing.** Validate against `AgentConduct.md` §2: starts with `<project-name><version>` read from `pyproject.toml`, at most three lines, and contains none of `` ` ``, `$(`, or a trailing `Co-Authored-By:`/`Generated with` line. Raise `GitSyncError` naming exactly which rule failed — the same "refuse rather than guess" stance `NoMatchingRepairError` already takes. This closes the loophole at the one place `cgitsync` controls; a bare `git commit` outside it is [AutofixBlindSpot](20261001_AutofixBlindSpot_DevPlanTicket.md)'s problem. |
 | **WP5** | `tests/` | A unit test per AgentConduct §2 rule, each violated individually and rejected, and a conforming message passing. The `701a98f` message itself is the fixture for the backtick case. |
 
 **Order.** WP1 → WP2 → WP3, then WP4 → WP5. WP4 touches `src/`, so it
