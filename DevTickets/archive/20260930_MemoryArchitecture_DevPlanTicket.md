@@ -47,7 +47,7 @@
 > section, beside *Memory vocabulary*. M6 and the multi-developer question
 > moved to [Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md), which
 > already carried them. The one piece of new work D1's answer creates is
-> [LocalRunLogs](../openTickets/main_1-1_LocalRunLogs_DevPlanTicket.md). The last
+> [LocalRunLogs](20261001_LocalRunLogs_DevPlanTicket.md). The last
 > ambiguous uses of *register* for the ledger were renamed in the same change.
 > "Each milestone states what it does not do" stays marked not re-audited, as
 > the owner chose.
@@ -326,7 +326,7 @@ The ledger is small and grows by one entry per operation. States are whole
 | Ledger only | Smallest, and it throws away the ability to restore a tree from its memory, which is half the reason to keep one |
 
 > **D1 answered by the owner — 2026-09-30: keep pushing everything except the run logs,**
-> which stay local ([LocalRunLogs](../openTickets/main_1-1_LocalRunLogs_DevPlanTicket.md)).
+> which stay local ([LocalRunLogs](20261001_LocalRunLogs_DevPlanTicket.md)).
 > What landed before that answer:
 > `memory push` folds and pushes **everything** pending — the ledger, States,
 > run logs and Environment records (`_FOLD_SUBDIRS = lgr, state, logs, env`, plus commit logs folded separately) —

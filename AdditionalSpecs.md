@@ -994,7 +994,7 @@ ticket used to be (archived 2026-09-30); the words it uses are fixed in
 
 1. **Local.** Every command writes States, ledger entries, Environment
    records, commit logs and run logs into `.cgitsync/` on the machine it runs
-   on. This is complete on its own: a machine with no network keeps a valid,
+   on; the run logs never go further than that folder. This is complete on its own: a machine with no network keeps a valid,
    verifiable memory.
 2. **Memory repository.** `memory push` folds the pending content into
    `.cgitsync/.memory`, a local git repository, and commits it there. When
@@ -1017,7 +1017,7 @@ its `.cgs` names (owner direction, 2026-09-30). The rule is stated once, in
 
 | D | Question | Answer |
 |---|---|---|
-| D1 | What a push sends | The ledger, States, Environment records and commit logs. Run logs are to stay local (`LocalRunLogs` ticket); until it lands, they are folded too |
+| D1 | What a push sends | The ledger, States, Environment records and commit logs. Run logs stay local: never folded, never pushed, the last 200 kept (`LocalRunLogs`, landed 2026-10-01). Run logs an older version already pushed are left where they are on the branches that hold them; only a `memory reboot` leaves them off its fresh branch |
 | D2 | One memory repository per project, or one for all | One for all, `flipoyo/.memory`, one branch per project. Cost, kept on record: a reader of `.memory` can read every project's branch |
 | D3 | How a memory repository is addressed | Declared in the `.cgs` like any private entry; its branch forks and merges with the project's. ComplexGitSync holds no credential and calls no provider API: when a memory repository must be created, it runs the provider's own tool (`gh`, `glab`, `tea`) — `cgitsync repo create`, or all three steps at once with `cgitsync memory setup` (*Creating a repository*, *The tree profile*). Corrected 2026-10-01: this row used to say ComplexGitSync never creates a repository on a provider, which stopped being true when `repo create` landed |
 | D4 | When a sync happens | On `memory push`, and before `push`, `tag` and `freeze`, which fold and send the memory first; a failed send only warns. Never in the background, and never for a USER memory |
@@ -1191,7 +1191,7 @@ digest was useless as a name two parties could agree on.
 | `.cgitsync/state/<hash>.cgs` | The spec it was built from — part of what that State was |
 | `.cgitsync/env/<hash>.toml` | The content-addressed Environment record observed when a ledger entry was written; metadata only, never part of the State hash |
 | `.cgitsync/<project>.lgr` | The register, at one path. It used to be copied into every state directory before each write |
-| `.cgitsync/logs/<command>-<timestamp>.log` | A record of a run, named for the run. Two runs leaving the tree identical share one State and keep their own logs |
+| `.cgitsync/logs/<command>-<timestamp>.log` | A record of a run, named for the run. Two runs leaving the tree identical share one State and keep their own logs. **Local only**: never folded into the memory repository and never pushed, and only the 200 most recent are kept (`CommandRunLogger.MAX_RUN_LOGS`, deleted oldest-first by whichever writer creates a new one, never the one just written). `autofix` reads this folder, which is why it must stay out of the fold |
 | `.cgitsync/.cgs/<project>-<branch-slug>.cgs` | The stable copy of the hand-authored spec the tree was last built from — one file, overwritten on every write |
 | `.cgitsync/.memory/.cgs/<project>-v<N>.cgs` | **Not** the stable copy above, and never overwritten: `memory reboot`'s export of the tree's *current shape* (`to_cgs()` against the loaded `.gts`, not a hand-authored file), one file per reboot, `N` incrementing from the implicit, never-written `v1`. A permanent, ordered record of every shape this project's memory has ever described — the one thing a reboot's own "clear this branch's tracked content" step does not clear (`memory-dev_1-4_MemoryReboot_DevPlanTicket.md` §1.4, §2) |
 

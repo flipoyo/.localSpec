@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Implemented — 2026-10-01, archived.** WP1–WP4 landed in `cgitsync3.9.2`: `logs` left the fold (`client._FOLD_SUBDIRS`); one bounded-cleanup rule, `CommandRunLogger.prune_old_logs` with `MAX_RUN_LOGS = 200`, called by both run-log writers; `memory reboot` also clears the `logs/` older versions pushed; the specs, tutorial 5 and the user guide say run logs are local; `tests/integration/test_local_run_logs.py`. Quoted by an independent orchestrator at 94/100. **One acceptance line is outstanding and is not this ticket's to fix:** "`verify` passes on this project's own tree". On 2026-10-01 `verify` reports `corrupt` (sequence gap 125 → 130) because the memory repository holds a second branch, `ComplexGitSync_tmpPyPi`, with ledger entries 126–129 that the `ComplexGitSync` branch lacks. Logs are in no ledger hash and the entries predate this change. It needs the two memory branches reconciled — by merging `tmpPyPi` and then its memory branch, or `cgitsync autofix` on the diverged chain — and that is the owner's decision.
+
 > **Ticket review — 2026-10-01.** Renumbered `main_1-2` → `main_1-1`: UserInstallPath moved to the `tmpPyPi` branch as [pending-UserInstallPath](tmpPyPi_1-1_pending-UserInstallPath_DevPlanTicket.md), so the priority-1 ranks on `main` were compacted.
 
 > **Ticket review — 2026-09-30, UserDevProfile closed.** Renumbered `main_1-3` → `main_1-2`: [UserDevProfile](../archive/20260930_UserDevProfile_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
