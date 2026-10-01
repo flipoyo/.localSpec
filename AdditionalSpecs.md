@@ -1786,6 +1786,7 @@ CLI display requirements:
 | Everything else | `main` | `main_` |
 | Memory — a change that **migrates a stored memory format**: the state area's layout, the ledger schema, or the distant reference ledger | `memory-dev` | `memory-dev_` |
 | Data — the `DataManager` layer, the DVC backend, `data_backend`/`data_paths`, and data materialisation and publication | `data-repo` | `data-repo_` |
+| Packaging awaiting the owner's review — UserInstallPath, held off `main` until the owner merges or drops it (owner, 2026-10-01) | `tmpPyPi` | `tmpPyPi_` |
 
 **A change that migrates a stored memory format is developed on
 `memory-dev`.** The memory work was seven dependent milestones — see the
@@ -1809,8 +1810,8 @@ one when it opened
 there. This paragraph records the narrowing those reviews already made, so
 the rule and the filing agree.
 
-`memory-dev` and `data-repo` are this project's branches other than
-`main`, so those three are the only ticket filename prefixes it has. An
+`memory-dev`, `data-repo` and `tmpPyPi` are this project's branches other
+than `main`, so those four are the only ticket filename prefixes it has. An
 open memory ticket is named
 `.agent/.local/.localSpec/DevTickets/openTickets/memory-dev_<priority>-<rank>_<Name>_DevPlanTicket.md`
 and carries `*Branch: memory-dev*` under its `*Created:*` line; every other

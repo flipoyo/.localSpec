@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-10-01.** Renumbered `main_1-2` → `main_1-1`: UserInstallPath moved to the `tmpPyPi` branch as [pending-UserInstallPath](tmpPyPi_1-1_pending-UserInstallPath_DevPlanTicket.md), so the priority-1 ranks on `main` were compacted.
+
 > **Ticket review — 2026-09-30, UserDevProfile closed.** Renumbered `main_1-3` → `main_1-2`: [UserDevProfile](../archive/20260930_UserDevProfile_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > Opened from the owner's answer to MemoryArchitecture's D1 (2026-09-30),
