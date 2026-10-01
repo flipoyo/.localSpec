@@ -14,7 +14,7 @@
 > [DiscoverRoundTrip](20260928_DiscoverRoundTrip_DevPlanTicket.md) and
 > [CitationRot](../openTickets/main_2-3_TicketTreeMove_DevPlanTicket.md) to priority 1. This
 > ticket, [UserInstallPath](../openTickets/tmpPyPi_1-1_pending-UserInstallPath_DevPlanTicket.md) and
-> [StateLocking](../openTickets/main_2-1_StateLocking_DevPlanTicket.md) are real,
+> [StateLocking](../openTickets/main_2-5_StateLocking_DevPlanTicket.md) are real,
 > analysed work — priority 2's own definition — but none is a prerequisite
 > for `data-repo` starting, and each says so in its own words: this one is
 > "now the architecture reference the landed code implements," not open
@@ -35,7 +35,7 @@
 > `memory reboot`), so this document is now the architecture reference the
 > landed code implements, not an open memory-dev design. It keeps its rank
 > ahead of [UserInstallPath](../openTickets/tmpPyPi_1-1_pending-UserInstallPath_DevPlanTicket.md) and
-> [StateLocking](../openTickets/main_2-1_StateLocking_DevPlanTicket.md) because both still
+> [StateLocking](../openTickets/main_2-5_StateLocking_DevPlanTicket.md) because both still
 > cite it. [Omniscience](../openTickets/memory-dev_2-1_Omniscience_DevPlanTicket.md) is
 > the one piece of this design still active and stays on `memory-dev`.
 
