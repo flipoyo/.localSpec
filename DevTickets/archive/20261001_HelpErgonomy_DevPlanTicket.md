@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Implemented — 2026-10-01, archived.** WP1–WP7 landed in `cgitsync3.10.0`: `cli/help_text.py` (every help sentence and example, and the one `--search-dir` text) and `cli/help_format.py` (layout, grouped top level, a group's subcommands with their options — wrapped between whole options at the terminal width — and `cgitsync help [COMMAND ...] [--all]`); `tests/unit/test_help_ergonomy.py`; README and user guide. `cli/expert.py` shrank. Quoted by an independent orchestrator at 96/100; its one finding, no wrapping at narrow widths, was fixed before archiving. The owner approved the five +1 import raises the shared help text needed. The mirror test needed no named exception: `help` has no `_execute_*` handler.
+
 > **Decisions answered by the owner — 2026-10-01. Ready to implement.**
 > D1 `cgitsync help --all` (and `cgitsync help <command…>`); D2 examples
 > spelled `cgitsync …`, with one "from a clone, prefix with `pixi run`" line;
