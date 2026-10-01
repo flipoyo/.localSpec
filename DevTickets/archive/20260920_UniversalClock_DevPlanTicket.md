@@ -33,7 +33,7 @@
 >   it is a query over the local chain, correct only because WP3 already
 >   landed. It travels with the rest of "what remains" to the end of the
 >   `main` priority-1 pile: see
->   [AsOfRetrieval](main_1-6_AsOfRetrieval_DevPlanTicket.md).
+>   [AsOfRetrieval](20261001_AsOfRetrieval_DevPlanTicket.md).
 > - **WP5 (attestation) and WP7 (the push anchor)** are property 3 — the
 >   external-witness half — and D5 already said they meet Omniscience
 >   there: *"the universal reference and the lag against it belong to
@@ -363,7 +363,7 @@ and `user_guide.tex` updated).
 | **WP3 — landed** | **Monotonic time (§4.2)**: `TIME_REGRESSION` on `Finding`, `TIME_INCONSISTENT` on `HistoryState` as a fifth `verify` answer (D7), `_check_time_monotonic` in `verify_chain`, and `resolve_state()` — one authority on which findings mean which verdict, replacing the rule `orchestre.verify` used to keep its own copy of. Documented in `AdditionalSpecs.md` (taxonomy + the five answers + why it is not `corrupt`), `README.md`, `user_guide.tex`, `api_python.tex` | WP1, D7 |
 | **WP4 — landed** | D4 answered **delete**: `TimeL0State`, `new_time_l0_anchor`, `hash_time_l0_anchor`, their re-exports and their tests are gone; `ledger_entry.py` shrank 220 → 201 LOC and the ratchet locked that in. Its module docstring records what was removed and why, so the next person reaching for an attestation primitive knows to write one that keeps its pre-image | D4 |
 | **WP5 — moved** | Attestation: a record binding `state(<hash>)` to a moment, beside the State, never inside it (D6). Superseded by Omniscience §2's own record, which already does this and does it falsifiably | Omniscience O1 |
-| **WP6 — moved** | **As-of retrieval (§4.4)**: "what was this tree at time *T*", built on `memory_timeline`, as a client method with a thin CLI pair | [AsOfRetrieval](main_1-6_AsOfRetrieval_DevPlanTicket.md) |
+| **WP6 — moved** | **As-of retrieval (§4.4)**: "what was this tree at time *T*", built on `memory_timeline`, as a client method with a thin CLI pair | [AsOfRetrieval](20261001_AsOfRetrieval_DevPlanTicket.md) |
 | **WP7 — moved** | The push anchor (§4.3): record which push carried which State, so the remote's receipt is citable | Omniscience §1.2 |
 
 **WP2 note, found while implementing.** `check_module_ceilings.py`'s

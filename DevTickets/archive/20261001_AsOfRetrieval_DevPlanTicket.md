@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Implemented — 2026-10-01, archived.** Landed in `cgitsync3.11.0`: the verb `cgitsync memory as-of <time>` (§3's open question: a new verb, so `show` and `explore` keep their meaning), client method `memory_as_of`, `memory/as_of.py` (`AsOf`), `cli/memory_asof.py`, `tests/integration/test_memory_as_of.py`; README, tutorial 5, user guide and API guide. The answer is the last ledger entry **in chain order** recorded at or before the time; times are UTC unless they carry an offset and a bare date is the end of that day; a time before the first entry answers "nothing recorded"; a chain that does not verify, or whose clock ran backwards, still answers but with `answer_reliable=false` and a warning. Quoted by an independent orchestrator at 96/100; its two input edge cases (lowercase `t`/`z`, an out-of-range year raising instead of a clear message) were fixed before archiving. The owner approved the two +1 imports (`memory_commands.py`, `cli/expert.py`). Run on this project's own tree it correctly reports `history=corrupt`: that is the memory fork from the `tmpPyPi` branch, not a defect here.
+
 > **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Renumbered `main_2-5` → `main_2-2`: the owner ranked it above AutofixBlindSpot.
 
 > **Ticket review — 2026-09-23.** Renumbered again, `main_1-5` → `main_1-4`:
