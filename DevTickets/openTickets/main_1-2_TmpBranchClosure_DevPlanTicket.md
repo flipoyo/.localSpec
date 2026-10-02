@@ -8,21 +8,22 @@
 > - **WP0**, done earlier. **WP1** has lost its premise: the owner ran
 >   `cgitsync memory reboot` and `verify` reports `verified`; MemoryForkRepair
 >   decides what is left to bring across.
-> - **WP2, done in 3.14.7** (the review added one fix: a local branch that
->   lacks commits its remote holds is refused, so closing cannot drop them). `close-branch` closes a *project* branch: each
+> - **WP2, done in 3.14.8.** `close-branch` closes a *project* branch: each
 >   repository closes the branch it follows (`<project>_<branch>` in a
 >   private/local one, nothing in a private/distant one), a branch that
 >   exists only on origin is closed from its remote-tracking ref, the push
->   never forces, and the old name goes only once origin is seen to hold the
->   closed one. Tests, README, user guide and API guide updated.
-> - **WP3, one of three closed.** `tmp-main-1-2_DiscoverRoundTrip` was closed
->   on the real tree with the fixed command: 9 repositories renamed on
->   origin (the root, `docs`'s counterpart aside, plus every private/local
->   repository), 3 private/distant skipped; `branch --list` shows it under
->   `closed:`. **`tmpAutoFix` and `tmpPyPi` are still open**: the owner has
->   not yet given the go-ahead for them.
-> - **WP4** waits for `tmpPyPi` to be closed. **WP5** is the owner's rulings.
-
+>   never forces, the old name goes only once origin is seen to hold the
+>   closed one, and a repository whose local branch lacks commits origin
+>   holds is refused before any push (found in review: it would have left
+>   those commits on no branch). Tests, README, user guide, API guide.
+> - **WP3, two of three closed**, each run on the real tree with the owner's
+>   go-ahead: `tmp-main-1-2_DiscoverRoundTrip` and `tmpAutoFix`. Each was
+>   renamed on origin in 9 repositories (3 private/distant skipped);
+>   `closed/tmpAutoFix` holds the same tip, `0e54d78`, that `tmpAutoFix` had.
+>   `branch --list` shows both under `closed:`. **`tmpPyPi` is still open**;
+>   the owner has not yet given the go-ahead for it.
+> - **WP4** waits for `tmpPyPi` to be closed.
+> - **WP5**: the ruling table is below, for the owner to answer.
 > **Ticket review — 2026-10-02, after RuleConformity.** Renumbered `main_1-3` → `main_1-2`: [RuleConformity](../archive/20261002_RuleConformity_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Ticket review — 2026-10-02.** Renumbered `main_1-2` → `main_1-3`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
@@ -140,3 +141,22 @@ Each is separate and has a single intent:
 - `pixi run lint`, `pixi run test`, `pixi run check-ceilings` pass and
   `cgitsync status` shows `errors=0`; WP2 carries its `bump-build` and
   `bump-version`.
+
+## 3a. WP5 ruling table (for the owner)
+
+One line per command that moves a branch or deletes work, against
+*ComplexGitSync rewrites nothing*. "Allow" means it keeps every commit
+reachable, or has nothing local to lose. Nothing here is changed until the
+owner rules; the recommendation is the worker's.
+
+| Command | What it does to history or work | Recommendation |
+|---|---|---|
+| `close-branch` | Renames a branch to `closed/<branch>`; pushes the new name first, never forces; refuses when local lacks commits origin holds | **Allow.** No commit changes or becomes unreachable |
+| `memory reboot` | Renames the memory branch to `<branch>.archived-<date>` on origin and locally, then starts an orphan under the old name | **Allow, ruled by the owner.** The archived name keeps all history; the branch name then carries unrelated history |
+| `pull-force` | `checkout -B <b> FETCH_HEAD` and `clean -fd`: a local branch is moved off commits no remote holds (left only in the reflog) and untracked files are deleted | **Refuse when a repository holds commits no remote has** (the question `CloneGuard` already asks), allow otherwise: nothing is lost |
+| `freeze-release-force` | Runs `pull-force` | **Same guard** as `pull-force`, through the same code |
+| `--force-gitignore-sync` | Falls back to `pull-force` semantics when a plain pull cannot sync | **Same guard** as `pull-force` |
+| `--force-reclone`, `clean-init` | Delete a clone and clone again | **Allow.** `CloneGuard` already refuses a clone with a dirty worktree or commits no remote holds; confirm a test pins that |
+| `GitRunner.reset_hard` | `reset --hard`; no caller in `src/` | **Remove** it: dead code that only invites a rewrite |
+| install pin (`checkout -B <b> <sha>`) | Pins a fresh clone to a commit | **Allow.** A new clone has nothing local to lose |
+| `memory adopt` | Kept the local history from 3.14.4 (merge commit, refused and undone if it cannot merge) | **Allow**, already fixed |
