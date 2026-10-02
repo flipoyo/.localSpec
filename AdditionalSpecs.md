@@ -309,8 +309,7 @@ same thing.
 | Refuses, before touching the disk, when | CGSHOME is not a Git checkout (a detached `HEAD` is fine), or the installation is not inside it — naming `bootstrap` | The target is not empty — naming `initialise` when it is a checkout |
 
 Consequences: the two commands never fall back into each other
-(`InstallFrontierError`, which the CLI also uses to stop suggesting
-`clean-init`); `settings.UseCase` is *obeyed* by these two commands and
+(`InstallFrontierError`); `settings.UseCase` is *obeyed* by these two commands and
 observed by every other; a standalone install can administer a workspace that
 holds a nested ComplexGitSync, which is one repository of the tree to it, and
 neither writes into the other. The suite injects the nested case at the one
@@ -645,9 +644,9 @@ each** (TmpBranchClosure WP5, 2026-10-02):
 | `close-branch` | Allowed. It renames, never forces, and refuses when a local branch lacks commits its remote holds. |
 | `memory reboot` | Allowed. The old branch is kept as `<branch>.archived-<date>`; the branch name then carries unrelated history. |
 | `memory adopt` | Allowed. It keeps the local memory's commits and joins the remote's history by a merge commit (RuleConformity B2). |
-| `pull-force`, `freeze-release-force`, `--force-gitignore-sync` | Allowed only while no commit would be left on no branch. All three end in `GitRunner.force_pull`, which refuses (`commits_force_pull_would_drop`), and the tree-wide path asks first, so a refusal changes nothing. Uncommitted changes and untracked files are set aside with `git stash push -u`, not discarded (owner, 2026-10-02), and `pull-force` warns per repository. |
-| `--force-reclone`, `clean-init` | **Goes** (owner, 2026-10-02: "I think we can eliminate force-reclone"; short ticket `no-force-reclone`). `--force-reclone` is the flag that deletes a clone holding commits no remote has, which the rule forbids. Until the removal lands, `CloneGuard` still refuses such a clone and the flag still bypasses it. The removal is GitLikeCli WP1. |
-| `purge` | **Goes** (GitLikeCli WP1). It deletes every child clone with `shutil.rmtree` and asks no `CloneGuard` question, so it can destroy commits no remote has; `clean-init` runs it. |
+| `pull-force` | Allowed only while no commit would be left on no branch. It ends in `GitRunner.force_pull`, which refuses (`commits_force_pull_would_drop`), and the tree-wide path asks first, so a refusal changes nothing. Uncommitted changes and untracked files are set aside with `git stash push -u`, not discarded (owner, 2026-10-02), and `pull-force` warns per repository. |
+| `freeze-release-force`, `--force-gitignore-sync` | **Removed** (GitLikeCli WP2). Both only reached `force_pull`; run `pull-force`, then `freeze-release`. |
+| `--force-reclone`, `clean-init`, `purge` | **Removed** (GitLikeCli WP1; owner, 2026-10-02: "I think we can eliminate force-reclone"). Each deleted clones holding commits no remote has, and `purge` asked no `CloneGuard` question at all. `initialise` now always refuses such a clone (`CloneGuard`): commit and push, or move the directory aside yourself. |
 | `GitRunner.reset_hard` | Removed. No command called it. |
 | install pin (`checkout -B <b> <sha>`) | Allowed. It pins a fresh clone, which has nothing local to lose. |
 
@@ -901,9 +900,9 @@ The canonical user-facing lifecycle contract is:
      status`/`git add` would otherwise see a child's working tree as
      ordinary untracked content. If the safe pull for one of these repos
      fails, `initialise` raises immediately and nothing is written — no
-     forcing is attempted on the caller's behalf, unless `--force-gitignore-sync`
-     is explicitly passed, in which case that one repo falls back to a
-     pull-force recovery (never a force-*push*) instead of erroring out.
+     forcing is attempted on the caller's behalf. (`--force-gitignore-sync`,
+     which fell back to `pull-force`, was removed in GitLikeCli: run
+     `pull-force` yourself if a pull cannot sync.)
      By default nothing is staged, committed, or pushed by this step; it
      only writes the file and prints what changed
      (`.gitignore updated (not committed): ...`). Passing
@@ -917,10 +916,9 @@ The canonical user-facing lifecycle contract is:
      override is configured. `--git-user-name`/`--git-user-email` set that
      override via `MasterConfig` (`master.py`) and persist it to
      `CGSHOME/.cgitsync/master.toml`, a workspace-local file that is not part
-     of the `.cgs`/`.gts` project spec and is preserved by `purge`/
-     `clean-init` (unlike generated clone state). `MasterConfig.load()` reads
-     any previously persisted override at the start of `initialise`/
-     `clean-init`/`pull`, so it applies to every subsequent invocation on
+     of the `.cgs`/`.gts` project spec and is not generated clone state.
+     `MasterConfig.load()` reads any previously persisted override at the
+     start of `initialise`/`pull`, so it applies to every subsequent invocation on
      that workspace without repeating the flags.
 
 2. `pull(.cgs/.gts)` → resync an existing tree → `READY`
@@ -1833,8 +1831,8 @@ CLI display requirements:
 - Unit tests: `tests/unit/`
 - Integration tests: `tests/integration/`
 - Integration suite includes: CGSi topology expansion checks, local file-remote
-  `clone_cgs` / `launch_release` lifecycle restoration, and a CLI-first READY
-  `.gts` git command cycle (`add → commit → push → tag → freeze`) mirrored in
+  `clone_cgs` / tag-checkout lifecycle restoration, and a CLI-first READY
+  `.gts` git command cycle (`add → commit → push → freeze-release → checkout <tag>`) mirrored in
   Python API.
 - Install dev extras: `pixi install`
 - Run suite: `pixi run test` from the repository root

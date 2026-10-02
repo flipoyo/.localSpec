@@ -4,6 +4,19 @@
 
 *Branch: main*
 
+> **Implemented — 2026-10-02, archived.** Released as **4.0.0**. The ten removals
+> of §2 landed (WP1 and WP2), with docs, specs and tests (WP3) and the release
+> (WP4): `clean-init`, `purge`, `clone`, the bare `freeze`, `freeze-release-force`,
+> `launch-release`, `configure`, `create-cgs`, `--force-reclone` and
+> `--force-gitignore-sync`. Kept whole, as ruled: `discover` with all options,
+> `init-from-submodules`, `import-submodules`, `view-tree`, `freeze-release`,
+> `initialise --project/--repo`, the `.cgs` writer on the client, and the
+> on-the-fly prompts. An independent orchestrator chose **MAJOR** because the
+> README and `Versioning.md` count a removed command or documented flag as an
+> interface break, and scored the work 89/100. It audited every place a clone
+> can be deleted: none can now hold unpushed work. `CHANGELOG.md` says what to
+> run instead of each removed command.
+
 > **From the owner's short ticket `archive/.closedUserTicket/20261002_no-force-reclone.md`.**
 > "I think we can eliminate force-reclone. [...] it would be wise to reduce
 > the number of cgitsync methods, especially the ones that are not very close

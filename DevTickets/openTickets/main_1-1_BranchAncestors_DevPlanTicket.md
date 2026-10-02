@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-10-02, after GitLikeCli.** Renumbered `main_1-2` → `main_1-1`: [GitLikeCli](../archive/20261002_GitLikeCli_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > **From the owner's short ticket `archive/.closedUserTicket/20261002_branch-delete.md`**,
 > and the owner's revision in the session the same day. The short ticket asked
 > for a delete that checks the ledger's integrity, persists what must survive
