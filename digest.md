@@ -58,6 +58,8 @@ graph LR
 - `cli/` is the one exemption from the class rules: it is derived from client methods implemented elsewhere, and it collects arguments and prints. — `AdditionalSpecs.md` §Module shape
 - Every entry point shares one implementation — no hidden forks — and CLI behaviour mirrors the Python API one-to-one. — `DevSpecs.md` §Monolithic Canonical API
 - A capability exists in both layers or in neither: a `ComplexGitSyncClient` method carries the semantics, `cli/` only collects arguments and prints. — `CLAUDE.md` §Architecture boundary
+- A CLI follows one grammar: a subcommand is a plain word, a `--name` is only an option (it changes how, never which, action runs), and a `-x` is only the short form of a `--name`. — `DevSpecs.md` §CLI Grammar
+- A hyphen never glues a command to its subcommand (`close-branch` is spelled `branch close`), and a command either has subcommands or acts itself, never both. — `DevSpecs.md` §CLI Grammar
 - Every exported symbol appears in its module's `__all__` and is documented. — `DevSpecs.md` §Object-Oriented Design
 - The module shape is measured by `check_oo_conformance.py` against a baseline that only shrinks; never add a module to one of its lists to make the check pass. — `AdditionalSpecs.md` §Module shape
 - Configuration and state are exchanged as structured data, never raw string manipulation; every document class carries `to_*`/`from_*` helpers. — `DevSpecs.md` §Interface Conventions

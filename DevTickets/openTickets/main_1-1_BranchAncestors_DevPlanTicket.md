@@ -4,7 +4,7 @@
 
 *Branch: main*
 
-> **Note — 2026-10-02, from [CliGrammar](main_1-2_CliGrammar_DevPlanTicket.md).** If the owner adopts its grammar, ruling 2's `branch --delete <branch>` is spelled `branch delete <branch>`. The ruling is unchanged; only the spelling moves. CliGrammar's WP1 to WP3 should land before this ticket's WP5.
+> **Note — 2026-10-02, from [CliGrammar](../archive/20261002_CliGrammar_DevPlanTicket.md) (implemented in 4.1.0).** Ruling 2's `branch --delete <branch>` is spelled `branch delete <branch>`, a subcommand of the `branch` group beside `create`, `list` and `close`. The ruling is unchanged; only the spelling moves.
 
 > **Ticket review — 2026-10-02, after GitLikeCli.** Renumbered `main_1-2` → `main_1-1`: [GitLikeCli](../archive/20261002_GitLikeCli_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 

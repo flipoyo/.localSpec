@@ -4,6 +4,18 @@
 
 *Branch: main*
 
+> **Implemented — 2026-10-02, archived.** Released as **4.1.0**, a minor
+> release by the owner's ruling, since 4.0.0 had just opened. The owner did not
+> answer §4, so its recommendations were taken as the rulings: the §3 mapping
+> exactly, `branch create`, `verify check`/`repair`, `--all` kept, and a hint
+> instead of an alias. The grammar is in `DevSpecs.md` *CLI Grammar* (a shared
+> mount; pushing it is the owner's call), and this project's table is in
+> `AdditionalSpecs.md`. `tests/unit/test_cli_grammar.py` checks rules 1, 3, 4
+> and 5 on the real parser. An old spelling prints its new form, and a bare
+> group lists its subcommands. An independent orchestrator scored the work
+> 87/100 after fixing missing hints, stale messages, the unswept README and
+> specs, and a hyphen check that missed `close-branch`.
+
 > **From the owner's short ticket `archive/.closedUserTicket/20261002_homogenize-cmd.md`.**
 > "The usage of cgitsync cmd subcmd options is not clear. Look for instance
 > at `cgitsync memory subcmd` and `cgitsync branch --subcmd`. The status of
