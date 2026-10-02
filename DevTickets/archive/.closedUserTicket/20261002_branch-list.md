@@ -1,0 +1,1 @@
+In cgitsync help, is there a function for listing ComplexGitSync branch of a project. The behaviour of cgitsync branch --list is not interesting. It lists what is given by status, ie the branch of each gitRepo. I want the branch of the ComplexGitSync Project
