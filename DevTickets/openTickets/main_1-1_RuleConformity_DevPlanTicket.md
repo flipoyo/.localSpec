@@ -13,6 +13,16 @@
 > - **B5, done in 3.14.3.** Examples use `vendor-name` and `model-name`:
 >   the `self-history add` help, `api_python.tex` and the test fixtures.
 >   The rule is in `CLAUDE.md` *Attribution* and the digest.
+> - **B5, scope refined — 2026-10-02, from the owner's short ticket
+>   `archive/.closedUserTicket/20261002_parametric-names.md`.** The
+>   placeholders hold for the public front only: the `project`-scope
+>   repositories `ComplexGitSync` and `DocComplexGitSync`. Private
+>   repositories are not anonymous, because they hold the values the
+>   placeholders stand for: this ticket, the other specs and tickets, the
+>   self-history records and the agent contracts keep the real vendor and
+>   model. Checked: the 3.14.3 change touched only `src/`, `tests/` and
+>   `docs/Text/`, all public, so nothing private was anonymised. The rule
+>   is in `CLAUDE.md` *Attribution* and two digest lines.
 > - **G7, PDF part done in 3.14.3.** Every `c_*.pdf` was rebuilt.
 > - **B1, done in 3.14.4.** `ledger_store.py` names its temporary files with
 >   the injected clock's `token_hex`, and `git_runner.py`'s throwaway

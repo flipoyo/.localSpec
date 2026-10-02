@@ -67,7 +67,8 @@ graph LR
 ## Attribution and commits
 
 - An agent is never credited on a commit, merge, or pull request — no co-authorship trailer, no "generated with" line, in any repository of the tree. — `AgentConduct.md` §3
-- An example that needs an agent's vendor or model (help text, docs, tests, fixtures) uses the placeholders `vendor-name` and `model-name`, never a real one; the agent is named only in README's *LLM assistance* section. — `CLAUDE.md` §Attribution
+- In the public front (the `project`-scope repositories, `ComplexGitSync` and `DocComplexGitSync`), an example that needs an agent's vendor or model uses the placeholders `vendor-name` and `model-name`; the agent is named publicly only in README's *LLM assistance* section. — `CLAUDE.md` §Attribution
+- In private repositories (`private/local`, `private/distant`) specs, tickets and records keep the real vendor and model: that is where the parameters get their values, and they are never replaced by placeholders. — `CLAUDE.md` §Attribution
 - A self-history/accounting record of an agent's work must never reach a public repository, and nothing in it may be copied into one. — `AgentConduct.md` §3
 - Never push to a remote without being asked; deliver the commit message and let the owner decide whether to commit. — `AgentConduct.md` §1
 - A commit message starts with `<project-name><version>`, is one message reused for every repository the change touched, plain English, three lines at most. — `AgentConduct.md` §2
