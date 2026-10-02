@@ -130,34 +130,14 @@ the time — say why.
 
 ## 3a. History and deep-archived planning tickets
 
-An archived planning ticket exists in two forms (owner, 2026-10-02):
-
-- **The history ticket**, in `archive/`. It is the one readers follow. Its
-  text is never changed, with one exception: a link may be corrected when
-  the file it points at moves. Nothing else, not even a typo.
-- **The deep-archived ticket**, in `archive/.deepArchive/`, under the same
-  name. It is a copy of the ticket exactly as archived, and it is never
-  edited at all, links included. It is the record of what the plan said
-  when the work closed.
-
-Both are written in the same change that archives the ticket:
-
-```bash
-git mv .agent/.local/.localSpec/DevTickets/openTickets/<branch>_<p>-<r>_<Name>_DevPlanTicket.md \
-       .agent/.local/.localSpec/DevTickets/archive/<YYYYMMDD>_<Name>_DevPlanTicket.md
-mkdir -p .agent/.local/.localSpec/DevTickets/archive/.deepArchive
-cp .agent/.local/.localSpec/DevTickets/archive/<YYYYMMDD>_<Name>_DevPlanTicket.md \
-   .agent/.local/.localSpec/DevTickets/archive/.deepArchive/
-```
-
-This starts with tickets archived from 2026-10-02 on; nothing archived
-earlier gets a deep copy. Every ticket already in `archive/` is a history
-ticket, so the link repairs made there on 2026-10-01 are allowed.
-TICKETLIFECYCLE.md §4 says an archived ticket is "never edited again", and
-§5 says to fix the links that pointed at it. This section is how this
-project reconciles the two. Changing the shared file itself would reach
-every project that mounts it, and that is the owner's call. A closed short
-ticket has one form only, and is never edited.
+An archived planning ticket is kept twice: the history ticket in
+`archive/`, whose only allowed edit is a corrected link, and an immutable
+copy in `archive/.deepArchive/`.
+[TICKETLIFECYCLE.md](../../../.distant/ticket/TICKETLIFECYCLE.md) §4.1 and
+§5 state the rule and the commands, and are authoritative. This project
+adopted it on 2026-10-02 (owner): tickets archived before then have no deep
+copy and are history tickets, so the link repairs made on 2026-10-01 are
+allowed edits. A closed short ticket has one form only and is never edited.
 
 ## 4. Naming: branch, priority, rank
 

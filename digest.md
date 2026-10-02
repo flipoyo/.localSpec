@@ -93,7 +93,7 @@ graph LR
 - A conformity score is out of 100 (33 spec respect, 33 gating, 34 quality), its total is the plain sum, and it is always shown with its maxima. — `AdditionalSpecs.md` §The conformity score
 - A planning ticket's filename branch prefix and its own `*Branch:*` line must agree. — `TICKETLIFECYCLE.md` §2.3
 - A short ticket is stamped and moved to `archive/.closedUserTicket/` in the same change that satisfies it, and never edited afterwards. — `.agent/.local/.localSpec/DevTickets/README.md` §3
-- Archiving a planning ticket writes two copies in one change: the history ticket in `archive/`, whose only allowed edit is a corrected link, and an immutable deep-archived copy in `archive/.deepArchive/`, never edited at all. — `.agent/.local/.localSpec/DevTickets/README.md` §3a
+- Archiving a planning ticket writes two copies in one change: the history ticket in `archive/`, whose only allowed edit is a corrected link, and an immutable deep-archived copy in `archive/.deepArchive/`, never edited at all. — `TICKETLIFECYCLE.md` §4.1
 - One concern per commit across agents: a `DELETE`/`MOVE`/`CHANGE` by one role is never bundled with another role's change. — `.agent/.distant/dev-sync/AGENT.md` §Handoff rules
 
 ## Documents
