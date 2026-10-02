@@ -1,0 +1,252 @@
+# UserInstallPath — Pixi for contributors, one install command for everyone else
+
+*Created: 2026-09-11*
+
+*Branch: tmpPyPi*
+
+> **Dropped — 2026-10-02, archived (TmpBranchClosure WP4).** The `tmpPyPi`
+> branch is closed (`closed/tmpPyPi`, same tip as before), and this plan is not
+> implemented. Its `pipx` route breaks the Pixi-only rule, which also covers how
+> users install (`digest.md`). Its conforming parts went to
+> [PackageHygiene](../openTickets/main_2-6_PackageHygiene_DevPlanTicket.md); the install route is the
+> owner's open question in the short ticket `pixi-global-install.md`. This ticket
+> is kept as the record of what was planned, not as work to do.
+
+> **Ticket review — 2026-10-02, after RuleConformity.** Renumbered `tmpPyPi_1-2` → `tmpPyPi_1-1`: [RuleConformity](../archive/20261002_RuleConformity_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
+> **Ticket review — 2026-10-02.** Renumbered `tmpPyPi_1-1` → `tmpPyPi_1-2`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
+
+> **Do not implement — 2026-10-02, owner's decision.** The `pipx` user route this ticket prepared breaks the Pixi-only rule, which also covers how users install (`digest.md`). The `tmpPyPi` branch is being closed and this ticket archived as dropped by the CorrTicket TmpBranchClosure (WP4). Its conforming parts go to PackageHygiene; the install route is the owner's open question in the short ticket `pixi-global-install.md`.
+
+> **Ticket review — 2026-10-01, owner's decision.** Moved `main_1-1` → `tmpPyPi_1-1_pending-UserInstallPath`. The packaging work is prepared and committed on the `tmpPyPi` branch (root and `docs`) and `ComplexGitSync_tmpPyPi` (`.localSpec`, `.claude`), and is **not on `main`**. It is pending: the owner has not yet taken it in hand, nothing is published, and no tag has been pushed. Do not implement this ticket again on `main`; what remains is the owner's review of `tmpPyPi`, the release actions on the package index, and the merge of `tmpPyPi` into `main`, or its abandonment.
+
+> **Ticket review — 2026-09-30, UserDevProfile closed.** Renumbered `main_1-2` → `main_1-1`: [UserDevProfile](../archive/20260930_UserDevProfile_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
+> **Ticket review — 2026-09-30, MemoryArchitecture closed.** Renumbered `main_1-3` → `main_1-2`: [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md) was archived, so the priority-1 ranks were compacted.
+
+> **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Promoted `main_2-2` → `main_1-3`, after MemoryArchitecture and the new [UserDevProfile](../archive/20260930_UserDevProfile_DevPlanTicket.md), per the owner's order. A user install is now also a **USER** tree in UserDevProfile's sense — it holds no private repository, so its memory is local and never synced — and whatever install route this ticket settles on must keep it that way.
+
+> **Ticket review — 2026-09-19.** Rank unchanged — the priority-1 and
+> priority-2 piles are numbered independently — but
+> [TreeEnvironment](../archive/20260920_TreeEnvironment_DevPlanTicket.md) now sits
+> ahead of this in the queue, and it should. This ticket removes Pixi as
+> the only route in, which means an installed `cgitsync` runs under a
+> Python nothing in this project pinned; today no record says which
+> interpreter ran a command at all. Recording it before the installs
+> diversify is much cheaper than reconstructing it afterwards. Its
+> `cgitsync env` command is also the diagnostic §5's clean-environment
+> check wants to print, so adopt it there once WP1 lands.
+
+> **Ticket review — 2026-09-18.** Renumbered from `main_2-1` to `main_2-2`:
+> [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md) moved
+> onto `main` in the same pass and keeps first place in this pile because
+> both open items below still cite it.
+
+> **Memory review — 2026-09-12. Priority 2-2** (was 1-3). Moved to
+> stand-by behind the memory path of
+> [MemoryArchitecture](../archive/20260930_MemoryArchitecture_DevPlanTicket.md). Two
+> things the memory work changes here:
+>
+> - **D1's version scheme now has a second reader.**
+>   [MemoryRepoLocal](../archive/20260916_MemoryRepoLocal_DevPlanTicket.md)'s gate G6 says
+>   a memory declares a schema version and a memory written by version *X*
+>   is read by *X+1*. That is a compatibility promise about stored data,
+>   not about a package number, and the two must not be conflated: decide
+>   the published version scheme here, and let the memory carry its own
+>   schema version independently.
+> - **An installed `cgitsync` has to reach a memory repository.** The
+>   clean-environment acceptance check in §5 should adopt a memory and get
+>   a working tree, not only print `--help` — that is the path a user on a
+>   new machine actually takes, and it is the one thing this ticket and
+>   [Omniscience](memory-dev_2-1_Omniscience_DevPlanTicket.md) both
+>   depend on.
+
+> **Release review — 2026-09-11. Priority 1-5.** Promoted from 2-6 for a tested installation outside the source checkout and a repeatable public release. Support only validated platforms; broader coverage is deferred.
+
+## Abstract — read this first
+
+**The one-line version.** A person evaluating this tool should type one
+install command and get `cgitsync`, without cloning the source, installing
+Pixi, or learning anything about Python environments.
+
+**What this document is.** A ticket, from an outside review of the project
+on 2026-09-10. Nothing here has been built.
+
+**Why it exists.** Pixi is the right answer for developing and testing this
+project, and nothing below removes it. The problem is narrower: Pixi is
+currently the *only* route in, so a user must adopt the maintainer's
+toolchain before running a Git tool once. `README.md` §1.2 says so
+outright — *"There is no global install: every invocation is `pixi run
+cgitsync ...`, run from inside the clone below."* That sentence is the
+obstacle. Pixi should solve the maintainer's problem without becoming the
+user's.
+
+**What you will find.** §1 how close the packaging already is. §2 what is
+missing. §3 the decisions, of which the version scheme is the awkward one.
+§4 work packages. §5 acceptance.
+
+**Who it is for.** Whoever picks this up, and the owner, who answers §3.
+
+**What you need to do with it.** Answer §3, then §4 in order.
+
+```mermaid
+graph TD
+    DEV["contributor"] -->|pixi install<br/>pixi run test / lint| SRC["the clone<br/>reproducible env"]
+    USER["someone evaluating it"] -->|pipx install complexgitsync| BIN["cgitsync on PATH<br/>YOU ARE HERE"]
+    SRC -.->|builds and publishes| BIN
+
+    classDef here fill:#1565C0,color:#fff,stroke:#111,stroke-width:2px;
+    class BIN here;
+```
+
+---
+
+## 1. How close this already is
+
+Most of the work is done. `pyproject.toml` today:
+
+| Field | Value | Verdict |
+|---|---|---|
+| `build-system` | `hatchling>=1.27` | A standard backend. Nothing to change |
+| `[project.scripts]` | `cgitsync = "ComplexGitSync.cli:main"` | The console entry point already exists |
+| `dependencies` | `tomli-w>=1.0,<2` | One runtime dependency, bounded |
+| `requires-python` | `>=3.11` | Declared |
+| `license`, `readme`, `authors` | present | Enough for a package page |
+
+The console entry point and wheel configuration are present. Prove the
+built artifact installs and runs outside the checkout in a clean environment;
+metadata inspection alone does not prove installation works. Document Git on
+PATH, the supported Python version, and how to obtain the chosen installer
+(such as pipx). User installation must not depend on Pixi or mounted developer
+repositories.
+
+## 2. What is missing
+
+| # | Missing | Why it matters |
+|---|---|---|
+| 2.1 | Publication status must be checked before release | Package-name ownership/availability was not checked in this local planning review |
+| 2.2 | No `classifiers`, no `[project.urls]` | The package page would carry no link to the repository, no issue tracker, no supported-Python badge |
+| 2.3 | No publish workflow | Releasing by hand from a laptop is how a wrong artefact gets uploaded once and can never be replaced |
+| 2.4 | No `CHANGELOG.md` | A user upgrading has no way to learn what changed |
+| 2.5 | CI runs on `ubuntu-latest` only | Nothing tests that this works on macOS or Windows, so nothing may claim it does |
+| 2.6 | `README.md` §1.2 tells every reader to use Pixi | The user path and the contributor path are the same paragraph |
+
+**Not in this ticket.** Standalone binaries built with PyInstaller or
+Nuitka. They bring per-OS builds, architecture variants, signing and
+notarisation, and a second upgrade channel. They are worth revisiting once
+the CLI and the `.cgs` grammar have settled, and not before.
+
+## 3. Decisions — your call
+
+### D1. The version scheme, which publishing forces
+
+> **Moved out on 2026-09-20 — this decision now belonged to
+> [Versioning](../archive/20260921_Versioning_DevPlanTicket.md).** The
+> owner's `versioning.md` short ticket picked the third option below —
+> semantic versioning — and originally extended it far past what a
+> packaging ticket can hold: the version as a fusion of the tool, the
+> agent contracts and the data layer, joined by a `Patch` integer and
+> recorded in the memory.
+>
+> **Settled, 2026-09-21 — real SemVer, no `Patch` integer.** Versioning
+> §2.3 dropped the linking integer on the owner's own direction: SemVer's
+> `PATCH` resets on a `MINOR` bump, so it cannot be a stable join key, and
+> the job it was meant to do — naming which artefact set a release was cut
+> from — is done instead by an additive `release` field on the ledger
+> entry (§3), keyed by SemVer, not by `Patch`. `pixi run bump-version
+> {major,minor,patch} [--pre <stage>|--release]` is the one thing allowed
+> to write `pyproject.toml`'s `[project].version`, exactly as this ticket
+> asked.
+>
+> **PEP 440 is still this ticket's own open item, not Versioning's.** A
+> plain `X.Y.Z` release version is already PEP 440-compatible. A
+> pre-release version is not: SemVer's `3.1.0-alpha.1` and PEP 440's
+> `3.1.0a1` are different grammars, and nothing built here translates
+> between them. If this ticket still means to publish to PyPI, resolving
+> that translation (at publish time, or by restricting published releases
+> to non-pre-release SemVer) is unresolved work for whoever picks this
+> ticket up. The analysis below is kept as written, because it is where
+> the problem was first diagnosed.
+
+`pyproject.toml` reads `version = "0002.49"` at this review. Recheck the
+current value when implementing the release. `CLAUDE.md` calls this
+`YYYY.XX`, but `0002` is not a year — it is a counter. Publishing makes
+this a user-visible problem for two reasons:
+
+- PEP 440 normalises `0002.49` to `2.49`, so the package page and
+  `pipx install complexgitsync==...` would show a version the repository
+  never writes.
+- Ordering is then by number, so `2.49` sorts after `2.9`. That is fine
+  going forward and surprising to read.
+
+Three ways out, all needing a decision before anything is uploaded:
+
+| Option | What happens |
+|---|---|
+| **Publish `2.49` and adopt it** (recommended) | Accept the normalised form, change the release to write `2.49`, and update `bump-version` and `CLAUDE.md`'s `YYYY.XX` wording to match what the file actually holds |
+| Re-base on a real calendar version | `2026.9` and onward. Honest about what the number is, and a discontinuity in the sequence |
+| Move to semantic versioning | Fits the stability promises in `CliContract`, and is the largest change |
+
+Whichever wins, `pixi run bump-version` is the only thing allowed to write
+the version, per `CLAUDE.md`. It has to keep being so.
+
+### D2. What is the published name?
+
+`name = "ComplexGitSync"` normalises to `complexgitsync` on PyPI, so
+`pipx install complexgitsync` is what a user types while the repository
+says `ComplexGitSync`. Confirm that is acceptable, and check the name is
+available or under the owner's control before publication. This gates publishing,
+not artifact testing, metadata, documentation drafts, or other preparation.
+
+### D3. Which operating systems are supported?
+
+First-release decision: claim support only for platforms actually validated,
+including the installed artifact. The existing Linux CI is the starting point;
+macOS and Windows expansion may follow later and must not block release.
+Select compatible runners for the Pixi platforms when extending CI, and test
+Git invocation and path handling on each newly claimed platform.
+
+### D4. Does publishing happen on a tag, and by whom?
+
+Recommendation: a GitHub Actions job on a tag, using PyPI's trusted
+publishing, so no token is stored anywhere. Confirm the owner wants
+releases cut from a tag rather than manually.
+
+## 4. Work packages
+
+| WP | Depends on | Touches | Deliverable |
+|---|---|---|---|
+| **WP-U1** | D2 | — | Check publication status and name ownership/availability before publishing. Arrange the chosen name with the owner; unrelated preparation can proceed |
+| **WP-U2** | D1 | `pyproject.toml`, `scripts/bump_version.py`, `CLAUDE.md` | The version scheme decided in D1, written by `bump-version` alone, with `CLAUDE.md`'s wording matching what the file holds |
+| **WP-U3** | — | `pyproject.toml` | `classifiers` and `[project.urls]`: repository, issues, documentation |
+| **WP-U4** | D3 | `.github/workflows/ci.yml` | Validate the installed artifact on each claimed platform. CI already uses the existing `examples/complexgitsync4dev.cgs`; the former filename bug is fixed. Additional platforms are optional follow-up work |
+| **WP-U5** | D4, WP-U1 to WP-U3 | `.github/workflows/` | A release workflow on a tag: build, check the artefact, publish through trusted publishing. Test it against TestPyPI first |
+| **WP-U6** | WP-U2 | `CHANGELOG.md` | A changelog, starting at the first published version. State whether `bump-version` touches it or a person does |
+| **WP-U7** | WP-U5 | `README.md`, `docs/Text/` | Document Git, supported Python, installer prerequisites, and a clean-environment installation. Split the two audiences. A user section opening with `pipx install complexgitsync` and `cgitsync --help`; the Pixi instructions kept and moved under a contributor heading. §1.2's "no global install" sentence goes |
+| **WP-U8** | WP-U7 | tests, docs, this ticket | `pixi run lint` and `pixi run test`; the before-committing checklist; archive this ticket in the implementing commit |
+
+## 5. Acceptance
+
+- On a machine with no clone of this repository and no Pixi,
+  `pipx install complexgitsync` followed by `cgitsync --help` works, and
+  `cgitsync --version` prints the published version. The installed artifact
+  also runs a local workspace smoke check outside the source checkout with
+  the documented Git/Python/installer prerequisites and no developer mounts.
+- The PyPI page links to the repository and the issue tracker and states
+  the supported Python versions.
+- CI passes on every operating system the README claims, and its
+  dogfooding step names a `.cgs` file that exists.
+- A tag produces a published release with no manual upload step and no
+  stored token.
+- `CHANGELOG.md` has an entry for the released version.
+- `README.md` reaches the user install command before it mentions Pixi,
+  and the Pixi instructions are still there, under a contributor heading.
+- `pixi run lint` and `pixi run test` pass.
+
+## 6. Coordination and deferred work
+
+Coordinate the version scheme with [CliContract](../archive/20260916_CliContract_DevPlanTicket.md)
+before committing to major-version compatibility promises. Broadening operating
+system coverage and standalone binaries remain follow-up work, not release gates.
+Publication, package-name/account changes, tags, and remote workflow execution
+are future release actions; this planning review authorizes none of them.

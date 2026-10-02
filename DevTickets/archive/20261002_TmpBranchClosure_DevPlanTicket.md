@@ -4,42 +4,32 @@
 
 *Branch: main*
 
-> **Progress — 2026-10-02.**
-> - **WP0**, done earlier. **WP1** has lost its premise: the owner ran
->   `cgitsync memory reboot` and `verify` reports `verified`; MemoryForkRepair
->   decides what is left to bring across.
-> - **WP2, done in 3.14.8.** `close-branch` closes a *project* branch: each
->   repository closes the branch it follows (`<project>_<branch>` in a
->   private/local one, nothing in a private/distant one), a branch that
->   exists only on origin is closed from its remote-tracking ref, the push
->   never forces, the old name goes only once origin is seen to hold the
->   closed one, and a repository whose local branch lacks commits origin
->   holds is refused before any push (found in review: it would have left
->   those commits on no branch). Tests, README, user guide, API guide.
-> - **WP3, two of three closed**, each run on the real tree with the owner's
->   go-ahead: `tmp-main-1-2_DiscoverRoundTrip` and `tmpAutoFix`. Each was
->   renamed on origin in 9 repositories (3 private/distant skipped);
->   `closed/tmpAutoFix` holds the same tip, `0e54d78`, that `tmpAutoFix` had.
->   `branch --list` shows both under `closed:`. **`tmpPyPi` is still open**;
->   the owner has not yet given the go-ahead for it.
-> - **WP1, done by [MemoryForkRepair](../archive/20261002_MemoryForkRepair_DevPlanTicket.md)** (archived): the live memory verifies, and the two
->   agent-work records that existed only on `tmpPyPi` and `tmpAutoFix` were merged
->   into `.self-history`. The ledger entries that exist only on `tmpPyPi`
->   (126 to 129) stay reachable only if that branch is **closed, not deleted**.
-> - **WP4** waits for `tmpPyPi` to be closed.
-> - **WP5, done in 3.14.11.** The table's recommendations were implemented
->   as the rulings and are written into `AdditionalSpecs.md` (*The hard
->   prohibitions*): `pull-force`, `freeze-release-force` and
->   `--force-gitignore-sync` now refuse, for the whole tree and before any
->   change, while a commit exists that no remote holds
->   (`GitRunner.commits_force_pull_would_drop`, enforced inside
->   `force_pull`), and set uncommitted and untracked work aside with
->   `git stash push -u` instead of discarding it (owner's choice, the pull
->   family only); `reset_hard` is removed. **One ruling is still the
->   owner's:** my table said `--force-reclone` could be allowed because
->   `CloneGuard` refuses unsafe clones, but `--force-reclone` is the flag
->   that deletes such a clone anyway, and `clean-init` shares it.
-> **Ticket review — 2026-10-02, after RuleConformity.** Renumbered `main_1-3` → `main_1-2`: [RuleConformity](../archive/20261002_RuleConformity_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+> **Implemented — 2026-10-02, archived.** All five work packages are done, in
+> 3.14.8 to 3.14.11 and by closing the branches on the real tree.
+> - **WP0**: the agent rules say ComplexGitSync rewrites nothing.
+> - **WP1**: [MemoryForkRepair](20261002_MemoryForkRepair_DevPlanTicket.md): the live memory
+>   verifies (after the owner's `memory reboot`), and the two agent-work records
+>   that existed only on `tmpPyPi` and `tmpAutoFix` were merged into
+>   `.self-history`. Ledger entries 126 to 129 stay reachable on `closed/tmpPyPi`.
+> - **WP2**: `close-branch` closes a *project* branch: each repository closes the
+>   branch it follows (`<project>_<branch>` in a private/local one, nothing in a
+>   private/distant one), an origin-only branch is closed from its remote-tracking
+>   ref, the push never forces, and a repository whose local branch lacks commits
+>   origin holds is refused before any push (found in review).
+> - **WP3**: all three branches closed on the real tree, each with the owner's
+>   go-ahead: `tmp-main-1-2_DiscoverRoundTrip`, `tmpAutoFix` and `tmpPyPi`. Each was
+>   renamed on origin in 9 repositories (3 private/distant skipped) and keeps its
+>   tip: `closed/tmpAutoFix` is `0e54d78`, `closed/tmpPyPi` is `e8d8749`.
+>   `branch --list` shows all three under `closed:`; `verify` is `verified`.
+> - **WP4**: [UserInstallPath](20261002_UserInstallPath_DevPlanTicket.md) archived as dropped.
+> - **WP5**: the rulings are in `AdditionalSpecs.md` (*The hard prohibitions*).
+>   `pull-force`, `freeze-release-force` and `--force-gitignore-sync` refuse for the
+>   whole tree while a commit exists that no remote holds, and stash uncommitted and
+>   untracked work (`git stash push -u`); `reset_hard` is removed. **`--force-reclone`
+>   and `clean-init` go** (the owner's ruling, short ticket `no-force-reclone`), and
+>   that removal is carried by the short ticket, not by this one.
+> - **Follow-ups, owned elsewhere:** `branch-delete` (the short ticket on deleting a
+>   closed branch only when the ledger stays intact) and `no-force-reclone`.
 
 > **Ticket review — 2026-10-02.** Renumbered `main_1-2` → `main_1-3`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
 

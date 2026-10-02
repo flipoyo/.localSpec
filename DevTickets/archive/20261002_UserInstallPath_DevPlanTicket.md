@@ -4,6 +4,14 @@
 
 *Branch: tmpPyPi*
 
+> **Dropped — 2026-10-02, archived (TmpBranchClosure WP4).** The `tmpPyPi`
+> branch is closed (`closed/tmpPyPi`, same tip as before), and this plan is not
+> implemented. Its `pipx` route breaks the Pixi-only rule, which also covers how
+> users install (`digest.md`). Its conforming parts went to
+> [PackageHygiene](../openTickets/main_2-6_PackageHygiene_DevPlanTicket.md); the install route is the
+> owner's open question in the short ticket `pixi-global-install.md`. This ticket
+> is kept as the record of what was planned, not as work to do.
+
 > **Ticket review — 2026-10-02, after RuleConformity.** Renumbered `tmpPyPi_1-2` → `tmpPyPi_1-1`: [RuleConformity](../archive/20261002_RuleConformity_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Ticket review — 2026-10-02.** Renumbered `tmpPyPi_1-1` → `tmpPyPi_1-2`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
