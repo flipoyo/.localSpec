@@ -2051,9 +2051,12 @@ that its value equals `pyproject.toml`'s — matchability alone let 2.49 ship
 with its documentation left on 2.48.
 
 `bump-version` rewrites `.tex` sources only. The tracked PDFs in `docs/`
-embed the version on their title pages, so rebuild them (`cd docs &&
-latexmk -pdf MASTER.tex`, plus each `c_*.tex`) and commit the result in the
-same change.
+embed the version on their title pages, so after every `bump-version`
+rebuild `MASTER.tex` and **every** `c_*.tex` (`cd docs && latexmk -pdf
+MASTER.tex c_api_python.tex c_architecture.tex c_getting_started.tex
+c_user_guide.tex`), not only the ones whose text you changed, and commit the
+result in the same change. This paragraph is the one statement of the rule;
+`CLAUDE.md` step 5 points here.
 
 `bump_version.py` is orchestrator tooling and lives in
 `.agent/.local/.versioning/scripts/` — private, not in the public

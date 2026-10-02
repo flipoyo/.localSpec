@@ -37,6 +37,14 @@
 >   abstract rule, as the user's front page (`CLAUDE.md` *Document
 >   conventions*, one digest line). `AdditionalSpecs.md` and `Versioning.md`
 >   now open with an abstract and graph, and `digest.md` has its graph.
+> - **WP2, WP6 (§2 correction), WP7, WP8, WP9 and WP11, done in 3.14.5.**
+>   TmpBranchClosure WP5 lists the extra routes; AutofixBlindSpot §2 is
+>   corrected; `tests/unit/test_rewrites_nothing.py` guards `git_runner.py`;
+>   `check-build-version` runs in CI's `versioning` job; every PDF shows
+>   3.14.5; the PR template points at `CLAUDE.md`. Still open on purpose:
+>   G1 and G5 (AutofixBlindSpot), G3's deny list and G9 (owner), G8
+>   (MemoryForkRepair; `verify` read `verified` on 2026-10-02 at the
+>   second audit, to be confirmed by that ticket).
 > - **All five breakages are fixed.** The gaps in §3 stay open; this
 >   ticket stays at `main_1-1` until they are carried into tickets or done.
 

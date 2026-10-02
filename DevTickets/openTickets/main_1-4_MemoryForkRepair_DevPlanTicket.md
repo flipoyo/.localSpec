@@ -37,7 +37,7 @@ graph LR
 
 ## 1. Diagnosis (2026-10-02)
 
-`cgitsync verify`: `status=corrupt`, 31 findings. The first two: `seq=130
+`cgitsync verify`: `status=corrupt`, 33 findings (31 when first counted; two entries were recorded since). The first two: `seq=130
 SEQ_GAP missing 4 seq(s) between 125 and 130`, and `seq=130 BROKEN_LINK`.
 Every later finding is "chain already broken upstream". `.memory`'s
 `ComplexGitSync_tmpPyPi` holds one commit `main` lacks: "129 state(s), 129

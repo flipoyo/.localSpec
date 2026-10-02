@@ -170,12 +170,14 @@ Two independent gaps compound here, either one enough on its own:
   was, produces nothing in `.cgitsync/logs/` at all, successful or not:
   `cgitsync` has no visibility into a Git operation it did not itself
   run.
-- **Even a *logged* commit carries no message-shape check.** `commit()`
-  never validates its own `message` argument against
-  `AgentConduct.md` §2 (starts with `<project><version>`, three lines,
-  plain English, no trailer) before or after committing. A caller — human
-  or agent — that hands it an already-malformed string gets no signal
-  back either.
+- **A *logged* commit is checked, but only by `cgitsync commit`.** Since
+  AgentGuardrails (commit `8ffecce`), `CommitMessagePolicy`
+  (`commit_message.py`, called from `TreeCommands.commit`) refuses a message
+  that breaks `AgentConduct.md` §2 (prefix `<project><version>`, three
+  lines, plain English, no trailer) before committing, in a tree that has
+  adopted DevSpec. This ticket first said `commit()` validated nothing;
+  that was corrected on 2026-10-02 (RuleConformity G1). What nothing checks
+  is a commit made by a bare `git commit`, which is the case that remains.
 
 `autofix`'s entire model assumes trouble announces itself as a raised,
 logged error. This class of defect is the opposite: `git` accepted the
