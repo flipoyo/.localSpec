@@ -646,7 +646,8 @@ each** (TmpBranchClosure WP5, 2026-10-02):
 | `memory reboot` | Allowed. The old branch is kept as `<branch>.archived-<date>`; the branch name then carries unrelated history. |
 | `memory adopt` | Allowed. It keeps the local memory's commits and joins the remote's history by a merge commit (RuleConformity B2). |
 | `pull-force`, `freeze-release-force`, `--force-gitignore-sync` | Allowed only while no commit would be left on no branch. All three end in `GitRunner.force_pull`, which refuses (`commits_force_pull_would_drop`), and the tree-wide path asks first, so a refusal changes nothing. Uncommitted changes and untracked files are set aside with `git stash push -u`, not discarded (owner, 2026-10-02), and `pull-force` warns per repository. |
-| `--force-reclone`, `clean-init` | **Goes** (owner, 2026-10-02: "I think we can eliminate force-reclone"; short ticket `no-force-reclone`). `--force-reclone` is the flag that deletes a clone holding commits no remote has, which the rule forbids. Until the removal lands, `CloneGuard` still refuses such a clone and the flag still bypasses it. |
+| `--force-reclone`, `clean-init` | **Goes** (owner, 2026-10-02: "I think we can eliminate force-reclone"; short ticket `no-force-reclone`). `--force-reclone` is the flag that deletes a clone holding commits no remote has, which the rule forbids. Until the removal lands, `CloneGuard` still refuses such a clone and the flag still bypasses it. The removal is GitLikeCli WP1. |
+| `purge` | **Goes** (GitLikeCli WP1). It deletes every child clone with `shutil.rmtree` and asks no `CloneGuard` question, so it can destroy commits no remote has; `clean-init` runs it. |
 | `GitRunner.reset_hard` | Removed. No command called it. |
 | install pin (`checkout -B <b> <sha>`) | Allowed. It pins a fresh clone, which has nothing local to lose. |
 
