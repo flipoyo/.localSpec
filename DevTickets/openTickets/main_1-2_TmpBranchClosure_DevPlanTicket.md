@@ -23,7 +23,18 @@
 >   `branch --list` shows both under `closed:`. **`tmpPyPi` is still open**;
 >   the owner has not yet given the go-ahead for it.
 > - **WP4** waits for `tmpPyPi` to be closed.
-> - **WP5**: the ruling table is below, for the owner to answer.
+> - **WP5, done in 3.14.11.** The table's recommendations were implemented
+>   as the rulings and are written into `AdditionalSpecs.md` (*The hard
+>   prohibitions*): `pull-force`, `freeze-release-force` and
+>   `--force-gitignore-sync` now refuse, for the whole tree and before any
+>   change, while a commit exists that no remote holds
+>   (`GitRunner.commits_force_pull_would_drop`, enforced inside
+>   `force_pull`), and set uncommitted and untracked work aside with
+>   `git stash push -u` instead of discarding it (owner's choice, the pull
+>   family only); `reset_hard` is removed. **One ruling is still the
+>   owner's:** my table said `--force-reclone` could be allowed because
+>   `CloneGuard` refuses unsafe clones, but `--force-reclone` is the flag
+>   that deletes such a clone anyway, and `clean-init` shares it.
 > **Ticket review — 2026-10-02, after RuleConformity.** Renumbered `main_1-3` → `main_1-2`: [RuleConformity](../archive/20261002_RuleConformity_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Ticket review — 2026-10-02.** Renumbered `main_1-2` → `main_1-3`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
@@ -156,7 +167,7 @@ owner rules; the recommendation is the worker's.
 | `pull-force` | `checkout -B <b> FETCH_HEAD` and `clean -fd`: a local branch is moved off commits no remote holds (left only in the reflog) and untracked files are deleted | **Refuse when a repository holds commits no remote has** (the question `CloneGuard` already asks), allow otherwise: nothing is lost |
 | `freeze-release-force` | Runs `pull-force` | **Same guard** as `pull-force`, through the same code |
 | `--force-gitignore-sync` | Falls back to `pull-force` semantics when a plain pull cannot sync | **Same guard** as `pull-force` |
-| `--force-reclone`, `clean-init` | Delete a clone and clone again | **Allow.** `CloneGuard` already refuses a clone with a dirty worktree or commits no remote holds; confirm a test pins that |
+| `--force-reclone`, `clean-init` | Delete a clone and clone again | **Open (corrected).** `CloneGuard` refuses a clone with a dirty worktree or commits no remote holds, but `--force-reclone` is the flag that deletes it regardless. The strict rule says refuse; the owner rules |
 | `GitRunner.reset_hard` | `reset --hard`; no caller in `src/` | **Remove** it: dead code that only invites a rewrite |
 | install pin (`checkout -B <b> <sha>`) | Pins a fresh clone to a commit | **Allow.** A new clone has nothing local to lose |
 | `memory adopt` | Kept the local history from 3.14.4 (merge commit, refused and undone if it cannot merge) | **Allow**, already fixed |
