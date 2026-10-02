@@ -66,6 +66,7 @@ file to match, in the same change that noticed the drift.
 - CI never writes a version: a bump is a release decision made by a reader, through `pixi run bump-version`. — `Versioning.md`
 - `pixi run lint` and `pixi run test` must both pass before any task is considered closed. — `CLAUDE.md` §1
 - Run `pixi run bump-build` for any change under `src/`. — `CLAUDE.md` §1
+- Every `bump-build` is followed by `pixi run bump-version`, at `patch` at least, in the same change — even for a follow-up fix to a version not yet committed; a change outside `src/` that changes what a script or command does is released at `patch` too; "patch" from the owner means this. — `Versioning.md`
 - `cgitsync status`, run from the tree's own root, must show `errors=0` before a task is finished. — `CLAUDE.md` §1
 - Never hand-edit a version field; run `pixi run bump-version` — the one command that syncs all of them. — `CLAUDE.md` §1
 - Document any new CLI command in the README command table and its client method in the API docs. — `CLAUDE.md` §1

@@ -1531,7 +1531,7 @@ rounding, no average.
 
 | Criterion | Maximum | What a full score means |
 |---|---|---|
-| `spec_respect` | **33** | Every rule in the specs was followed: lint and tests pass, `status` shows `errors=0`, `bump-build` done for `src/`, tickets stamped and moved, docs kept in line. |
+| `spec_respect` | **33** | Every rule in the specs was followed: lint and tests pass, `status` shows `errors=0`, `bump-build` done for `src/` and followed by `bump-version` at `patch` at least, tickets stamped and moved, docs kept in line. |
 | `gating` | **33** | Nothing crossed the public/private line: only declared writable repositories were written, nothing private reached a public one, nothing was pushed unasked. Nearly all of it is checkable. |
 | `quality` | **34** | The work is sound, tested and no more complicated than it had to be. Almost all of it is the orchestrator's judgement. |
 | **total** | **100** | The sum of the three. |
@@ -1886,13 +1886,19 @@ what `pixi run bump-version`'s `--pre`/`--release` flags produce.
 
 | Number | Where | Moves when | Says |
 |---|---|---|---|
-| **SemVer** | `pyproject.toml`, `pixi.toml`, `src/ComplexGitSync/__init__.py`'s `__version__` | A release is made, deliberately | What the project promises |
+| **SemVer** | `pyproject.toml`, `pixi.toml`, `src/ComplexGitSync/__init__.py`'s `__version__` | Every time the build counter moves (at `patch` at least), and on a release that changes no code | What the project promises |
 | **Build counter** | `src/ComplexGitSync/__init__.py`'s `__build__` | Every change to `src/`, automatically as part of that change | Exactly which build produced a given ledger entry |
 
-They have genuinely different cadences: a build counter that only moved on
-releases could not identify the build behind a given ledger entry, and a
-SemVer that moved on every merge would promise a release every time someone
-fixed a typo. The build counter keeps the calendar scheme the whole package
+**Every build is released.** A change that runs `bump-build` also runs
+`bump-version`, at `patch` at least, in the same change (owner,
+2026-10-02). A change outside `src/` that still changes what a command
+or script of this repository does (`scripts/`, a pixi task) is released
+the same way, at `patch` at least, though it has no build to bump. The
+build counter never moves without the SemVer.
+The reason is that a fix folded into a version that was already quoted
+is invisible: its version still names the work before the fix, and the
+owner wants every fix to be a release a reader can name. The build
+counter keeps the calendar scheme the whole package
 used to follow (`YYYY.XX`, `XX` rolling 01→99 into `YYYY+1`) — it is
 provenance, never identity, and (like every toolchain version) never enters
 a State's hash. See *What a State's name is computed from*, below.
@@ -1901,9 +1907,24 @@ a State's hash. See *What a State's name is computed from*, below.
 
 | Who | Does | With |
 |---|---|---|
-| **Worker** — the agent changing `src/` | Bumps `__build__`, as part of that change | `pixi run bump-build` (`scripts/bump_build.py`) — writes one file |
-| **Orchestrator** — independent, quotes the work | Decides MAJOR/MINOR/PATCH, runs `bump-version`, tags, writes the release row | `pixi run bump-version {major,minor,patch} [--pre <stage>] [--release]` (`.agent/.local/.versioning/scripts/bump_version.py` — private, see ProjectSpecSplit) |
+| **Worker** — the agent changing `src/` | Bumps `__build__`, as part of that change — then `bump-version patch` itself when no orchestrator quotes the work | `pixi run bump-build` (`scripts/bump_build.py`) — writes one file |
+| **Orchestrator** — independent, quotes the work | Decides MAJOR/MINOR/PATCH (never below PATCH when the build moved), runs `bump-version`, tags, writes the release row | `pixi run bump-version {major,minor,patch} [--pre <stage>] [--release]` (`.agent/.local/.versioning/scripts/bump_version.py` — private, see ProjectSpecSplit) |
 | **CI** | Verifies: lint, tests, tree reconstitution | Never writes a version; needs no credentials to |
+
+**`bump-build` is never the last versioning step.** In order: `bump-build`,
+then `bump-version` at the level the change deserves (`patch` at least),
+then the PDF rebuild, then the commit message, which reads the new version.
+Three cases agents got wrong before this rule was written down:
+
+- **A follow-up fix to a version not yet committed still gets its own
+  patch.** A review's fixes after 3.14.0 are 3.14.1, not "more of 3.14.0".
+- **No orchestrator does not mean no bump.** When the owner asks for a fix
+  directly and no orchestrator quotes it, the worker runs
+  `bump-version patch`, the floor. A change that adds a command or a
+  flag still deserves `minor`; the worker says so in its report rather
+  than deciding it alone.
+- **"Patch" from the owner means this rule.** It means `bump-build`, then
+  `bump-version patch`, never "amend the version already there".
 
 **CI cannot make the MAJOR/MINOR/PATCH judgement** — no diff distinguishes
 a renamed flag from a new one — so it never runs `bump-version`, and it is
@@ -1980,7 +2001,9 @@ project.
 Writes exactly one file: `src/ComplexGitSync/__init__.py`'s `__build__`.
 `scripts/bump_build.py`, same `--dry-run` convention as `bump-version`. This
 is a worker step, run alongside a change to `src/` — see `CLAUDE.md`'s
-before-committing checklist — not a release step.
+before-committing checklist. It is always followed by `bump-version`, at
+`patch` at least (*Who bumps what*), and the script prints that next step
+so it cannot be missed.
 
 ### The release register
 
