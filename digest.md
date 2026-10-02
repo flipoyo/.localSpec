@@ -52,6 +52,7 @@ file to match, in the same change that noticed the drift.
 - The module shape is measured by `check_oo_conformance.py` against a baseline that only shrinks; never add a module to one of its lists to make the check pass. — `AdditionalSpecs.md` §Module shape
 - Configuration and state are exchanged as structured data, never raw string manipulation; every document class carries `to_*`/`from_*` helpers. — `DevSpecs.md` §Interface Conventions
 - Python work goes through `pixi` — never bare `pip`, `python -m pip`, or `venv`, in code, docs, or CI. — `DevSpecs.md` §Python Environment and Package Management
+- That includes the route a user installs by: no `pipx`, no `pip install`, no other installer, because one consistent tool per project means Pixi end to end. — `DevSpecs.md` §Python Environment and Package Management
 
 ## Attribution and commits
 
@@ -60,6 +61,10 @@ file to match, in the same change that noticed the drift.
 - Never push to a remote without being asked; deliver the commit message and let the owner decide whether to commit. — `AgentConduct.md` §1
 - A commit message starts with `<project-name><version>`, is one message reused for every repository the change touched, plain English, three lines at most. — `AgentConduct.md` §2
 - `cgitsync commit` refuses a message that breaks that rule — wrong prefix, more than three lines, a backtick, a `$(`, or an agent-credit trailer — in a tree that adopts DevSpec, naming the rule it broke. — `CLAUDE.md` §Before committing
+
+- ComplexGitSync rewrites nothing: no command, `autofix` included, amends, rebases, squashes, filters or force-pushes, and none changes a commit message once made, even when handed a corrected one. — `AdditionalSpecs.md` §The hard prohibitions
+- `autofix` eases merges and repairs only by adding a commit; for a bad commit message it names the commit and the rule, proposes ways to extract the message intact, and does nothing else. — `AdditionalSpecs.md` §The hard prohibitions
+- A ticket that asks ComplexGitSync to rewrite history is wrong: do not build it, send it back to the owner. — `AdditionalSpecs.md` §The hard prohibitions
 
 ## Before a task is finished
 

@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Correction — 2026-10-02, owner's decision.** WP2 as first written asked `autofix` to rewrite a commit message with `git commit --amend`, and to amend a pushed commit and force-push it given `force=True`. That was a wrong reading of what `autofix` is for: it eases the merge procedure, it does not rewrite commits. The `tmpAutoFix` branch built exactly that WP2 and is being closed for it (CorrTicket TmpBranchClosure). ComplexGitSync now rewrites nothing (`AdditionalSpecs.md`, *The hard prohibitions*), so WP2 and the acceptance criteria below are rewritten: `autofix` reports a bad message and proposes ways to extract it intact, and nothing more. The read-only detection already written on `tmpAutoFix` is what this ticket takes back.
+
 > **Ticket review — 2026-09-30, from the owner's short ticket `archive/.closedUserTicket/20260930_ReorderPriority-mem-multiUser.md`.** Demoted `main_1-1` → `main_2-4`: the owner's words, *"AutoFixBlindSpot is not prioritary before MemoryArchitecture, UserInstallPath, StateLocking or AsofRetrieval."* Its content is unchanged.
 
 > **Ticket review — 2026-09-30, after DefaultUserMemory.** Renumbered `main_1-2` → `main_1-1`: [DefaultUserMemory](../archive/20260930_DefaultUserMemory_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
@@ -186,13 +188,13 @@ something is wrong is to read the *result* — the tip commit's own message
 | WP | Touches | Deliverable |
 |---|---|---|
 | **WP1** | `autofix/base.py`, a new `autofix/repair_commit_message.py` | A second, non-error-driven entry point: `FromCliRepair` (or a sibling dispatcher) gains a mode that inspects the *tip commit* of every writable/project repository directly — `git log -1 --format=%B` — rather than only `.cgitsync/logs/*.log`. `Situation` gains an optional `commit_message: str \| None` alongside `source_error`, so a `Repair.matches()` can pattern-match on either source without every existing repair needing to change. `MalformedCommitMessageRepair.matches()` flags a message that violates AgentConduct §2's shape or looks shell-mangled (a bare word where a backtick-quoted phrase would be — heuristically, a bare `` `<runnable-name>` `` reduced to something matching `git rev-parse --abbrev-ref HEAD`'s own output space, i.e. an existing branch name, is the strongest signal this incident actually offers; a run of two consecutive spaces where a phrase silently substituted to empty is the second). |
-| **WP2** | `autofix/repair_commit_message.py`, `git_runner.py` | `repair()` offers a corrected message (reconstructed from context where recoverable, otherwise asks the caller to supply one) via `git commit --amend -m <message>` — but only after checking the commit is not already the same as its upstream (mirroring `clone_guard.py`'s "which commits does no remote hold" question in reverse: here the concern is a commit *is* already shared). A commit whose ref matches its remote's is amend-and-force-push territory — hard-to-reverse, shared-state — so `repair()` must refuse by default and require an explicit `force=True` the caller only sets after the owner has actually said yes, the same posture `initialise_cgs`'s `force_reclone` already uses for a comparably destructive default-off action. Never silently rewrites already-pushed history. |
-| **WP3** | `tests/`, `.agent/.local/.localSpec/AdditionalSpecs.md` | An integration test for WP1/WP2 building a repository with a tip commit that violates the rule, confirming `autofix` finds and offers to repair it without touching an already-shared commit uninvited. `AdditionalSpecs.md`'s `orchestre/`/`autofix/` rows updated to state the new validation point and the second `Situation` source, per `CLAUDE.md`'s *before-committing* checklist item 6. |
+| **WP2** | `autofix/repair_commit_message.py` | **Report, never repair.** When WP1 flags a tip commit, `autofix` prints the repository, the commit, the rule it breaks (or the suspected shell damage, called suspected), and ways to extract the message intact so a person can fix it by hand: `git show -s --format=%B <sha> > message.txt`, `git log -1 --format=%B`, or `git cat-file commit <sha>` for the raw object. It runs no Git command that writes: no `--amend`, no rebase, no force-push, no `force` flag, whatever message it is handed. When the same commit is what makes a merge fail, it says so in the merge diagnosis and stops there. |
+| **WP3** | `tests/`, `.agent/.local/.localSpec/AdditionalSpecs.md` | An integration test for WP1/WP2 building a repository with a tip commit that violates the rule, confirming `autofix` finds and reports it, prints the extraction commands, and leaves every ref and commit unchanged. `AdditionalSpecs.md`'s `orchestre/`/`autofix/` rows updated to state the new validation point and the second `Situation` source, per `CLAUDE.md`'s *before-committing* checklist item 6. |
 
 WP1 alone would have caught this incident's rule violations (length,
 trailer) before any shell ever saw the message — it does not, and cannot,
 catch shell-substitution damage that happens after `cgitsync` has already
-handed the string to `git`. WP2-3 are for exactly that residual case, and
+handed the string to `git`. WP2-3 report exactly that residual case, and
 for any commit made by a bare `git commit` outside `cgitsync` entirely,
 which WP1 can never see no matter how strict it gets.
 
@@ -203,9 +205,10 @@ which WP1 can never see no matter how strict it gets.
 - `cgitsync autofix` can be pointed at a repository's own tip commit, not
   only at the last logged error, and correctly identifies a message that
   violates the house style or shows signs of shell-substitution damage.
-- A repair for an already-pushed commit never amends or force-pushes
-  without an explicit, separately-given confirmation; a repair for a
-  not-yet-pushed commit may amend directly.
+- `autofix` never changes a commit, pushed or not: every ref, sha and message is
+  the same before and after it runs, and a test checks it.
+- A report for a bad message includes at least one way to extract that
+  message intact.
 - The real `701a98f` incident (or an equivalent fixture built from it) is
   covered by a regression test.
 - `.localSpec/AdditionalSpecs.md`'s `orchestre/`/`autofix/` rows describe

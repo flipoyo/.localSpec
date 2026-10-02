@@ -568,7 +568,7 @@ work continues it. A commit that both deletes duplicated code from
 `orchestre.py`/`cli/` and authors a brand-new module is two concerns —
 split it.
 
-### The one hard prohibition
+### The hard prohibitions
 
 > **Never hand-edit anything under `.cgitsync/`.** If a workspace's state
 > looks wrong, fix it by running the normal lifecycle commands again, or —
@@ -576,6 +576,37 @@ split it.
 > repairs the `HEAD` cache and never rewrites or deletes a ledger entry.
 > An agent that corrupts `.cgitsync/` by hand and doesn't notice is the
 > realistic worst case in this workflow.
+
+> **ComplexGitSync rewrites nothing** (owner, 2026-10-02, in force until
+> the owner lifts it). No command, `autofix` included, changes a commit
+> that already exists: not its message, content, author or place in
+> history. That rules out `git commit --amend`, rebase, squash,
+> cherry-picking to replace, `filter-branch`/`filter-repo`, and resetting
+> a pushed branch to drop commits. It never force-pushes. A commit
+> message is a security and integrity record: once made, only its author
+> changes it, by hand, outside ComplexGitSync. This holds even when the
+> owner hands over a corrected message, and even for a commit no remote
+> has seen. An agent must not plan, build or run such a step, and a
+> ticket that asks for one is wrong and goes back to the owner.
+
+**What `autofix` is for.** It eases the merge procedure, which is always
+the complex one: it reads the error a failed merge or pull left, says
+which repositories and paths are in the way, and repairs only by *adding*
+a commit. That means a merge commit, or `DivergentUserRepair`'s
+re-sequenced ledger, which is verified before it is committed. When the
+cause is a bad commit message (malformed against `AgentConduct.md` §2,
+or text a shell swallowed), `autofix` names the commit and the rule it
+breaks. It then proposes ways to extract the message intact, for example
+`git show -s --format=%B <sha> > message.txt`, or `git cat-file commit
+<sha>` for the raw object, and does nothing else.
+
+**Commands that move a branch without changing a commit** are not
+rewrites under this rule, but the CorrTicket TmpBranchClosure audits each
+one against it: `close-branch` (rename, keeping every commit reachable),
+`memory reboot` (archives the old branch and starts an orphan),
+`pull-force` (resets a local branch to its remote, an explicit and
+destructive request), and the install-time `checkout -B` that pins a
+clone.
 
 ## Format ownership
 
