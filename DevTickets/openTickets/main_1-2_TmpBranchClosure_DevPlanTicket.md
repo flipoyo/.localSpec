@@ -4,6 +4,25 @@
 
 *Branch: main*
 
+> **Progress — 2026-10-02.**
+> - **WP0**, done earlier. **WP1** has lost its premise: the owner ran
+>   `cgitsync memory reboot` and `verify` reports `verified`; MemoryForkRepair
+>   decides what is left to bring across.
+> - **WP2, done in 3.14.7** (the review added one fix: a local branch that
+>   lacks commits its remote holds is refused, so closing cannot drop them). `close-branch` closes a *project* branch: each
+>   repository closes the branch it follows (`<project>_<branch>` in a
+>   private/local one, nothing in a private/distant one), a branch that
+>   exists only on origin is closed from its remote-tracking ref, the push
+>   never forces, and the old name goes only once origin is seen to hold the
+>   closed one. Tests, README, user guide and API guide updated.
+> - **WP3, one of three closed.** `tmp-main-1-2_DiscoverRoundTrip` was closed
+>   on the real tree with the fixed command: 9 repositories renamed on
+>   origin (the root, `docs`'s counterpart aside, plus every private/local
+>   repository), 3 private/distant skipped; `branch --list` shows it under
+>   `closed:`. **`tmpAutoFix` and `tmpPyPi` are still open**: the owner has
+>   not yet given the go-ahead for them.
+> - **WP4** waits for `tmpPyPi` to be closed. **WP5** is the owner's rulings.
+
 > **Ticket review — 2026-10-02, after RuleConformity.** Renumbered `main_1-3` → `main_1-2`: [RuleConformity](../archive/20261002_RuleConformity_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
 
 > **Ticket review — 2026-10-02.** Renumbered `main_1-2` → `main_1-3`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
