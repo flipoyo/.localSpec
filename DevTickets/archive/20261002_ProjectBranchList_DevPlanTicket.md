@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Implemented — 2026-10-02, archived.** Landed in the next release: `branch --list` now prints the project's own branches with their coverage, `branch --list --per-repo` keeps the 3.12.0 view (the §3 recommendation, taken); client method `project_branches`, `GitTreeBranches.project_branches`, `ProjectBranch`, `git_runner.remote_tracking_branches`, `git_branch.closed_branch_origin`; `tests/integration/test_project_branches.py`; README, user guide, API guide, `CLAUDE.md` and `AdditionalSpecs.md`. The owner approved the ceiling raise. Not yet quoted by an independent orchestrator, and `bump-version` is the orchestrator's step.
+
 > **From the owner's short ticket `archive/.closedUserTicket/20261002_branch-list.md`.**
 > The owner asked whether any command lists the branches of the ComplexGitSync
 > project itself, not of each repository. None does — checked on 2026-10-02
