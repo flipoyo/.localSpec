@@ -4,6 +4,20 @@
 
 *Branch: main*
 
+> **Implemented — 2026-10-02, archived.** Landed in 3.14.3 to 3.14.5. All five
+> breakages are fixed (B1 to B5), and WP1 to WP9 and WP11 are done. An
+> independent orchestrator ran the second audit §6 asks for and found no
+> breakage, scoring the work 94/100. After the owner ran `memory reboot`,
+> `cgitsync verify` reports `verified` with no findings and `status` shows
+> `errors=0`, so G8 is closed by that reboot, not by MemoryForkRepair.
+> **Not carried by this ticket, and where each goes:** G1 and G5 (report-only
+> `autofix` for a bad commit message) are AutofixBlindSpot; G3's deny list in
+> `.claude/settings.json` and G9 (README's LLM assistance list against the
+> private record) are the owner's; and three edge cases in what landed are
+> open: the rewrite guard does not catch `-f`, `--force-with-lease=<value>` or
+> a `+` refspec built in an f-string, and the CI version check does not fail
+> on an unknown "before" commit or judge a new branch's first push.
+
 > **Owner's decisions — 2026-10-02.**
 > - **B3, done.** An archived ticket now has two forms: the history ticket
 >   in `archive/`, whose only allowed edit is a corrected link, and an

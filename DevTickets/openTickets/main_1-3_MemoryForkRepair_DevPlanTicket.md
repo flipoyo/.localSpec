@@ -4,6 +4,10 @@
 
 *Branch: main*
 
+> **Premise changed — 2026-10-02.** The owner ran `cgitsync memory reboot`, and `cgitsync verify` now reports `verified` with no findings. The corrupt chain this ticket repairs is gone from the live branch; the old one is kept as the archived branch. What remains is whether entries 126 to 129, recorded on `tmpPyPi`, still need bringing across, and the agent-work records that exist only on the `tmp` branches. The owner decides whether to narrow the ticket to that or archive it.
+
+> **Ticket review — 2026-10-02, after RuleConformity.** Renumbered `main_1-4` → `main_1-3`: [RuleConformity](../archive/20261002_RuleConformity_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > **Ticket review — 2026-10-02.** Renumbered `main_1-3` → `main_1-4`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
 
 > **From TmpBranchClosure** (WP1), the CorrTicket closing the `tmp`

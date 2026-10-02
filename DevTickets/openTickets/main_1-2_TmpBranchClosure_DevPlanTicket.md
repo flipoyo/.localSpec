@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-10-02, after RuleConformity.** Renumbered `main_1-3` → `main_1-2`: [RuleConformity](../archive/20261002_RuleConformity_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.
+
 > **Ticket review — 2026-10-02.** Renumbered `main_1-2` → `main_1-3`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
 
 > **Correction ticket (CorrTicket)**, from the owner's short tickets
