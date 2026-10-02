@@ -17,7 +17,7 @@
 **The one-line version.** Remove ten commands and flags. Three of them can
 delete work. The others are old scaffolding that newer commands replaced.
 Keep everything that reads like Git, plus the tools the owner uses or wants:
-`freeze-release`, `view-tree`, `discover`, and both submodule commands.
+`freeze-release`, `view-tree`, `discover` with all its options, and both submodule commands.
 
 **What this document is.** The usage evidence, the owner's ruling on every
 command and destructive flag, the work packages that carry the removals out,
@@ -40,7 +40,7 @@ ruled except the release level, which §4 leaves to the orchestrator.
 graph LR
     U["34 commands"] -->|"WP1: delete work"| D["--force-reclone, clean-init, purge"]
     U -->|"WP2: old scaffolding"| R["freeze, freeze-release-force,<br/>launch-release, clone,<br/>configure, create-cgs,<br/>--force-gitignore-sync"]
-    U --> K["Git-like commands, freeze-release,<br/>view-tree, discover, submodule tools<br/>YOU ARE HERE"]
+    U --> K["Git-like commands, freeze-release,<br/>view-tree, discover (all options),<br/>submodule tools<br/>YOU ARE HERE"]
     D --> V["release: the orchestrator<br/>judges major or minor"]
     R --> V
 
@@ -79,7 +79,7 @@ Read-only commands (`status`, `fetch`, `branch --list`, `view-tree`,
 | `bootstrap`, `initialise` | **Keep** | The two integrated install routes, standalone and nested. That pair is ComplexGitSync's own way of cloning, and gives it an identity |
 | `freeze-release` | **Keep, as the only freeze procedure** | The owner prefers its explicit name to the bare `freeze` |
 | `view-tree` | **Keep** | The owner uses it |
-| `discover`, with `--write` | **Keep** | The one way to write a `.cgs` from what is checked out |
+| `discover` | **Keep, whole, with every option** (`ROOT`, `--write`, `--max-depth`; owner, 2026-10-02: "for no ambiguity") | It drafts a `.cgs` from what is checked out. None of its options is removed or changed by this ticket |
 | `import-submodules`, `init-from-submodules` (with its `--force`) | **Keep** | The conversion from submodules to ComplexGitSync. `init-from-submodules` is the fully integrated one, "very useful for dummies". Its `--force` only lets it run on a root with no `.gitmodules`; its clone step is still protected by `CloneGuard` |
 | `validate`, `autofix`, `verify`, `env`, `env check`, `memory …`, `self-history …`, `repo create` | **Keep** | Checks and infrastructure: the memory, the ledger, the agent record |
 | `--force-reclone` (on `initialise`) | **Remove** (WP1) | Deletes a clone holding commits no remote has |
@@ -103,6 +103,7 @@ Read-only commands (`status`, `fetch`, `branch --list`, `view-tree`,
   and every other question asked while a command runs. `configure`'s own
   questionnaire (`_prompt_cgs_definition`) goes with `configure`. It is
   the one prompt that is a command of its own.
+- **`discover`, whole**: `ROOT`, `--write` and `--max-depth` keep working as they do today, and its help is unchanged.
 - **`init-from-submodules`** works end to end: discover, write the `.cgs`,
   initialise, convert. Its integration tests still pass, and none of its
   steps calls a removed command or flag.
@@ -127,7 +128,7 @@ Read-only commands (`status`, `fetch`, `branch --list`, `view-tree`,
 - Every removed command is absent from the CLI, the client (except what §3
   keeps), the README, the user guide, the API guide and the help, and the
   command-count tests agree.
-- §3 holds: `discover --write`, `init-from-submodules`, `initialise
+- §3 holds: `discover` with each of its options, `init-from-submodules`, `initialise
   --project … --repo …`, `freeze-release` and the `memory setup` offer each
   have a passing test.
 - `pixi run lint`, `pixi run test`, `pixi run check-ceilings` and
