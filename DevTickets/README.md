@@ -60,6 +60,7 @@ graph LR
 | `openTickets/` | Planning tickets: the analysed, ranked work. `<branch>_<priority>-<rank>_<Name>_DevPlanTicket.md` | The agent, on the owner's word |
 | `archive/` | Planning tickets whose work has landed, or that were dropped. `YYYYMMDD_<Name>_DevPlanTicket.md` | The agent, in the commit that finishes the work |
 | `archive/.closedUserTicket/` | Short tickets that have been acted on. `YYYYMMDD_<name>.md` | The agent, when the request is satisfied |
+| `archive/.deepArchive/` | Deep-archived planning tickets: a byte-for-byte copy of each ticket as it was the day it was archived. Immutable. `YYYYMMDD_<Name>_DevPlanTicket.md` | The agent, in the same change that archives the ticket |
 
 `DevTickets/` holds nothing else. Specifications are not tickets and live
 elsewhere (§5).
@@ -126,6 +127,37 @@ independent account of the two.
 A request that is refused or dropped is closed the same way. The stamp
 records when it stopped being live, and the plans — or the answer given at
 the time — say why.
+
+## 3a. History and deep-archived planning tickets
+
+An archived planning ticket exists in two forms (owner, 2026-10-02):
+
+- **The history ticket**, in `archive/`. It is the one readers follow. Its
+  text is never changed, with one exception: a link may be corrected when
+  the file it points at moves. Nothing else, not even a typo.
+- **The deep-archived ticket**, in `archive/.deepArchive/`, under the same
+  name. It is a copy of the ticket exactly as archived, and it is never
+  edited at all, links included. It is the record of what the plan said
+  when the work closed.
+
+Both are written in the same change that archives the ticket:
+
+```bash
+git mv .agent/.local/.localSpec/DevTickets/openTickets/<branch>_<p>-<r>_<Name>_DevPlanTicket.md \
+       .agent/.local/.localSpec/DevTickets/archive/<YYYYMMDD>_<Name>_DevPlanTicket.md
+mkdir -p .agent/.local/.localSpec/DevTickets/archive/.deepArchive
+cp .agent/.local/.localSpec/DevTickets/archive/<YYYYMMDD>_<Name>_DevPlanTicket.md \
+   .agent/.local/.localSpec/DevTickets/archive/.deepArchive/
+```
+
+This starts with tickets archived from 2026-10-02 on; nothing archived
+earlier gets a deep copy. Every ticket already in `archive/` is a history
+ticket, so the link repairs made there on 2026-10-01 are allowed.
+TICKETLIFECYCLE.md §4 says an archived ticket is "never edited again", and
+§5 says to fix the links that pointed at it. This section is how this
+project reconciles the two. Changing the shared file itself would reach
+every project that mounts it, and that is the owner's call. A closed short
+ticket has one form only, and is never edited.
 
 ## 4. Naming: branch, priority, rank
 

@@ -2,7 +2,14 @@
 
 *Created: 2026-05-13*
 
-This file documents project-specific constraints and refinements that apply
+## Abstract — read this first
+
+**The one-line version.** Everything that is true of ComplexGitSync in
+particular, on top of the general `DevSpecs.md`: its architecture and
+rings, its formats, its memory and ledger, its prohibitions, its
+branches and its versioning.
+
+**What this document is.** This file documents project-specific constraints and refinements that apply
 **on top of** the general [DevSpecs](../../.distant/dev-sync/DevSpecs.md). Every rule in `DevSpecs.md`
 applies here; this file only adds or tightens rules for `ComplexGitSync`.
 
@@ -13,6 +20,36 @@ they move through. It is in this private repository, not in the public
 `ComplexGitSync` one, so that installing the tool never ships the workshop:
 the same PROJECT/private separation the tool itself implements. This file
 stays the authoritative *specification*; a ticket only plans a change to it.
+
+**Why it exists.** `DevSpecs.md` is shared by every project that adopts
+it, so it cannot say anything specific to this one. A rule this project
+adds or tightens has to live somewhere a reader of this project will
+find it, and this is that place.
+
+**What you will find.** The architectural overview and module
+responsibilities, the install frontier and the tree profile, the ring
+model and import rules, format ownership, module shape, document
+formats, the lifecycle contract, the memory, ledger and self-history
+designs, testing, branches and ticket topics, and versioning. The
+binding MUST/NEVER lines are also in `digest.md`, one line each.
+
+**Who it is for.** Anyone changing this project's code, specs or
+tickets, human or agent. A user of `cgitsync` never needs it.
+
+**What you need to do with it.** Read the section that governs what you
+are changing before you change it, and update that section in the same
+change when the change moves a responsibility or a rule.
+
+```mermaid
+graph TD
+    DS["DevSpecs.md<br/>(shared, every project)"] --> AS["AdditionalSpecs.md<br/>YOU ARE HERE"]
+    AS -->|"MUST/NEVER, one line each"| DG["digest.md"]
+    AS -->|"plans a change to it"| TK["DevTickets/"]
+    CL["CLAUDE.md"] -->|"points here for the full why"| AS
+
+    classDef here fill:#1565C0,color:#fff,stroke:#111,stroke-width:2px;
+    class AS here;
+```
 
 ---
 
@@ -500,7 +537,7 @@ to fill: the ratchet still tightens automatically every time a module
 shrinks, and `--write-baseline` records both directions at once. On 2026-09-30 the owner also approved the internal-import raises
 UserDevProfile needed (`orchestre/client.py` 57, `cli/expert.py` 33,
 `orchestre/memory_commands.py` 50, `cli/_shared.py` 23): import counts are
-not covered by the standing allowance and are asked for each time. On 2026-10-01 the owner also approved +1 import for each of `cli/expert.py`, `cli/minimalist.py`, `cli/environment.py`, `cli/memory_prompt.py` and `cli/__init__.py` (HelpErgonomy: the shared help text and the help layout). Also on 2026-10-01: +1 import for `orchestre/memory_commands.py` (`memory/as_of.py`) and for `cli/expert.py` (`cli/memory_asof.py`) (AsOfRetrieval). Also on 2026-10-01, on the condition that the change keeps to the class-only domain logic behind one universal CLI (it does): the owner approved the baseline raise `branch --list` needed (BranchList) — roughly +9 LOC in `git_runner.py` and `git_tree.py`, +28 in `operations/branch.py`, +4 in `operations/__init__.py` and `orchestre/client.py`, +11 in `orchestre/tree_commands.py`, and one public symbol each in `operations/branch.py` and `operations/__init__.py` (`RepoBranches`). The CLI half went into its own `cli/branch_command.py`, which took `branch` out of `cli/expert.py` and shrank it. Also on 2026-10-02 the owner approved the baseline raise ProjectBranchList needed: roughly +85 LOC and one public symbol (`ProjectBranch`) in `git_tree_branch.py`, +10 LOC and one public symbol (`closed_branch_origin`) in `git_branch.py`, +14 in `git_runner.py`, +33 in `cli/branch_command.py`, +9 in `orchestre/tree_commands.py`, +3 in `orchestre/client.py` and +5 in `cli/expert.py`. The same day the owner approved +3 in `orchestre/client.py` and +5 in `orchestre/tree_commands.py` for `tree_branch_label()`, the client method that lets `branch --list` print `cgitsync_branch=detached`. Also approved: +1 LOC and one public symbol in `status_render.py`, `_tree_branch_label` made public as `tree_branch_label` so `orchestre/tree_commands.py` no longer imports a private name. Also on 2026-10-02 the owner approved the raise TreeFetch needed for `cgitsync fetch`: +8 LOC in `cli/expert.py`, +12 in `git_runner.py` (the `prune` flag), +6 LOC and one public symbol (`fetch_tree`) in `operations/__init__.py`, +9 in `orchestre/tree_commands.py`, +3 in `orchestre/client.py` and +1 in `cli/help_text.py`; the rest is in the new `operations/fetch.py` and `cli/fetch_command.py`. The import counts that raise needed were approved the same day: `cli/expert.py` 36 → 37 (`cli/fetch_command.py`), `operations/__init__.py` 17 → 18 (`operations/fetch.py`) and `orchestre/tree_commands.py` 26 → 28 (`fetch_tree` and `RepoOutcome`). The same day, folding the review's three fetch findings into 3.14.0 (a `failed` flag on `RepoOutcome` instead of matching message text, a one-line failure reason, and a raised error so a failed fetch leaves a run log), the owner approved +3 LOC in `cli/fetch_command.py`, +1 in `operations/fetch.py` and +4 in `operations/outcome.py`.
+not covered by the standing allowance and are asked for each time. On 2026-10-01 the owner also approved +1 import for each of `cli/expert.py`, `cli/minimalist.py`, `cli/environment.py`, `cli/memory_prompt.py` and `cli/__init__.py` (HelpErgonomy: the shared help text and the help layout). Also on 2026-10-01: +1 import for `orchestre/memory_commands.py` (`memory/as_of.py`) and for `cli/expert.py` (`cli/memory_asof.py`) (AsOfRetrieval). Also on 2026-10-01, on the condition that the change keeps to the class-only domain logic behind one universal CLI (it does): the owner approved the baseline raise `branch --list` needed (BranchList) — roughly +9 LOC in `git_runner.py` and `git_tree.py`, +28 in `operations/branch.py`, +4 in `operations/__init__.py` and `orchestre/client.py`, +11 in `orchestre/tree_commands.py`, and one public symbol each in `operations/branch.py` and `operations/__init__.py` (`RepoBranches`). The CLI half went into its own `cli/branch_command.py`, which took `branch` out of `cli/expert.py` and shrank it. Also on 2026-10-02 the owner approved the baseline raise ProjectBranchList needed: roughly +85 LOC and one public symbol (`ProjectBranch`) in `git_tree_branch.py`, +10 LOC and one public symbol (`closed_branch_origin`) in `git_branch.py`, +14 in `git_runner.py`, +33 in `cli/branch_command.py`, +9 in `orchestre/tree_commands.py`, +3 in `orchestre/client.py` and +5 in `cli/expert.py`. The same day the owner approved +3 in `orchestre/client.py` and +5 in `orchestre/tree_commands.py` for `tree_branch_label()`, the client method that lets `branch --list` print `cgitsync_branch=detached`. Also approved: +1 LOC and one public symbol in `status_render.py`, `_tree_branch_label` made public as `tree_branch_label` so `orchestre/tree_commands.py` no longer imports a private name. Also on 2026-10-02 the owner approved the raise TreeFetch needed for `cgitsync fetch`: +8 LOC in `cli/expert.py`, +12 in `git_runner.py` (the `prune` flag), +6 LOC and one public symbol (`fetch_tree`) in `operations/__init__.py`, +9 in `orchestre/tree_commands.py`, +3 in `orchestre/client.py` and +1 in `cli/help_text.py`; the rest is in the new `operations/fetch.py` and `cli/fetch_command.py`. The import counts that raise needed were approved the same day: `cli/expert.py` 36 → 37 (`cli/fetch_command.py`), `operations/__init__.py` 17 → 18 (`operations/fetch.py`) and `orchestre/tree_commands.py` 26 → 28 (`fetch_tree` and `RepoOutcome`). The same day, folding the review's three fetch findings into 3.14.0 (a `failed` flag on `RepoOutcome` instead of matching message text, a one-line failure reason, and a raised error so a failed fetch leaves a run log), the owner approved +3 LOC in `cli/fetch_command.py`, +1 in `operations/fetch.py` and +4 in `operations/outcome.py`. Also on 2026-10-02, for RuleConformity B1 and B2, the owner approved +19 LOC in `git_runner.py` (`merge`'s `allow_unrelated` and identity, `remove_remote`, the `scratch_directory` seam), +3 in `memory/ledger_store.py`, +5 in `universal_clock.py`, +8 in `orchestre/default_memory.py` and +61 in `orchestre/memory_commands.py` (adopt keeps the local history, joins by merge and rolls back a refused adoption).
 Directional targets, for context: ≤500 LOC hard / ≤350 target per module,
 ≤7 public symbols, ≤6 internal imports. Cyclomatic complexity is enforced
 separately and absolutely via `ruff`'s `C90` selector (`pyproject.toml`,
@@ -606,7 +643,9 @@ one against it: `close-branch` (rename, keeping every commit reachable),
 `memory reboot` (archives the old branch and starts an orphan),
 `pull-force` (resets a local branch to its remote, an explicit and
 destructive request), and the install-time `checkout -B` that pins a
-clone.
+clone. `memory adopt` used to delete a local memory's `.git` and start again;
+since 3.14.4 it keeps that repository and every commit in it, and joins
+the remote's history by a merge commit (RuleConformity B2).
 
 ## Format ownership
 

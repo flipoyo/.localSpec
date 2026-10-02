@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-10-02.** Renumbered `main_1-3` → `main_1-4`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
+
 > **From TmpBranchClosure** (WP1), the CorrTicket closing the `tmp`
 > branches. It must land before any `.memory` branch is renamed.
 

@@ -4,6 +4,8 @@
 
 *Branch: tmpPyPi*
 
+> **Ticket review — 2026-10-02.** Renumbered `tmpPyPi_1-1` → `tmpPyPi_1-2`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
+
 > **Do not implement — 2026-10-02, owner's decision.** The `pipx` user route this ticket prepared breaks the Pixi-only rule, which also covers how users install (`digest.md`). The `tmpPyPi` branch is being closed and this ticket archived as dropped by the CorrTicket TmpBranchClosure (WP4). Its conforming parts go to PackageHygiene; the install route is the owner's open question in the short ticket `pixi-global-install.md`.
 
 > **Ticket review — 2026-10-01, owner's decision.** Moved `main_1-1` → `tmpPyPi_1-1_pending-UserInstallPath`. The packaging work is prepared and committed on the `tmpPyPi` branch (root and `docs`) and `ComplexGitSync_tmpPyPi` (`.localSpec`, `.claude`), and is **not on `main`**. It is pending: the owner has not yet taken it in hand, nothing is published, and no tag has been pushed. Do not implement this ticket again on `main`; what remains is the owner's review of `tmpPyPi`, the release actions on the package index, and the merge of `tmpPyPi` into `main`, or its abandonment.

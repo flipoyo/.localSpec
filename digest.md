@@ -36,6 +36,16 @@ ticket.
 design. When a line and its source disagree, the source wins; fix this
 file to match, in the same change that noticed the drift.
 
+```mermaid
+graph LR
+    S["the specs<br/>DevSpecs, AdditionalSpecs, CLAUDE.md,<br/>AgentConduct, DevTickets README, ..."] -->|"one line per MUST/NEVER,<br/>with a citation"| D["digest.md<br/>YOU ARE HERE"]
+    D -->|"loaded in full,<br/>every session"| A["agent"]
+    C["spec_tree.py --check-digest"] -->|"every citation resolves,<br/>every spec is cited"| D
+
+    classDef here fill:#1565C0,color:#fff,stroke:#111,stroke-width:2px;
+    class D here;
+```
+
 ---
 
 ## What this package is
@@ -57,6 +67,7 @@ file to match, in the same change that noticed the drift.
 ## Attribution and commits
 
 - An agent is never credited on a commit, merge, or pull request — no co-authorship trailer, no "generated with" line, in any repository of the tree. — `AgentConduct.md` §3
+- An example that needs an agent's vendor or model (help text, docs, tests, fixtures) uses the placeholders `vendor-name` and `model-name`, never a real one; the agent is named only in README's *LLM assistance* section. — `CLAUDE.md` §Attribution
 - A self-history/accounting record of an agent's work must never reach a public repository, and nothing in it may be copied into one. — `AgentConduct.md` §3
 - Never push to a remote without being asked; deliver the commit message and let the owner decide whether to commit. — `AgentConduct.md` §1
 - A commit message starts with `<project-name><version>`, is one message reused for every repository the change touched, plain English, three lines at most. — `AgentConduct.md` §2
@@ -82,11 +93,13 @@ file to match, in the same change that noticed the drift.
 - A conformity score is out of 100 (33 spec respect, 33 gating, 34 quality), its total is the plain sum, and it is always shown with its maxima. — `AdditionalSpecs.md` §The conformity score
 - A planning ticket's filename branch prefix and its own `*Branch:*` line must agree. — `TICKETLIFECYCLE.md` §2.3
 - A short ticket is stamped and moved to `archive/.closedUserTicket/` in the same change that satisfies it, and never edited afterwards. — `.agent/.local/.localSpec/DevTickets/README.md` §3
+- Archiving a planning ticket writes two copies in one change: the history ticket in `archive/`, whose only allowed edit is a corrected link, and an immutable deep-archived copy in `archive/.deepArchive/`, never edited at all. — `.agent/.local/.localSpec/DevTickets/README.md` §3a
 - One concern per commit across agents: a `DELETE`/`MOVE`/`CHANGE` by one role is never bundled with another role's change. — `.agent/.distant/dev-sync/AGENT.md` §Handoff rules
 
 ## Documents
 
 - Every Markdown document opens with an abstract carrying a mermaid graph. — `DOCSTYLE.md` §1
+- The one exception is the project's root `README.md`, the user's front page; every other document, every other `README.md` included, opens with its abstract and graph. — `CLAUDE.md` §Document conventions
 - There is one authoritative file per purpose. — `DOCSTYLE.md` §7
 - Documents and finishing reports are plain English. — `DOCSTYLE.md` §5
 - Documents never carry dated "recent improvements" blocks that rot. — `DOCSTYLE.md` §6

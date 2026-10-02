@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Ticket review — 2026-10-02.** Renumbered `main_1-2` → `main_1-3`: RuleConformity found rule breakages in 3.14.2 and takes `main_1-1`, per the owner's instruction.
+
 > **Correction ticket (CorrTicket)**, from the owner's short tickets
 > `archive/.closedUserTicket/20261002_tmpBranch-decision.md` and the
 > instruction that followed it in the session. Named like every planning
@@ -80,7 +82,7 @@ branch of that name, and all three branches exist only on origin here.
 | **WP1** | **MemoryForkRepair first** (its own ticket): bring entries 126–129 back to `main`'s memory by a merge, so `verify` passes, before any `.memory` branch is renamed. | `cgitsync verify` shows the chain intact |
 | **WP2** | **`close-branch` closes a *project* branch.** Resolve each repository's own name through `GitTreeBranches.target` (`ComplexGitSync_<b>` in a private/local repository, nothing in a private/distant one). Close a branch that exists only on origin by pushing `refs/remotes/origin/<b>` as `closed/<b>` before removing the old remote name. Never delete a commit: the closed name holds the same sha, verified before the old name is removed. Tests for both cases, docs updated. A behaviour change: `bump-build`, then `bump-version patch` at least. | `cgitsync close-branch tmpX` renames the branch in every repository that has it, on origin included |
 | **WP3** | **Close the three branches**, one `cgitsync close-branch` per branch, each run with the owner's go-ahead because it writes to remotes. Order: `tmp-main-1-2_DiscoverRoundTrip`, then `tmpAutoFix`, then `tmpPyPi` (after WP1). Then `cgitsync fetch` and `branch --list` show each under `closed:`. | `branch --list` lists all three as closed |
-| **WP4** | **Archive the tickets the branches leave behind.** `tmpPyPi_1-1_pending-UserInstallPath` moves to `archive/` as dropped, with a note naming PackageHygiene and the `pixi-global-install` short ticket as where its parts went. The AutofixBlindSpot archive copy that exists only on `tmpAutoFix` is not restored: the open ticket on `main` is the live one. | `openTickets/` holds no `tmpPyPi_` ticket |
+| **WP4** | **Archive the tickets the branches leave behind.** UserInstallPath (the `tmpPyPi_` ticket) moves to `archive/` as dropped, with a note naming PackageHygiene and the `pixi-global-install` short ticket as where its parts went. The AutofixBlindSpot archive copy that exists only on `tmpAutoFix` is not restored: the open ticket on `main` is the live one. | `openTickets/` holds no `tmpPyPi_` ticket |
 | **WP5** | **Audit the commands that move a branch** against *The hard prohibitions*: `close-branch`, `memory reboot` (archives a branch and starts an orphan), `pull-force` (resets a local branch, discarding local commits on explicit request), and the install-time `checkout -B`. The owner rules on each: allowed as it is, needs a refusal, or goes. | The owner's ruling is written into `AdditionalSpecs.md` |
 
 ## 3. Reintegration tickets
