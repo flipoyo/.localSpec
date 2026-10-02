@@ -4,6 +4,30 @@
 
 *Branch: main*
 
+> **Implemented — 2026-10-02, archived, narrowed by the owner's reboot.**
+> The corrupt chain is gone from the live memory (`memory reboot`), and
+> `cgitsync verify` reports `verified` with no findings. What this ticket did
+> with what was left, measured by content against the live branch and the
+> `archived-20261002` branch:
+> - **Agent-work records, kept.** Two records existed only on
+>   `.self-history`'s `tmpPyPi` and `tmpAutoFix` branches. Each branch added
+>   exactly that one file, so both were merged into the live `ComplexGitSync`
+>   branch, locally, as two merge commits. No sha changed; the old tip is an
+>   ancestor. Pushing is the owner's call.
+> - **Ledger entries, left where they are.** Entries 126 to 129 exist only on
+>   `.memory`'s `ComplexGitSync_tmpPyPi`, entries 145 to 149 (a different
+>   chain from the archived 145 to 149) only on `closed/ComplexGitSync_tmpAutoFix`,
+>   and entries 1 to 4 of an earlier chapter only on
+>   `closed/ComplexGitSync_tmp-main-1-2_DiscoverRoundTrip`. They belong to
+>   closed chapters, and closing a branch keeps them reachable.
+>   **Tested in a throwaway clone, not applied:** merging `tmpPyPi` into the
+>   archived branch adds 126 to 129 and the chain then verifies with all 168
+>   entries; it conflicts only on the `lgr/HEAD` cache and one state file. Left
+>   alone, because the live chain is clean and healing a closed chapter adds
+>   nothing a reader needs. **`tmpPyPi` must be closed, not deleted**, or 126 to
+>   129 would be the only copy lost (TmpBranchClosure WP3).
+> - No code changed, so no version bump.
+
 > **Premise changed — 2026-10-02.** The owner ran `cgitsync memory reboot`, and `cgitsync verify` now reports `verified` with no findings. The corrupt chain this ticket repairs is gone from the live branch; the old one is kept as the archived branch. What remains is whether entries 126 to 129, recorded on `tmpPyPi`, still need bringing across, and the agent-work records that exist only on the `tmp` branches. The owner decides whether to narrow the ticket to that or archive it.
 
 > **Ticket review — 2026-10-02, after RuleConformity.** Renumbered `main_1-4` → `main_1-3`: [RuleConformity](../archive/20261002_RuleConformity_DevPlanTicket.md) was implemented and archived, so the priority-1 ranks were compacted.

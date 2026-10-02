@@ -22,6 +22,10 @@
 >   `closed/tmpAutoFix` holds the same tip, `0e54d78`, that `tmpAutoFix` had.
 >   `branch --list` shows both under `closed:`. **`tmpPyPi` is still open**;
 >   the owner has not yet given the go-ahead for it.
+> - **WP1, done by [MemoryForkRepair](../archive/20261002_MemoryForkRepair_DevPlanTicket.md)** (archived): the live memory verifies, and the two
+>   agent-work records that existed only on `tmpPyPi` and `tmpAutoFix` were merged
+>   into `.self-history`. The ledger entries that exist only on `tmpPyPi`
+>   (126 to 129) stay reachable only if that branch is **closed, not deleted**.
 > - **WP4** waits for `tmpPyPi` to be closed.
 > - **WP5, done in 3.14.11.** The table's recommendations were implemented
 >   as the rulings and are written into `AdditionalSpecs.md` (*The hard
