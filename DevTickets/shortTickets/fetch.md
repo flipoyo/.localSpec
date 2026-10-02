@@ -1,0 +1,1 @@
+At this stage it is necessary to develop cgitsync fetch what is needed for branch --list. For now fetch is always silently run by cgitsync not official CLI
