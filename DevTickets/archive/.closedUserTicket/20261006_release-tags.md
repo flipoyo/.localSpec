@@ -1,0 +1,1 @@
+write a DevPlanTicket to fix the bugs related to tag and freeze-release. I am not surprised they are bugged because never really tested and may not have been considered while developping the branch orchestration
