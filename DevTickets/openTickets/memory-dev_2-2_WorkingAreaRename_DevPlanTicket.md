@@ -102,7 +102,7 @@ directory, and fix the ambiguity where it actually bites — in the words
 the tool and its documents use. `memory/pending.py` already does this
 well: it calls them *folded* and *pending*, consistently, and a reader of
 that module is never confused. Spreading those two words to
-`AdditionalSpecs.md`, `tutorials/05_memory.md` and `memory status`'s own
+`AdditionalSpecs.md`, `tutorials/06_memory.md` and `memory status`'s own
 output would buy most of the clarity for none of the migration.
 
 ## 4. The decision

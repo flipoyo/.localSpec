@@ -381,7 +381,7 @@ the rule; everything else points here.
   whenever a DEV tree has no memory declared, and it creates the repository,
   declares it in the `.cgs` and adopts the local memory, stopping at the
   first step that fails. On a tree that already declares a memory, or a USER
-  tree, it says there is nothing to set up. `tutorials/05_memory.md` §2 is
+  tree, it says there is nothing to set up. `tutorials/06_memory.md` §2 is
   where a reader meets it.
 - `status` prints `profile=user|dev` on its summary line and `status --json`
   carries a `profile` field (additive).
