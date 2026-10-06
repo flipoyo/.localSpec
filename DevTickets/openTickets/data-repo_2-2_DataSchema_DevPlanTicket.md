@@ -165,7 +165,7 @@ independently, and say in the code which ticket settled it.
 | **WP-S3** | WP-S1, D3, D4 | `gts_document.py`, `registry.py` | Snapshot round trip, both directions, and the standalone-restore guarantee |
 | **WP-S4** | WP-S2 | `cli/configuration.py` | `configure`/`create-cgs` preserve the declarations they read and can write them |
 | **WP-S5** | all | `tests/unit/`, `tests/integration/` | §6's cases |
-| **WP-S6** | all | `README.md`, `docs/Text/user_guide.tex`, `.localSpec/AdditionalSpecs.md` | The two declarations documented for users, and the responsibility table updated if any module's job moved |
+| **WP-S6** | all | `docs/Text/user_guide.tex`, `.localSpec/AdditionalSpecs.md` | The two declarations documented for users, and the responsibility table updated if any module's job moved |
 
 ## 6. Acceptance
 

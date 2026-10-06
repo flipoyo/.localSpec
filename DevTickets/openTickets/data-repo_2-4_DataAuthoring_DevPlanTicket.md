@@ -153,7 +153,7 @@ Decide whether a preflight warns before starting something long.
 | **WP-A4** | WP-A1 | `operations.py` | `remove_paths` gains §2, including the refusals |
 | **WP-A5** | D1 | `status_render.py`, `orchestre.py` | The data column and its legend; `view-tree`'s annotation |
 | **WP-A6** | all | `tests/` | §6, against the fake backend, plus DVC-marked tests in the `dvc` environment |
-| **WP-A7** | all | `README.md`, `docs/Text/user_guide.tex` | What a user must know: `data_paths`, why a path can be refused, and what the new column means |
+| **WP-A7** | all | `docs/Text/user_guide.tex` | What a user must know: `data_paths`, why a path can be refused, and what the new column means |
 
 ## 6. Acceptance
 

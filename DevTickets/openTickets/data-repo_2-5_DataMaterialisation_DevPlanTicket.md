@@ -148,7 +148,7 @@ moment.
 | **WP-M4** | D3 | `operations.py` | `merge`: preflight, Git metadata merge, then reconcile; conflicts stay explicit |
 | **WP-M5** | M2 | `orchestre.py` | `launch-release` and `.gts` restoration, ending in a verification that the data is actually there |
 | **WP-M6** | all | `tests/` | §6, against the fake backend and, marked, against real DVC in the `dvc` environment |
-| **WP-M7** | all | `README.md`, `docs/Text/user_guide.tex` | The offline guarantee, what `MISSING_CACHE` means, and what a destructive command now refuses |
+| **WP-M7** | all | `docs/Text/user_guide.tex` | The offline guarantee, what `MISSING_CACHE` means, and what a destructive command now refuses |
 
 ## 6. Acceptance
 

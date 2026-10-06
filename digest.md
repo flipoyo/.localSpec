@@ -89,7 +89,8 @@ graph LR
 - Every `bump-build` is followed by `pixi run bump-version`, at `patch` at least, in the same change — even for a follow-up fix to a version not yet committed; a change outside `src/` that changes what a script or command does is released at `patch` too; "patch" from the owner means this. — `Versioning.md`
 - `cgitsync status`, run from the tree's own root, must show `errors=0` before a task is finished. — `CLAUDE.md` §1
 - Never hand-edit a version field; run `pixi run bump-version` — the one command that syncs all of them. — `CLAUDE.md` §1
-- Document any new CLI command in the README command table and its client method in the API docs. — `CLAUDE.md` §1
+- Document any new CLI command in `docs/Text/user_guide.tex` and its client method in the API docs — never in `README.md`. — `CLAUDE.md` §1
+- The root `README.md` is a short user front page: what the tool is for, install, how `--help` reaches every command, the use cases with their tutorials; never a command table, an option list or internals. — `CLAUDE.md` §1
 
 ## Implementing a ticket
 

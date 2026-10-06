@@ -104,9 +104,10 @@ working offline, restoring a release, and reading the diagnostics when data
 is missing. The straightforward-English bar is strictest here — this
 reader has no other context to lean on.
 
-The README command table and `docs/Text/user_guide.tex` must already be
-correct from M3 to M5; this milestone checks that they are, rather than
-writing them late.
+`docs/Text/user_guide.tex` must already be correct from M3 to M5; this
+milestone checks that it is, rather than writing it late. `README.md` gets
+no command or option from this workstream (README-UX, 2026-10-06): only
+one use-case row, a sentence long, linking the guide above.
 
 ## 5. Decisions — your call
 
@@ -142,7 +143,7 @@ documentation written. Say so explicitly, so the branch does not merge on
 | **WP-E3** | WP-E1 | `tests/integration/` | §2's two negative tests |
 | **WP-E4** | D2 | `tests/integration/` | A private, writable, DVC-backed repository inside the same scenario, with its permissions asserted |
 | **WP-E5** | D1 | `.github/workflows/ci.yml` | The `dvc` environment job |
-| **WP-E6** | — | `docs/tutorials/`, `README.md`, `docs/Text/user_guide.tex` | §4's guide, and a check that the command documentation from M3–M5 is complete |
+| **WP-E6** | — | `docs/tutorials/`, `README.md`, `docs/Text/user_guide.tex` | §4's guide, one row in README's *What you can do with it* table pointing at it, and a check that the command documentation from M3–M5 is complete |
 | **WP-E7** | all | `.localSpec/AdditionalSpecs.md`, this ticket and its five siblings | Architecture sections updated; the six milestone tickets archived as they land |
 
 ## 7. Acceptance
