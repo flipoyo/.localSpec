@@ -4,6 +4,8 @@
 
 *Branch: main*
 
+> **Implemented — 2026-10-06 (`cgitsync4.2.4`), archived 2026-10-07.** WP1–WP6 landed in 4.2.4: `tag` and `freeze-release` leave the tree on its branches, `freeze-release` pushes the branch as well as the tag, `checkout <tag> --ref-kind tag` detaches on the tag without creating a branch, and a State recorded by the old `freeze-release` pushes `main`. WP5's six regression tests are in `tests/integration/test_tuto_cgsi1.py` and `tests/unit/test_operations.py`. The ticket was left open by mistake and archived on 2026-10-07 after a check of every work package against the repository: 2034 tests passed, lint clean, `status` `errors=0`. No orchestrator quote or self-history record exists for the 4.2.4 work.
+
 > **Opened from the owner's request of 2026-10-06**, after the bugs were
 > found while writing Tutorial 2 (*Working with a Tree*) against a local
 > copy of the `CGSil1` sandbox. The owner's words: *"never really tested
