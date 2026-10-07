@@ -1,0 +1,1 @@
+When ComplexGitSync discovers a leaf on the fly and neither `fallback_branch` nor `default_branch` is defined, it currently sets both to `project_branch`. Change the default so `fallback_branch` is always `main`. Keep the existing behavior for `default_branch` unless explicitly configured otherwise.

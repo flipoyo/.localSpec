@@ -1,0 +1,1 @@
+bootstrap lands on .cgs/CGS<TimeStamp>/given-name. This is not convenient. A project should automatically land on .cgs/<project-name><TimeStamp>, with <project-name> corresponding to the one given in .cgs or .gts
