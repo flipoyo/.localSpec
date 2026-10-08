@@ -63,6 +63,7 @@ graph LR
 - Every exported symbol appears in its module's `__all__` and is documented. — `DevSpecs.md` §Object-Oriented Design
 - The module shape is measured by `check_oo_conformance.py` against a baseline that only shrinks; never add a module to one of its lists to make the check pass. — `AdditionalSpecs.md` §Module shape
 - A released `.gts` integrity schema is immutable: any change to what a State's name hashes, or how, is a new `integrity_schema` with the old one still verifiable. — `AdditionalSpecs.md` §What a State's name is computed from
+- A memory is never merged file by file: a tree-wide merge keeps the target's memory whole and records the source's as history, and two branches with no common commit are refused by name, never offered `--resolve`. — `AdditionalSpecs.md` §Responsibility boundaries
 - Configuration and state are exchanged as structured data, never raw string manipulation; every document class carries `to_*`/`from_*` helpers. — `DevSpecs.md` §Interface Conventions
 - Python work goes through `pixi` — never bare `pip`, `python -m pip`, or `venv`, in code, docs, or CI. — `DevSpecs.md` §Python Environment and Package Management
 - That includes the route a user installs by: no `pipx`, no `pip install`, no other installer, because one consistent tool per project means Pixi end to end. — `DevSpecs.md` §Python Environment and Package Management
