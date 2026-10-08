@@ -57,7 +57,7 @@ graph LR
 - `memory/` and the ledger are class-based: no domain concept there lives in module-level functions. — `AdditionalSpecs.md` §Module shape
 - `cli/` is the one exemption from the class rules: it is derived from client methods implemented elsewhere, and it collects arguments and prints. — `AdditionalSpecs.md` §Module shape
 - Every entry point shares one implementation — no hidden forks — and CLI behaviour mirrors the Python API one-to-one. — `DevSpecs.md` §Monolithic Canonical API
-- A capability exists in both layers or in neither: a `ComplexGitSyncClient` method carries the semantics, `cli/` only collects arguments and prints. — `CLAUDE.md` §Architecture boundary
+- A capability exists in both layers or in neither: a `ComplexGitSyncClient` method carries the semantics, `cli/` only collects arguments and prints. — `AdditionalSpecs.md` §Responsibility boundaries
 - A CLI follows one grammar: a subcommand is a plain word, a `--name` is only an option (it changes how, never which, action runs), and a `-x` is only the short form of a `--name`. — `DevSpecs.md` §CLI Grammar
 - A hyphen never glues a command to its subcommand (`close-branch` is spelled `branch close`), and a command either has subcommands or acts itself, never both. — `DevSpecs.md` §CLI Grammar
 - Every exported symbol appears in its module's `__all__` and is documented. — `DevSpecs.md` §Object-Oriented Design
@@ -66,15 +66,23 @@ graph LR
 - Python work goes through `pixi` — never bare `pip`, `python -m pip`, or `venv`, in code, docs, or CI. — `DevSpecs.md` §Python Environment and Package Management
 - That includes the route a user installs by: no `pipx`, no `pip install`, no other installer, because one consistent tool per project means Pixi end to end. — `DevSpecs.md` §Python Environment and Package Management
 
+## The two levels
+
+- Every agentic topic has one shared pattern and at most one local fill-in; a fill-in opens with a `*Fills in:*` line naming its pattern and states only the project's choices, names and exceptions — it never restates the pattern. — `SpecTree.md` §2
+- A rule goes in the digest, and a mount or spec file in the manifest, in the same change that adds it; `pixi run check-spectree` fails on drift. — `SpecTree.md` §3–§5
+- The user install (`install.cgs`, at the public repository's root) mounts no private repository; the developer install (`<project-name>4dev.cgs`) adds every agentic mount and the project's memory. — `DevSpecs.md` §Two installs
+- An open ticket is cited by name, never by path, because finishing it renames it. — `TICKETLIFECYCLE.md` §2.2
+- `pixi run check-ceilings` fails on a dead `.agent/` path cited in `src/`, `scripts/` or (for `DevTickets/`) `tests/`, on an open ticket cited by path, and on a broken link inside an open ticket; a mount that is not checked out is skipped. — `AdditionalSpecs.md` §Spec tree
+
 ## Attribution and commits
 
 - An agent is never credited on a commit, merge, or pull request — no co-authorship trailer, no "generated with" line, in any repository of the tree. — `AgentConduct.md` §3
-- In the public front (the `project`-scope repositories, `ComplexGitSync` and `DocComplexGitSync`), an example that needs an agent's vendor or model uses the placeholders `vendor-name` and `model-name`; the agent is named publicly only in README's *LLM assistance* section. — `CLAUDE.md` §Attribution
-- In private repositories (`private/local`, `private/distant`) specs, tickets and records keep the real vendor and model: that is where the parameters get their values, and they are never replaced by placeholders. — `CLAUDE.md` §Attribution
+- In the public front (the `project`-scope repositories, `ComplexGitSync` and `DocComplexGitSync`), an example that needs an agent's vendor or model uses the placeholders `vendor-name` and `model-name`; the agent is named publicly only in README's *LLM assistance* section. — `cgitsync-dev.md` §Whose data this is, and attribution
+- In private repositories (`private/local`, `private/distant`) specs, tickets and records keep the real vendor and model: that is where the parameters get their values, and they are never replaced by placeholders. — `cgitsync-dev.md` §Whose data this is, and attribution
 - A self-history/accounting record of an agent's work must never reach a public repository, and nothing in it may be copied into one. — `AgentConduct.md` §3
 - Never push to a remote without being asked; deliver the commit message and let the owner decide whether to commit. — `AgentConduct.md` §1
 - A commit message starts with `<project-name><version>`, is one message reused for every repository the change touched, plain English, three lines at most. — `AgentConduct.md` §2
-- `cgitsync commit` refuses a message that breaks that rule — wrong prefix, more than three lines, a backtick, a `$(`, or an agent-credit trailer — in a tree that adopts DevSpec, naming the rule it broke. — `CLAUDE.md` §Before committing
+- `cgitsync commit` refuses a message that breaks that rule — wrong prefix, more than three lines, a backtick, a `$(`, or an agent-credit trailer — in a tree that adopts DevSpec, naming the rule it broke. — `cgitsync-dev.md` §Before committing, step 8
 
 - ComplexGitSync rewrites nothing: no command, `autofix` included, amends, rebases, squashes, filters or force-pushes, and none changes a commit message once made, even when handed a corrected one. — `AdditionalSpecs.md` §The hard prohibitions
 - `autofix` eases merges and repairs only by adding a commit; for a bad commit message it names the commit and the rule, proposes ways to extract the message intact, and does nothing else. — `AdditionalSpecs.md` §The hard prohibitions
@@ -83,21 +91,21 @@ graph LR
 
 ## Before a task is finished
 
-- CI never writes a version: a bump is a release decision made by a reader, through `pixi run bump-version`. — `Versioning.md`
-- `pixi run lint` and `pixi run test` must both pass before any task is considered closed. — `CLAUDE.md` §1
-- Run `pixi run bump-build` for any change under `src/`. — `CLAUDE.md` §1
-- Every `bump-build` is followed by `pixi run bump-version`, at `patch` at least, in the same change — even for a follow-up fix to a version not yet committed; a change outside `src/` that changes what a script or command does is released at `patch` too; "patch" from the owner means this. — `Versioning.md`
-- `cgitsync status`, run from the tree's own root, must show `errors=0` before a task is finished. — `CLAUDE.md` §1
-- Never hand-edit a version field; run `pixi run bump-version` — the one command that syncs all of them. — `CLAUDE.md` §1
-- Document any new CLI command in `docs/Text/user_guide.tex` and its client method in the API docs — never in `README.md`. — `CLAUDE.md` §1
-- The root `README.md` is a short user front page: what the tool is for, install, how `--help` reaches every command, the use cases with their tutorials; never a command table, an option list or internals. — `CLAUDE.md` §1
+- CI never writes a version: a bump is a release decision made by a reader, through `pixi run bump-version`. — `.agent/.distant/dev-sync/Versioning.md`
+- `pixi run lint` and `pixi run test` must both pass before any task is considered closed. — `cgitsync-dev.md` §Before committing, step 1
+- Run `pixi run bump-build` for any change under `src/`. — `cgitsync-dev.md` §Before committing, step 2
+- Every `bump-build` is followed by `pixi run bump-version`, at `patch` at least, in the same change — even for a follow-up fix to a version not yet committed; a change outside `src/` that changes what a script or command does is released at `patch` too; "patch" from the owner means this. — `.agent/.distant/dev-sync/Versioning.md`
+- `cgitsync status`, run from the tree's own root, must show `errors=0` before a task is finished. — `cgitsync-dev.md` §Before committing, step 3
+- Never hand-edit a version field; run `pixi run bump-version` — the one command that syncs all of them. — `cgitsync-dev.md` §Before committing, step 4
+- Document any new CLI command in `docs/Text/user_guide.tex` and its client method in the API docs — never in `README.md`. — `cgitsync-dev.md` §Before committing, step 7
+- The root `README.md` is a short user front page: what the tool is for, install, how `--help` reaches every command, the use cases with their tutorials; never a command table, an option list or internals. — `cgitsync-dev.md` §Before committing, step 7
 
 ## Implementing a ticket
 
 - Implementing a ticket from `openTickets/` takes a worker agent and an independent orchestrator agent — one making the change, the other quoting it against the checklist. — `AgentConduct.md` §4
 - A conformity score is out of 100 (33 spec respect, 33 gating, 34 quality), its total is the plain sum, and it is always shown with its maxima. — `AdditionalSpecs.md` §The conformity score
 - A planning ticket's filename branch prefix and its own `*Branch:*` line must agree. — `TICKETLIFECYCLE.md` §2.3
-- A short ticket is stamped and moved to `archive/.closedUserTicket/` in the same change that satisfies it, and never edited afterwards. — `.agent/.local/.localSpec/DevTickets/README.md` §3
+- A short ticket is stamped and moved to `archive/.closedUserTicket/` in the same change that satisfies it, and never edited afterwards. — `TICKETLIFECYCLE.md` §6
 - Archiving a planning ticket writes two copies in one change: the history ticket in `archive/`, whose only allowed edit is a corrected link, and an immutable deep-archived copy in `archive/.deepArchive/`, never edited at all. — `TICKETLIFECYCLE.md` §4.1
 - One concern per commit across agents: a `DELETE`/`MOVE`/`CHANGE` by one role is never bundled with another role's change. — `.agent/.distant/dev-sync/AGENT.md` §Handoff rules
 
@@ -107,6 +115,7 @@ graph LR
 - The one exception is the project's root `README.md`, the user's front page; every other document, every other `README.md` included, opens with its abstract and graph. — `CLAUDE.md` §Document conventions
 - There is one authoritative file per purpose. — `DOCSTYLE.md` §7
 - Documents and finishing reports are plain English. — `DOCSTYLE.md` §5
+- A standalone LaTeX document under `docs/` keeps `\date{\today}` on its title page. — `AdditionalSpecs.md` §Document Formats
 - Documents never carry dated "recent improvements" blocks that rot. — `DOCSTYLE.md` §6
 
 ## Architecture — single-implementation rules
@@ -116,7 +125,8 @@ graph LR
 - `initialise` is the nested install and `bootstrap` the standalone one; each refuses the other's job by name before touching the disk. — `AdditionalSpecs.md` §The install frontier
 - A tree holding any private repository is DEV and its memory is synced; one holding none is USER and its memory never leaves the disk; `WorkingGitTree.profile` is the only place that rule lives, and a DEV tree with no declared memory is offered one or warned, never refused. — `AdditionalSpecs.md` §The tree profile
 - `.gts` prevails over `.cgs`: a hand-edited `.cgs` must never widen write access behind an attested snapshot. — `AdditionalSpecs.md` §Architectural Overview
-- `parse_repo_id()` in `cgs_format.py` is the only repo-identifier parser in the codebase. — `CLAUDE.md` §Architecture boundary
-- `git_branch.py` is the only implementation of the `.cgs` branch fallback chain and the privacy rule. — `CLAUDE.md` §Architecture boundary
-- `git_runner.py` is the sole module allowed `import subprocess`. — `CLAUDE.md` §Architecture boundary
-- `universal_clock.py` is the sole reader of the real wall clock, PID, or entropy source; every other module takes an injected `ClockProtocol`. — `CLAUDE.md` §Architecture boundary
+- `.agent/` is a plain directory and never itself a mounted repository: `propagate_privacy` caps a nested repository's writability at its parent's, and no parent is both writable and distant. — `AgenticManifest.md` §Mounts
+- `parse_repo_id()` in `cgs_format.py` is the only repo-identifier parser in the codebase. — `AdditionalSpecs.md` §Responsibility boundaries
+- `git_branch.py` is the only implementation of the `.cgs` branch fallback chain and the privacy rule. — `AdditionalSpecs.md` §Responsibility boundaries
+- `git_runner.py` is the sole module allowed `import subprocess`. — `AdditionalSpecs.md` §Responsibility boundaries
+- `universal_clock.py` is the sole reader of the real wall clock, PID, or entropy source; every other module takes an injected `ClockProtocol`. — `AdditionalSpecs.md` §Responsibility boundaries

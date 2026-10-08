@@ -2,6 +2,8 @@
 
 *Created: 2026-08-31*
 
+*Fills in: ../../.distant/dev-sync/AGENT.md*
+
 ## Abstract — read this first
 
 This is ComplexGitSync's filled-in instance of the project-agnostic
@@ -32,7 +34,7 @@ graph TD
 
 | Agent | This project's scope |
 |---|---|
-| **Orchestration** | `.agent/.distant/dev-sync/DevSpecs.md`, `AdditionalSpecs.md`, `audit.md`, and the planning tickets under `DevTickets/` — named and filed per `.agent/.distant/ticket/TICKETLIFECYCLE.md`. |
+| **Orchestration** | `.agent/.distant/dev-sync/DevSpecs.md`, `AdditionalSpecs.md`, `audit.md`, and the planning tickets under `.agent/.local/.dev/DevTickets/` — named and filed per `.agent/.distant/ticket/TICKETLIFECYCLE.md`. |
 | **Dev** | Python only — `src/ComplexGitSync/` and `tests/`. The template's other listed languages (C, Rust, Flex/Bison, Fortran, C++, Make) are not part of this codebase. |
 | **CI/CD** | `pixi run lint` (ruff), `pixi run test` (pytest: `tests/unit` + `tests/integration`), and the Pixi environment itself. |
 | **Editing** | LaTeX under `docs/`, Markdown under `DevTickets/` and the README, and Mermaid diagrams. This project has no Slidev decks, so that part of the template's scope is unused here. |

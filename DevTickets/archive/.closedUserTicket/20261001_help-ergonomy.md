@@ -1,1 +1,0 @@
-memory explore --timeline doesn't show up with pixi run cgitsync memory --help easily. In general the help menu covers just one level of help not the options. It is a real drawback of the system because even I cannot use it that well and as I am lazy i do not look that much to userguide (i cannot evaluate this one). Write a main_1-1_HelpErgonomy for improving UX of --help

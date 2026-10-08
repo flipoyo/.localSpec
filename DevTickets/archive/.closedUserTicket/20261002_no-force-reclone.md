@@ -1,1 +1,0 @@
-I think we can eliminate force-reclone. I don't understand what it is about. More generally it would be wise to reduce the number of cgitsync methods, especially the one that are not very close to the git ones. For now that i am using cgitsync often, i remark i am only using what i can interprete as git command. Never used tag and freeze yet but should keep those ones

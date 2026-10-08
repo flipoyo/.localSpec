@@ -1,1 +1,0 @@
-Update the command cgitsync status, to display the current branch

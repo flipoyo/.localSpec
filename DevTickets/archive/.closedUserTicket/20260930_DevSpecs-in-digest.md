@@ -1,1 +1,0 @@
-DevSpecs are fundamentals. The most important about package architecture and API access must be in digest.md, especially that the Package is a canonical monolithic package based on Python class only that are exposed through a Universal CLI only 

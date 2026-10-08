@@ -10,7 +10,7 @@ architecture reference this file used to carry (the Ring model, module
 responsibility table, format ownership, and provider contract) moved to
 `AdditionalSpecs.md`'s "Architectural Overview" section — see
 that file, or `docs/DevGuide/architecture.md`, for how the system is built.
-Historical regrouping plans are kept under `.agent/.local/.localSpec/DevTickets/archive/`, and are
+Historical regrouping plans are kept under `.agent/.local/.dev/DevTickets/archive/`, and are
 explicitly marked as archives.
 
 ## Intentional legacy references
@@ -19,8 +19,8 @@ explicitly marked as archives.
   paired with the minimal `examples/template.cgs`.
 - Explicit/verbose `.cgs` data in tests verifies advanced overrides and backward
   compatibility; it is not the recommended authoring style.
-- Files explicitly marked as historical under `.agent/.local/.localSpec/DevTickets/`, and the archived
-  `.agent/.local/.localSpec/DevTickets/archive/20260519_CorPlan.md` diagram, may retain old terminology
+- Files explicitly marked as historical under `.agent/.local/.dev/DevTickets/`, and the archived
+  `.agent/.local/.dev/DevTickets/archive/20260519_CorPlan.md` diagram, may retain old terminology
   to document migrations.
 - `.gts`, `.lgr`, synchronization, freeze, and kernel semantics remain outside
   this format/provider audit and were not redesigned.
@@ -51,12 +51,12 @@ The authoritative execution results are reported with the Phase 6 change set.
   repository's declared `default_branch` instead of the global one, or
   whether the global-branch model is the intended contract and the pinning
   is what should give. Surfaced while implementing
-  `.agent/.local/.localSpec/DevTickets/archive/20260905_agenticMountStep2-DevPlanTicket.md`, and
+  `.agent/.local/.dev/DevTickets/archive/20260905_agenticMountStep2-DevPlanTicket.md`, and
   **confirmed by an incident on 2026-09-05**: a `cgitsync checkout` run to
   review a branch created that branch in all six mounts, four of them shared
   with other projects, and the following `pull` failed outright. Nothing was
   pushed and the repair was one `git branch -d` per mount. Now tracked as its
-  own priority ticket, `.agent/.local/.localSpec/DevTickets/archive/20260906_BranchPinning_DevPlanTicket.md`.
+  own priority ticket, `.agent/.local/.dev/DevTickets/archive/20260906_BranchPinning_DevPlanTicket.md`.
 - **An attached tree root never records its resolved branch.** When
   `initialise` attaches the existing checkout as the root rather than cloning
   it, nothing sets `resolved_ref_name`, so any code falling back through
@@ -64,7 +64,7 @@ The authoritative execution results are reported with the Phase 6 change set.
   *declares* rather than the one actually resolved. The two differ whenever a
   clone fell back — the runtime log records exactly that for `docs`:
   `target_ref_name: autoTest, resolved_ref_name: main`. This was defect B in
-  `.agent/.local/.localSpec/DevTickets/archive/20260906_DetachedHeadPreflight_DevPlanTicket.md`; the ticket fixed the
+  `.agent/.local/.dev/DevTickets/archive/20260906_DetachedHeadPreflight_DevPlanTicket.md`; the ticket fixed the
   symptom (the preflight no longer guesses a branch for a detached HEAD) and
   deferred this cause by decision D3. Not yet decided: whether attaching a
   root should record its checked-out branch, or whether the fallback chain
@@ -86,7 +86,7 @@ The authoritative execution results are reported with the Phase 6 change set.
   found for ComplexGitSync: expected one of ['lMOLO', 'lMOLO']` — the
   duplicate is the declared/fallback pair collapsing onto one hand-typed
   string. Tracked as
-  [InstallFrontier](DevTickets/archive/20260930_InstallFrontier_DevPlanTicket.md) (merged from PrivateLocalBranchAtClone).
+  [InstallFrontier](../.dev/DevTickets/archive/20260930_InstallFrontier_DevPlanTicket.md) (merged from PrivateLocalBranchAtClone).
 - No other open finding is outstanding as of this rewrite. This section is
   a live log, not a fixed list — add a bullet here as soon as a real
   decision or risk surfaces, and remove it once resolved.

@@ -1,1 +1,0 @@
-DevTickets should be in .dev not .localSpec. It is a more intuitive organisation of private repos. 

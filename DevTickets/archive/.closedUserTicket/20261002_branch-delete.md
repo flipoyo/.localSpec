@@ -1,3 +1,0 @@
-Implement a branch-delete procedure that can be run after a branch-close. cgitsync must check if the deletion preserves the integrity of the ledger. If not we must define a 'ancester' branch that persist what needs to be persisted from branch to be deleted first then check the integrity of it with the ledger maybe by recording a 'adress mutation' of an asset in the ledger and having the hash mutated in a new chain, the ancester hash being recorded in that field. Only then we can delete the branch. Use one of the closed 'test' chain as a POC.
-
-For the future of the infrastructure, it is clear that branch will have to be deleted especially with an heavy adoption. Closing won't be enough after a while. The challenge is just to preserve the integrity of the ledger

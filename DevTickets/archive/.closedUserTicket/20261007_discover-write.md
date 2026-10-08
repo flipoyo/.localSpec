@@ -1,1 +1,0 @@
-cgitsync discover --write a.cgs root writes a.cgs in ./ when it must write it in root

@@ -1,4 +1,0 @@
-I would like to rationalise the agentic control. For now it is much spread in multiple files. First I'd like to split better what is local and distant in every agentic files. The idea is to transfer what is general and reusable over projects in distant and keep the strict necessary in local. For instance the main principle of versioning that follows SemVer could be very generic and become for the general pattern distant. It then can be adapted locally. The same for most of the think somehow distant fix the general pattern while local "implements the additionalSpec for local". Analyse the currnt structure and propose a refactoring of the agentic for being more straightforward with each time two levels distant and local. For the ergonomy DevTickets must be in .dev not .localSpec as Tickets are not Specs but part of the .dev process
-
-
-Don't be limited by the current structure in terms of gitRepo (i think it's a lot currently but may be useful, to be evaluated)
