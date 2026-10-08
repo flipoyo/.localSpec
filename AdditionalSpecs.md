@@ -830,10 +830,14 @@ concepts are classes; this section is how this project reads it, and what
   method-less value objects ride with the class they describe and are not
   counted — `git_repo.py` is eight enums around `GitRepo`, `RepoAddress`
   and `WorkingRepo`, and conforms.
-- **Over 2000 lines, a module becomes a directory** of its own name, split
-  so each file keeps one major class. `orchestre/` and `operations/` are the
-  two that did (ModulePackagisation); `cli/expert.py` is the one file still
-  over the line, recorded at its size and exempt.
+- **Over 2000 lines, a module with more than one class becomes a
+  directory** of its own name, split so each file keeps one major class.
+  `orchestre/` and `operations/` are the two that did (ModulePackagisation).
+  The rule splits a file along its classes, so a module holding a **single**
+  behaviour class has nothing to split along: it may pass the line, is
+  recorded at its size, and may not grow without the owner's deliberate
+  baseline raise (`cli/expert.py` and `orchestre/memory_commands.py` are
+  recorded this way; `UnrelatedHistoryMerge`, 3.4).
 - **`memory/` and the ledger are class-based.** No domain concept there
   lives in module-level functions, and none writes to disk from one: a
   writer is a method on the thing it writes.

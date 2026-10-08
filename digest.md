@@ -53,7 +53,7 @@ graph LR
 - The project is one self-contained deliverable: no plugins, adapters, or loosely coupled extension points unless the project's purpose is to be a framework. — `DevSpecs.md` §Monolithic Canonical API
 - Domain concepts are classes that own their own validation, serialisation and lifecycle; no free-standing function mutates shared state. — `DevSpecs.md` §Object-Oriented Design
 - Every `.py` has one clear major class that gives the module its name, and at most two or three classes in all. — `AdditionalSpecs.md` §Module shape
-- A source file that passes 2000 lines becomes a directory of that name, split so each file keeps one major class. — `AdditionalSpecs.md` §Module shape
+- A source file that passes 2000 lines and holds more than one class becomes a directory of that name, split so each file keeps one major class; a file holding a single class is recorded at its size and never grows without the owner's raise. — `AdditionalSpecs.md` §Module shape
 - `memory/` and the ledger are class-based: no domain concept there lives in module-level functions. — `AdditionalSpecs.md` §Module shape
 - `cli/` is the one exemption from the class rules: it is derived from client methods implemented elsewhere, and it collects arguments and prints. — `AdditionalSpecs.md` §Module shape
 - Every entry point shares one implementation — no hidden forks — and CLI behaviour mirrors the Python API one-to-one. — `DevSpecs.md` §Monolithic Canonical API
