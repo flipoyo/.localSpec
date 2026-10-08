@@ -412,7 +412,8 @@ human-readable summary.
 | `git_branch.py` | 0 | The only implementation of the `.cgs` branch fallback chain (target: `default_branch` → `project.default_branch` → `DEFAULT_BRANCH`; fallback: `fallback_branch` → `DEFAULT_BRANCH`, or for a private/local entry its own `default_branch`) and of the privacy rule — including the private/local naming rule (`private_local_branch`): `<project name>` on `main`, `<project name>_<branch>` otherwise. Its separator constant never leaves this module. Also owns the closed-branch naming rule: `closed_branch_name` (`closed/<branch>`, a `/` that can never collide with `private_local_branch`'s `_`) and `closeable` (false for the project's own default branch and for `ANCESTORS_BRANCH`, the permanent branch that keeps what closed branches alone held). Ring 0 — pure, offline; a resolver, not a registry: it holds no tree and no privacy state (`git_tree_branch.py` holds the tree's branch state and asks this module for every rule). Do not write a second copy of that chain anywhere. |
 | `git_tree_branch.py` | 2 | The tree's branch *state*, where `git_branch.py` owns the *rule*: which branch the tree is on (the root's — printed by `status` as `cgitsync_branch`), which branch each repository targets when the tree moves, which branch it is actually on, and where those two disagree. Also owns `tree_project_name`. It restates no rule — every answer comes from `git_branch.py` — and it is the only place that reads the root's branch to speak for the tree. An instance caches what Git said, so build a new one after a checkout or a pull. `declare_targets()` gives a not-yet-cloned private/local repository its computed branch at load. `project_branches()` lists the project's own branches — the root's, local and on origin — with the repositories that hold or lack each (`branch --list`). |
 | `git_tree.py` | 1 | Tree structures (`GitTree`/`WorkingGitTree`), traversal, lifecycle state; `to_cgs()` only delegates to `cgs_format.py`. Also maintains `.gitignore` across the tree (`sync_gitignore`) — filesystem-only, no Git/subprocess. Owns privacy state: `propagate_privacy` makes a parent's `private`/`writable` cover everything nested inside it. `WorkingGitTree.profile` is the only answer to USER or DEV: DEV when any repository is effectively private (`AdditionalSpecs.md`, *The tree profile*). |
-| `gts_document.py` | 0 | `.gts` runtime state-snapshot parsing/validation; the one canonical content-hash builder. That hash **names the State** (`.cgitsync/state/<hash>.gts`), so it holds only what the workspace *is*: tree-relative paths, refs, commits, who each repository is. No absolute path, no `source_cgs_path`, no toolchain version — those say where a tree was materialised or what observed it, and hashing them gave one tree two names on two machines. `document.hash_canonicalisation` says which algorithm measured a document; a snapshot is always checked with the version it declares and is never silently re-measured. A document declaring a version higher than this build knows is refused by name (`UnsupportedSnapshotFormatError`) before any hash is computed — never recomputed under today's rules and reported as a false mismatch. See `.agent/.local/.localSpec/AdditionalSpecs.md`, *What a State's name is computed from*. |
+| `gts_integrity.py` | 0 | The three-level hash that names a State (`integrity_schema = 1`): `repo_hash` per repository, an RFC 6962 Merkle root over them (`merkle_root`), and the State hash on top (`snapshot_hash`). Pure, on plain dicts; domain-tagged SHA-256. Pinned by golden vectors that CI runs on Linux, macOS and Windows. A released schema is immutable: any change is a new schema. See *What a State's name is computed from*. |
+| `gts_document.py` | 0 | `.gts` runtime state-snapshot parsing/validation; the one builder of each repository's canonical leaf, which it hands to `gts_integrity.py`. The State hash **names the State** (`.cgitsync/state/<hash>.gts`), so it holds only what the workspace *is*: tree-relative paths, refs, commits, who each repository is. No absolute path, no `source_cgs_path`, no toolchain version — those say where a tree was materialised or what observed it, and hashing them gave one tree two names on two machines. `document.integrity_schema` says which hash contract a document was written under. A stamped document without it predates schema 1, and one declaring a higher schema came from a newer build; both are refused by name (`UnsupportedSnapshotFormatError`) before any hash is computed — never recomputed under today's rules and reported as a false mismatch. See `.agent/.local/.localSpec/AdditionalSpecs.md`, *What a State's name is computed from*. |
 | `git_runner.py` | 2 | Git subprocess wrapper — the sole `import subprocess` module, and the sole owner of how Git's output is decoded (`errors="replace"` at both wrappers; `_query_bytes` for callers that must search raw bytes) and of the environment Git runs in: `_non_interactive_git_env()` stops Git prompting for credentials *and* pins its message locale to English, because this project reads Git's prose and a translated message costs a non-English user the `--force-protocol` hint. Every question goes through `_query`/`_query_bytes`, so neither policy can be bypassed. `merge`/`fetch`/`mergetool` are operations; `can_merge_cleanly`/`branch_known`/`configured_merge_tool` are read-only questions that never touch a worktree, which is what lets a preflight ask about every repo before acting on any. `can_merge_cleanly` returns the conflicting paths, not a verdict, and counts a binary conflict — which prints no marker and is named on stderr — as a conflict. Read-only questions `is_repository_root`, `remote_head_branch`, `remote_holds_commit`; `checkout_commit` pins a clone. |
 | `clone_guard.py` | 2 | `CloneGuard`: whether a directory `initialise` is about to delete and re-clone holds work that exists nowhere else: a dirty worktree, or commits no remote has. Read-only and worktree-free, so `orchestre.py` can ask about every pending repository before deleting any — a refusal leaves the whole tree on disk. Asks "which commits does no remote hold?", not "is this branch ahead of its upstream", so a detached `HEAD` on a pinned submodule commit does not block. Says nothing about whether a mount point is owned outright. |
 | `operations/` | 2 | A package, one class per operation family — `Preflight`, `BranchOperation`, `RestartOperation`, `CommitOperation`, `RemovalOperation`, `MergeOperation`, `PushOperation`, `FetchOperation` and the `RepoOutcome` every write returns — each operation a static method; `operations/__init__.py` re-exports every name it always exported (`merge_tree = MergeOperation.merge_tree`), so no caller changed. Leaf/parent-first Git operations over a `WorkingGitTree` + `GitRunner`. Preflight checks only the repositories the operation's `RepoScope` selects, and measures a private repo against its own declared branch. `merge_tree` checks the whole scope before merging any of it, so a conflict anywhere leaves nothing merged; `merge_tree_one_at_a_time` (`merge --resolve`) gives that up on purpose, stopping at the first conflict so a merge tool has a conflicted worktree to open. `merge_status` is the single place a repository's fate is decided, so the dry run and the merge cannot disagree. `add_tree`/`commit_tree`/`push_tree`/`remove_paths` return one `RepoOutcome` per repository visited — what changed, or why nothing did — so "nothing happened" is reportable rather than silent. `remove_paths` is the one scoped operation given its paths instead of sweeping for them, so its scope is a *filter*: a path owned by a repository outside the scope is refused by name, and nothing is removed anywhere. `close_branch` renames a branch to `git_branch.closed_branch_name`'s name, tree-wide leaf-first, never deletes, and refuses before touching any repository when the branch is the project's own default or any repository in scope is currently checked out on it (`assert_closeable`). `AncestorOperation` (`ancestors.py`) says what deleting a branch would lose, keeps it on `ancestors` with a keep-tree merge that only adds a commit, says whether a recorded relocation resolves, and deletes a closed branch only once nothing it holds can be lost. |
@@ -523,7 +524,7 @@ ring, never a higher one.
 | 3 — ORCHESTRATION | `orchestre/` package (`client.py`: `ComplexGitSyncClient`; the collaborators it delegates to; `orchestre.py`: `Orchestre`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operations/`, `autofix/`, `registry.py`, `toolchain.py`, `tree_env.py` |
 | 1 — FILESYSTEM | `paths.py`, `commit_message.py` (reads `pyproject.toml`; the commit-message rule), `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.agent/.local/.dev/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `environment`, `agent_contract`, `self_history`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
-| 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `environment_spec.py`, `ledger_entry.py`, `integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
+| 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `environment_spec.py`, `ledger_entry.py`, `integrity.py`, `gts_integrity.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The five import rules (machine-checked)
 
@@ -936,15 +937,19 @@ not required.
 - `document.format_version` tracks the broad `.gts` compatibility family (`1.0` today).
 - `document.schema_version` identifies the concrete `.gts` field-level contract (current: `1.1`) used by validation and canonical hashing logic.
 - `document.hash_algorithm` is `sha256`.
-- `document.snapshot_hash` is the SHA-256 digest of the canonical payload
-  (`project`, `tree_state`, and sorted `repo_state`), excluding volatile
-  metadata (`generated_at`, `command_origin`).
+- `document.integrity_schema` is the hash contract (current: `1`);
+  `document.snapshot_hash` is the State hash over `project`, `tree_state`,
+  the freeze manifest and `[tree_integrity].merkle_root`, which is the
+  Merkle root over each `repo_state`'s own `repo_hash`. Volatile metadata
+  (`generated_at`, `command_origin`) is never hashed. See *What a State's
+  name is computed from*.
 - freeze snapshots (`document.command_origin` in `freeze`, `freeze_release`,
   `freeze_state`) must include `[freeze_manifest]` with invariant markers:
   immutable snapshot, validated workspace, synchronized tag reference,
   ledger checkpoint, and restore operation `launch_state`.
-- Canonical ordering is deterministic: repositories are serialized in stable
-  absolute-path/name order, and non-root entries must include
+- Canonical ordering is deterministic: repositories are ordered by
+  `relative_path` (POSIX, `.` for the root) compared as UTF-8 bytes, which
+  must be unique within a State; non-root entries must include
   `parent_absolute_path`.
 - READY/FALLBACK_READY repositories must include `commit_sha`; every repo state
   must include at least one resolved/current/target ref name.
@@ -1265,17 +1270,58 @@ State says *what* a workspace held, an entry in the ledger says *when* it
 was seen and by what. Being seen twice is two entries pointing at one
 name, which is why nothing counts occurrences in a file name any more.
 
-`document.hash_canonicalisation` says which algorithm computed it. A
-document is always measured with the version it declares; a snapshot
-written before the field existed is version 1 for ever and is never
-silently rewritten.
+### Three levels: repository, tree, State
+
+The name is built in three levels, so a mismatch can say *which*
+repository changed instead of only "this State is wrong"
+(`gts_integrity.py`; `document.integrity_schema = 1`):
+
+```
+H_REPO    = SHA256( b"CGS:REPO:v1\x00"  || canonical_json(repo_leaf) )        -> repo_state[i].repo_hash
+H_NODE    = SHA256( b"CGS:NODE:v1\x00"  || raw(H_LEFT) || raw(H_RIGHT) )
+H_STATE   = SHA256( b"CGS:STATE:v1\x00" || canonical_json(state_payload) )    -> document.snapshot_hash
+```
+
+- **The leaf** is each repository's identity fields, the left column of the
+  table below. `relative_path` is POSIX (`.` for the root) on every
+  platform.
+- **The tree** (`[tree_integrity].merkle_root`) is RFC 6962 §2.1 over the
+  leaves ordered by `relative_path` as UTF-8 bytes: split at the largest
+  power of two below N, no leaf ever duplicated. A duplicate
+  `relative_path` is invalid, never a tie broken by name. One repository is
+  its own root; an empty tree has RFC 6962's empty root, SHA-256 of the
+  empty string, and is allowed only while the tree is not `READY` (the
+  default workspace) — owner, 2026-10-08.
+- **The State payload** is `project.name`, `tree_state`, the freeze
+  manifest and `gittree_root` as a hex string. `repo_state` contributes only
+  through the root.
+
+`verify check` recomputes bottom-up and reports every level that disagrees:
+`REPO_HASH_MISMATCH` naming the repository's path, `GITTREE_ROOT_MISMATCH`,
+then `STATE_DIGEST_MISMATCH` against the State's own name. The stored
+`repo_hash` and `merkle_root` are checkpoints; their authority comes from
+recomputation and, in the end, from the State's name in the ledger, so an
+edit that rewrites them too still fails on the name. This is
+tamper-evidence inside the CGS model, not an external trust anchor: whoever
+controls a whole memory can recompute a consistent chain from a new
+genesis. Checking `commit_sha` against the live working tree is I/O and
+stays in Ring 1 and above.
+
+**A released integrity schema is immutable.** Any change to what is hashed
+or how is `integrity_schema = 2`, with schema 1 still verifiable. Schema 1
+replaced three earlier, flat canonicalisations with no compatibility path,
+before any release: a stamped snapshot without `integrity_schema` is
+refused with a pointer to `memory reboot`, which opens a new genesis.
+Reboot is the one reader of such a State: it takes the repositories it
+held and sets every recorded hash aside (`GtsDocument.unmeasured`), then
+writes a fresh schema-1 State in its place.
 
 **A reader that meets a version it does not know refuses by name, before
 computing anything.** This is the general rule every stored format in this
 project follows, not a `.gts`-specific one: a document declares its own
 version, and a build encountering a *higher* one than it understands must
 say so and stop, rather than apply its own rules to a payload it was never
-designed for. Applying today's canonicalisation to a document written
+designed for. Applying today's hash rules to a document written
 under tomorrow's produces a hash that is simply wrong — not close, not a
 useful approximation — and a wrong hash next to a mismatch check reads as
 *corrupt*, which is the worst possible answer, because it is not true and
@@ -1285,14 +1331,11 @@ happened once, self-hosted (`SnapshotVersionGuard`,
 `checkout main` wrote a version-2 State and, in the same run, swapped this
 editable checkout's own code to a build that only understood version 1 —
 which then recomputed the hash the old way, got a different digest, and
-reported a perfectly good snapshot as corrupt. `GtsDocument.compute_snapshot_hash`
-now raises `UnsupportedSnapshotFormatError` — a `ConfigValidationError`
-subclass the CLI maps to exit `2` unconditionally, even under `validate` —
-the moment a document's declared `hash_canonicalisation` exceeds
-`CURRENT_HASH_CANONICALISATION`, before `_build_canonical_payload` runs at
-all. A version this build *does* know, including every legacy one still on
-disk, is completely unaffected: the guard only fires going forward in
-time, never backward.
+reported a perfectly good snapshot as corrupt. `GtsDocument` now raises
+`UnsupportedSnapshotFormatError` — a `ConfigValidationError` subclass the
+CLI maps to exit `2` unconditionally, even under `validate` — the moment a
+document's declared `integrity_schema` exceeds the one this build knows,
+before any hash is computed.
 
 ### Identity, or metadata
 
@@ -1315,23 +1358,12 @@ ledger entry, never to a State: hashing them would give one tree two names
 on two machines running different git versions, and a version bump would
 rename every State in a workspace.
 
-**The tool's own version leaked in exactly this way, from version 2 until
-version 3 closed it.** `hash_canonicalisation` was meant to be the one
-fixed format marker; version 2's payload also put `CGS_VERSION` — the
-running package's own version — inside the `document` block it hashed,
-never pinned to a real fixed value, so it read back whatever `__version__`
-happened to be at write time. Two machines on different builds, or one
-machine before and after an upgrade, computed two different names for the
-identical tree — precisely the failure the paragraph above describes,
-just not yet found when it was written
-(`memory-dev_1-2_StateVersionLeak_DevPlanTicket.md`). Version 3 drops that
-block from the payload entirely; every version-2 document already on disk
-keeps validating under version 2, leak included, for as long as it declares
-that version — the same rule that already protects version-1 documents.
-
-Version 1 hashed the three path rows above and ordered repositories by
-absolute path. That is a location, not an identity, and it is why the
-digest was useless as a name two parties could agree on.
+**The tool's own version once leaked in exactly this way**
+(`memory-dev_1-2_StateVersionLeak_DevPlanTicket.md`): an earlier
+canonicalisation hashed the running package's `CGS_VERSION`, so two builds
+named the identical tree twice. An earlier one still hashed the three path
+rows above and ordered repositories by absolute path — a location, not an
+identity. Schema 1 hashes neither.
 
 ### What sits beside a State
 
@@ -1446,8 +1478,10 @@ its content:
   duplicates, and the `HEAD` cache against the recomputed head.
 - **The States on disk**: an entry naming a State that is not there
   (`MISSING_STATE`), a stored snapshot whose content no longer hashes to the
-  name it is filed under (`STATE_DIGEST_MISMATCH`), and a State on disk that
-  no entry records (`ORPHAN_STATE`).
+  name it is filed under (`STATE_DIGEST_MISMATCH`, preceded by
+  `REPO_HASH_MISMATCH` for each edited repository and
+  `GITTREE_ROOT_MISMATCH`), and a State on disk that no entry records
+  (`ORPHAN_STATE`).
 - **The commit logs**: rows that no longer digest to what the entry that
   wrote them recorded — edited, added or removed (`COMMIT_LOG_MISMATCH`) —
   and commit messages kept under a State that is gone
@@ -1610,8 +1644,9 @@ A verification pass ends in exactly one of these, never a blur of two:
 
 `Finding` enumerates what "does not hold" can mean: `BROKEN_LINK`,
 `BAD_ENTRY_HASH`, `SEQ_GAP`, `SEQ_DUPLICATE` and `HEAD_STALE` for the chain
-and its cache, plus `MISSING_STATE`, `ORPHAN_STATE` and
-`STATE_DIGEST_MISMATCH`, reserved for the store-level pass that becomes
+and its cache, plus `MISSING_STATE`, `ORPHAN_STATE`,
+`STATE_DIGEST_MISMATCH`, `REPO_HASH_MISMATCH` and `GITTREE_ROOT_MISMATCH`,
+for the store-level pass that becomes
 possible once a State is named by its content, `UNRESOLVED_RELOCATION` (a
 recorded move whose asset is not at its new address), and `TIME_REGRESSION`
 below.
