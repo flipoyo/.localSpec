@@ -104,7 +104,10 @@ graph LR
 
 ## Implementing a ticket
 
-- Implementing a ticket from `openTickets/` takes a worker agent and an independent orchestrator agent — one making the change, the other quoting it against the checklist. — `AgentConduct.md` §4
+- Implementing a ticket takes a worker agent and an independent orchestrator agent; the owner saying `implement <ticket>` is the explicit request to launch the orchestrator with the Agent tool, in the foreground, and needs no further permission. — `CLAUDE.md` §When the owner says implement
+- A ticket's Decisions for the owner are asked before the first edit; a recommendation is never taken as the answer. — `CLAUDE.md` §When the owner says implement
+- The worker never runs `bump-version`, writes a self-history record, or scores its own work; the orchestrator does, and re-quotes after every fix. — `CLAUDE.md` §When the owner says implement
+- A planning ticket archived on or after 2026-10-09 needs an orchestrator's self-history record naming it: `pixi run check-tickets` fails without one, and `cgitsync commit` refuses to add it. — `AdditionalSpecs.md` §Responsibility boundaries
 - A conformity score is out of 100 (33 spec respect, 33 gating, 34 quality), its total is the plain sum, and it is always shown with its maxima. — `AdditionalSpecs.md` §The conformity score
 - A planning ticket's filename branch prefix and its own `*Branch:*` line must agree. — `TICKETLIFECYCLE.md` §2.3
 - A short ticket is stamped and moved to `archive/.closedUserTicket/` in the same change that satisfies it, and never edited afterwards. — `TICKETLIFECYCLE.md` §6
