@@ -83,7 +83,7 @@ graph LR
 - In private repositories (`private/local`, `private/distant`) specs, tickets and records keep the real vendor and model: that is where the parameters get their values, and they are never replaced by placeholders. — `cgitsync-dev.md` §Whose data this is, and attribution
 - A self-history/accounting record of an agent's work must never reach a public repository, and nothing in it may be copied into one. — `AgentConduct.md` §3
 - Never push to a remote without being asked; deliver the commit message and let the owner decide whether to commit. — `AgentConduct.md` §1
-- A commit message starts with `<project-name><version>`, is one message reused for every repository the change touched, plain English, three lines at most. — `AgentConduct.md` §2
+- A commit message starts with `<project-name>-<version>` (this project writes `cgitsync-<version>`), is one message reused for every repository the change touched, plain English, three lines at most. — `AgentConduct.md` §2
 - `cgitsync commit` refuses a message that breaks that rule — wrong prefix, more than three lines, a backtick, a `$(`, or an agent-credit trailer — in a tree that adopts DevSpec, naming the rule it broke. — `cgitsync-dev.md` §Before committing, step 8
 
 - ComplexGitSync rewrites nothing: no command, `autofix` included, amends, rebases, squashes, filters or force-pushes, and none changes a commit message once made, even when handed a corrected one. — `AdditionalSpecs.md` §The hard prohibitions
@@ -131,6 +131,9 @@ graph LR
 - A tree holding any private repository is DEV and its memory is synced; one holding none is USER and its memory never leaves the disk; `WorkingGitTree.profile` is the only place that rule lives, and a DEV tree with no declared memory is offered one or warned, never refused. — `AdditionalSpecs.md` §The tree profile
 - `.gts` prevails over `.cgs`: a hand-edited `.cgs` must never widen write access behind an attested snapshot. — `AdditionalSpecs.md` §Architectural Overview
 - `.agent/` is a plain directory and never itself a mounted repository: `propagate_privacy` caps a nested repository's writability at its parent's, and no parent is both writable and distant. — `AgenticManifest.md` §Mounts
+- A release is tagged `<project-name>-<suffix>`: `--force-tag`'s name, else the root `pixi.toml` version as written, else the next number; a tag any repository already holds is refused before anything moves. — `AdditionalSpecs.md` §Responsibility boundaries
+- A release tag never carries a private repository: only the root's tag is annotated, and it holds the project-scope State. — `AdditionalSpecs.md` §Responsibility boundaries
+- `project_version.py` is the only reader of a project's version; the release tag and the commit prefix both use it. — `AdditionalSpecs.md` §Responsibility boundaries
 - `parse_repo_id()` in `cgs_format.py` is the only repo-identifier parser in the codebase. — `AdditionalSpecs.md` §Responsibility boundaries
 - `git_branch.py` is the only implementation of the `.cgs` branch fallback chain and the privacy rule. — `AdditionalSpecs.md` §Responsibility boundaries
 - `git_runner.py` is the sole module allowed `import subprocess`. — `AdditionalSpecs.md` §Responsibility boundaries
