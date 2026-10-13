@@ -135,6 +135,7 @@ graph LR
 - A release tag never carries a private repository: only the root's tag is annotated, and it holds the project-scope State. — `AdditionalSpecs.md` §Responsibility boundaries
 - `checkout` refuses, by name and before anything moves, to leave a detached commit that no branch, remote-tracking branch or tag names; `branch create` then `checkout` of the new name keeps it. — `AdditionalSpecs.md` §Responsibility boundaries
 - `branch close` and `branch delete` are refused in a USER tree, by `WorkingGitTree.require_dev`, before any repository is touched; it is an accident guard, not a lock, and has no override flag. — `AdditionalSpecs.md` §The tree profile
+- `autofix` reads a tip commit only when the log holds no failing command, judges only the repository's own `user.email`'s commits, and writes nothing. — `AdditionalSpecs.md` §Responsibility boundaries
 - `project_version.py` is the only reader of a project's version; the release tag and the commit prefix both use it. — `AdditionalSpecs.md` §Responsibility boundaries
 - `parse_repo_id()` in `cgs_format.py` is the only repo-identifier parser in the codebase. — `AdditionalSpecs.md` §Responsibility boundaries
 - `git_branch.py` is the only implementation of the `.cgs` branch fallback chain and the privacy rule. — `AdditionalSpecs.md` §Responsibility boundaries
