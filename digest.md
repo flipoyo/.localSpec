@@ -133,6 +133,7 @@ graph LR
 - `.agent/` is a plain directory and never itself a mounted repository: `propagate_privacy` caps a nested repository's writability at its parent's, and no parent is both writable and distant. — `AgenticManifest.md` §Mounts
 - A release is tagged `<project-name>-<suffix>`: `--force-tag`'s name, else the root `pixi.toml` version as written, else the next number; a tag any repository already holds is refused before anything moves. — `AdditionalSpecs.md` §Responsibility boundaries
 - A release tag never carries a private repository: only the root's tag is annotated, and it holds the project-scope State. — `AdditionalSpecs.md` §Responsibility boundaries
+- `checkout` refuses, by name and before anything moves, to leave a detached commit that no branch, remote-tracking branch or tag names; `branch create` then `checkout` of the new name keeps it. — `AdditionalSpecs.md` §Responsibility boundaries
 - `project_version.py` is the only reader of a project's version; the release tag and the commit prefix both use it. — `AdditionalSpecs.md` §Responsibility boundaries
 - `parse_repo_id()` in `cgs_format.py` is the only repo-identifier parser in the codebase. — `AdditionalSpecs.md` §Responsibility boundaries
 - `git_branch.py` is the only implementation of the `.cgs` branch fallback chain and the privacy rule. — `AdditionalSpecs.md` §Responsibility boundaries
