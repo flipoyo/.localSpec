@@ -89,7 +89,8 @@ graph LR
 - ComplexGitSync rewrites nothing: no command, `autofix` included, amends, rebases, squashes, filters or force-pushes, and none changes a commit message once made, even when handed a corrected one. — `AdditionalSpecs.md` §The hard prohibitions
 - `autofix` eases merges and repairs only by adding a commit; for a bad commit message it names the commit and the rule, proposes ways to extract the message intact, and does nothing else. — `AdditionalSpecs.md` §The hard prohibitions
 - A ticket that asks ComplexGitSync to rewrite history is wrong: do not build it, send it back to the owner. — `AdditionalSpecs.md` §The hard prohibitions
-- A checkout removes an untracked file only when the target ref holds the same bytes, and puts it back if the checkout still fails; any other untracked file is Git's refusal, unchanged. — `AdditionalSpecs.md` §The hard prohibitions
+- A path the CLI prints for the user to paste (`export CGSHOME=`) is written with `/` on every platform, and `~` is `$HOME` to the shell and to the tool, decided only in `Settings.home_directory`. — `AdditionalSpecs.md` §Windows: bash only, and the paths it prints
+- A checkout removes an untracked file only when the target ref holds the same content as Git would store it (same blob id; a CRLF copy under `core.autocrlf` counts), and puts it back if the checkout still fails; any other untracked file is Git's refusal, unchanged. — `AdditionalSpecs.md` §The hard prohibitions
 - `branch close` keeps what a branch alone holds on `ancestors` and records the move before renaming; `ancestors` is never closed, deleted or forced, and `branch delete` deletes nothing until every repository is `safe` or `recorded`. — `AdditionalSpecs.md` §The hard prohibitions
 
 ## Before a task is finished
