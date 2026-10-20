@@ -1155,7 +1155,7 @@ one that used to mean three things; it now means only the legacy file.
 | **Commit log** | What one State's commits said, and whether each was published | `.cgitsync/commit-logs/` |
 | **Environment** | What machine and tools a State was observed on, content-addressed, beside the State it names | `.cgitsync/env/` |
 | **Memory** | One project's States, Ledger, Commit logs and Environments — everything `.cgitsync/` holds, folded into a repository | `.cgitsync/` (pending) and `.cgitsync/.memory` (the repository) |
-| **Journal** | The distant record where several developers' memories of one project would meet. Not built; `Omniscience` is its design | its own repository, on another account |
+| **Journal** | The distant record where the memories of every registered project and developer meet: Omniscience, the global `.memory` MerkleGitTree, addressed by project name through `os_id = SHA256(canonical project_name)`, and holding commitments and `.memory` descriptors, never copies. Not built; `Omniscience` and its six milestone tickets are its design | one private repository, `omniscience`, mounted at `.omniscience` |
 | **Register** | Only the legacy single-file `<project>.lgr` (next section), read but no longer written | the workspace root or `.cgitsync/` |
 
 **Pending and folded.** Every command writes into `.cgitsync/` (*pending*).
@@ -1190,9 +1190,15 @@ ticket used to be (archived 2026-09-30); the words it uses are fixed in
    writable, one branch per project named by the private/local rule in
    `git_branch.py` — the commit is also pushed. When it does not, the tool
    makes the repository itself and never pushes it (`default_memory.py`).
-3. **Journal.** Where several developers' memories of one project would
-   meet. Not built; `Omniscience` (on `memory-dev`) is its design and carries
-   the multi-developer question.
+3. **Journal.** Where the memories of every registered project, branch
+   and developer meet without being merged: Omniscience, one private
+   repository holding content-addressed registrations and one global Merkle
+   root, `H_GLOBAL`, over them. A registration commits to a State, its
+   GitTree root and the `.memory` commit that holds it; it never copies a
+   State or a private repository. Not built; the `Omniscience` ticket (on
+   `main`, owner's update of 2026-10-20) is its design and carries the
+   multi-developer question. It adds a schema next to schema 1 and changes
+   no existing hash.
 
 **Local first, and only a developer's memory is synced.** Every memory is a
 local repository before it is anything else. A tree holding no private
@@ -1711,7 +1717,9 @@ is wrong that a build gating on `verify` should not sail past.
 **What it does not claim.** That the dates are *true*. A machine whose
 clock was wrong from the start, consistently, produces a perfectly
 monotonic chain of wrong timestamps. Absolute time needs a witness outside
-the machine, which is the Omniscience layer's business, not this one's.
+the machine: the remote's answer to a push (the `PushAnchor` ticket, which
+needs no Omniscience) and, across machines, the Omniscience layer, not this
+one.
 
 `integrity.resolve_state()` is the single authority on which findings mean
 which verdict — structural findings beat `TIME_REGRESSION`, which beats
