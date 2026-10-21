@@ -424,7 +424,9 @@ human-readable summary.
 | `gts_integrity.py` | 0 | The three-level hash that names a State (`integrity_schema = 1`): `repo_hash` per repository, an RFC 9162 (formerly RFC 6962) Merkle root over them (`merkle_root`), and the State hash on top (`snapshot_hash`). Pure, on plain dicts; domain-tagged SHA-256. Pinned by golden vectors that CI runs on Linux, macOS and Windows. A released schema is immutable: any change is a new schema. See *What a State's name is computed from*. |
 | `global_integrity.py` | 0 | `GlobalIntegrity(GtsIntegrity)`: the hashes of the Omniscience register (`GLOBAL_SCHEMA = 1`): `H_OS_STATE`, the record hash, the global leaf, `H_GLOBAL`, the checkpoint name. Tags of their own, the tree shape and empty root inherited. Pinned by golden vectors. See *The Omniscience register*. |
 | `omniscience_record.py` | 0 | `OmniscienceRecord`: one registration, what of it is committed (the preimage) and what is a claim, addressing or evidence; `H_OS_STATE`, the record hash that names its file, its global leaf, and its TOML table. Pure: it does not check that `os_id` is the id of `project`; `OperatingSpace` does. |
-| `global_index.py` | 0 | `GlobalIndex`: the accepted records as ordered unique leaves, `H_GLOBAL`, and the checkpoint body and name. Reading or writing the `_global` branch is OmniscienceAppend's. |
+| `omniscience_observation.py` | 0 | `Observation`, `ObservationStatus`: one finding about one registered repository, how Git's words about a failed read are sorted into a status, and the observation's name (`CGS:OBSERVATION:v1`). Evidence beside the register, never a leaf. See *Appending to the register*. |
+| `omniscience_completeness.py` | 0 | `CompletenessReport`: the latest finding per target and the verdict; `NOT_FOUND` is a warning, a permanent failure only when repeated for 7 days (`PERMANENT_AFTER`, `PERMANENT_AFTER_COUNT`). |
+| `global_index.py` | 0 | `GlobalIndex`: the accepted records as ordered unique leaves, `H_GLOBAL`, and the checkpoint body and name. Reading and writing the `_global` branch is `GlobalCheckpoints`'. |
 | `omniscience_repository.py` | 1 | `OmniscienceRepository`: the `.cgs` entry that mounts the shared private `omniscience` repository at `.omniscience` (writable only for a contributor), a project branch's branch of it, and the reserved `_global` branch. Runs no Git. |
 | `inclusion_proof.py` | 0 | `InclusionProof`: one repository's RFC 9162 audit path to `H_GITTREE` under schema 1, and its check against a trusted root and size. Pure; every digest from `GtsIntegrity`, none of its own. See *Proving one repository is in a tree*. |
 | `gts_document.py` | 0 | `.gts` runtime state-snapshot parsing/validation; the one builder of each repository's canonical leaf, which it hands to `gts_integrity.py`. The State hash **names the State** (`.cgitsync/state/<hash>.gts`), so it holds only what the workspace *is*: tree-relative paths, refs, commits, who each repository is. No absolute path, no `source_cgs_path`, no toolchain version — those say where a tree was materialised or what observed it, and hashing them gave one tree two names on two machines. `document.integrity_schema` says which hash contract a document was written under. A stamped document without it predates schema 1, and one declaring a higher schema came from a newer build; both are refused by name (`UnsupportedSnapshotFormatError`) before any hash is computed — never recomputed under today's rules and reported as a false mismatch. See `.agent/.local/.localSpec/AdditionalSpecs.md`, *What a State's name is computed from*. |
@@ -442,11 +444,11 @@ human-readable summary.
 | `commit_message.py` | 1 | `CommitMessagePolicy`: whether a hand-written commit message keeps `AgentConduct.md` §2's shape — `<project-name>-<version>` prefix (ReleaseCommand), three lines at most, no backtick, no `$(`, no agent-credit trailer — and which rule it broke. Ring 1: reads the tree's `pyproject.toml` for the name stems and `ProjectVersion` for the version (`pyproject.toml`'s only when `pixi.toml` declares none), runs no Git, never rewrites a message. **Binds only a tree that has adopted DevSpec** (its root holds `AgentConduct.md` and a `pyproject.toml`); any other tree gets `None` and commits as before. Called by `ComplexGitSyncClient.commit`, and so by `freeze_release`; messages ComplexGitSync writes for itself never reach it. Cannot see damage a shell already did: substituted text is ordinary prose. Nothing in ComplexGitSync ever rewrites a message once committed (`AdditionalSpecs.md`, *The hard prohibitions*); a damaged one is reported, never amended. |
 | `ticket_gate.py` | 1 | `TicketGate`: the pair rule's gate (PairRuleGate). It fails closed: a record it cannot read refuses, naming the file. A planning ticket archived on or after 2026-10-09 (`CUTOFF`) at the top of `DevTickets/archive/` needs a self-history record, pending or folded, that names it and whose orchestrator's role is `Orchestration` and differs from its worker's; a ticket whose first thirty lines hold the line `> **Dropped — ` (the owner dropped it unbuilt, DroppedTicketGate) needs none. Ring 1: reads the archive and the self-history, runs no Git; the caller hands it what `git status --porcelain` says a commit adds. **Binds only a tree that adopted DevSpec** and keeps a `DevTickets/archive` in an `.agent/.local` mount; any other tree gets `None`. Called by `ComplexGitSyncClient.commit`, on the tickets that commit adds, in the deepest repository in scope that holds the archive, and by `scripts/ticket_gate.py` (`pixi run check-tickets`) over the whole archive. Cannot prove the two agents were separate: it turns "forgot" into "refused". |
 | `tree_env.py` | 2 | `TreeObserver`: observes and content-hashes secret-free machine, tool, authentication and manifest facts, and compares them with `.cgs` requirements. Environment metadata never enters a State hash. |
-| `orchestre/` | 3 | A package. `orchestre/client.py` is the `ComplexGitSyncClient` facade: it holds the client's state and the private helpers shared by several collaborators, and each of its public methods delegates to the collaborator that owns it — `Installer`, `DocumentLoader`, `TreeCommands`, `MemoryCommands`, `ReleaseCommands`, `DiscoveryCommands`, `Reporting`, `EnvironmentCommands`, `GitignoreSync` — which reach the client's methods and state *through the client*, so a caller that patches a client method is still obeyed. `Orchestre` (`orchestre/orchestre.py`) survives as the small holder of the one `GitTree` (`client.orchestre.git_tree`); it stays because callers reach the tree that way, and it is no longer described as a coordination layer. Read-only helpers live in `GitProbes`, `AuthFailureHints`, `MemoryFacts` and `MemoryChapters` (a memory chapter or State read from Git: its branch, its closed name, or the copy `ancestors` keeps); `DefaultMemory` (`default_memory.py`) makes, recognises and describes the local memory a workspace gets when its `.cgs` declares none: created lazily before the first State is written, no remote, on `MemoryRepository.branch`'s name, marked by a file inside the mount's own `.git`; `memory push` folds and commits into it but never pushes it (not even with a remote added by hand), and `memory adopt` is the only opt-in. `MemorySetup` (`memory_setup.py`) is its DEV counterpart: a DEV tree with no declared memory is flagged before each State, offered `memory setup` (create with the provider's tool, declare in the `.cgs`, adopt — stopping at the first failure), and warned when it cannot be asked; it never prompts itself. `CommandRunLogger`, `RuntimeStateStore` and the report values have files of their own. `orchestre/__init__.py` re-exports every name it always exported. `Installer` is the frontier: `initialise` is the nested install and `bootstrap` the standalone one (`AdditionalSpecs.md`, *The install frontier*), both taking a `.cgs` or a `.gts`, through one `_clone_pending`. Delegates to every module above rather than re-implementing them; still owns run logging and the `.lgr` register/sync ledger directly. A run's log no longer depends on that run writing a State: `CommandRunLogger.ensure_log_file` binds one on its own, which is what lets a *refused* command — a conflicting merge, which by definition writes no State — leave the record `autofix` later reads. `write_gts_snapshot` was the sole binder before, so the failing run was precisely the one that left no trace. Every command that moves `HEAD` writes a State, `merge` included: it reads the branch it is merging into once, up front, from `git_tree_branch.py` (`merge b` is `merge b --into <the tree's branch>`), so the State and the log can both say what merged into what. `ReleaseCommands` (`release_commands.py`, ReleaseCommand) owns `release freeze`, `list` and `load`: it names the tag `<project-name>-<suffix>` (`--force-tag`'s name, else `ProjectVersion`, else the next number), refuses a tag any writable repository holds before anything moves, has the root tagged last with an annotated tag whose subject carries the freeze message and whose body is one TOML document, the `[cgitsync_release]` table followed by the tables of the State of `project_tree(registry)` (the tree without its private repositories), written as a `.gts` writes them (`parse_release` also reads the 6.0.1 layout, the State as one string inside the table), lists releases from the ledger and the root's tags (fetching only `<project>-*` tags, nothing else), and loads one in place (a repository the tree lacks is cloned by `Installer.clone_recorded`, the pinned clone path; every recorded repository is then detached at its commit, through `BranchOperation.refresh_repo_after_checkout`; a tracked change refuses) or through `bootstrap` into a new workspace. A tree left detached, by a load or by `checkout <tag>`, leaves it by `checkout <branch>` or by `branch create <name>` then `checkout <name>`; `BranchOperation.refuse_unnamed_commits` makes `checkout` refuse, by name and before anything moves, to leave a commit made while detached that no branch, remote-tracking branch or tag names (`GitRunner.unnamed_head_commits`). `omniscience_commands.py` (`OmniscienceCommands`): `omniscience mount` (declare the shared repository in the `.cgs`, clone this project's branch or the index branch; refused in a USER tree) and `omniscience record` (build, from the committed memory, the record a State would register; writes nothing). |
+| `orchestre/` | 3 | A package. `orchestre/client.py` is the `ComplexGitSyncClient` facade: it holds the client's state and the private helpers shared by several collaborators, and each of its public methods delegates to the collaborator that owns it — `Installer`, `DocumentLoader`, `TreeCommands`, `MemoryCommands`, `ReleaseCommands`, `DiscoveryCommands`, `Reporting`, `EnvironmentCommands`, `GitignoreSync` — which reach the client's methods and state *through the client*, so a caller that patches a client method is still obeyed. `Orchestre` (`orchestre/orchestre.py`) survives as the small holder of the one `GitTree` (`client.orchestre.git_tree`); it stays because callers reach the tree that way, and it is no longer described as a coordination layer. Read-only helpers live in `GitProbes`, `AuthFailureHints`, `MemoryFacts` and `MemoryChapters` (a memory chapter or State read from Git: its branch, its closed name, or the copy `ancestors` keeps); `DefaultMemory` (`default_memory.py`) makes, recognises and describes the local memory a workspace gets when its `.cgs` declares none: created lazily before the first State is written, no remote, on `MemoryRepository.branch`'s name, marked by a file inside the mount's own `.git`; `memory push` folds and commits into it but never pushes it (not even with a remote added by hand), and `memory adopt` is the only opt-in. `MemorySetup` (`memory_setup.py`) is its DEV counterpart: a DEV tree with no declared memory is flagged before each State, offered `memory setup` (create with the provider's tool, declare in the `.cgs`, adopt — stopping at the first failure), and warned when it cannot be asked; it never prompts itself. `CommandRunLogger`, `RuntimeStateStore` and the report values have files of their own. `orchestre/__init__.py` re-exports every name it always exported. `Installer` is the frontier: `initialise` is the nested install and `bootstrap` the standalone one (`AdditionalSpecs.md`, *The install frontier*), both taking a `.cgs` or a `.gts`, through one `_clone_pending`. Delegates to every module above rather than re-implementing them; still owns run logging and the `.lgr` register/sync ledger directly. A run's log no longer depends on that run writing a State: `CommandRunLogger.ensure_log_file` binds one on its own, which is what lets a *refused* command — a conflicting merge, which by definition writes no State — leave the record `autofix` later reads. `write_gts_snapshot` was the sole binder before, so the failing run was precisely the one that left no trace. Every command that moves `HEAD` writes a State, `merge` included: it reads the branch it is merging into once, up front, from `git_tree_branch.py` (`merge b` is `merge b --into <the tree's branch>`), so the State and the log can both say what merged into what. `ReleaseCommands` (`release_commands.py`, ReleaseCommand) owns `release freeze`, `list` and `load`: it names the tag `<project-name>-<suffix>` (`--force-tag`'s name, else `ProjectVersion`, else the next number), refuses a tag any writable repository holds before anything moves, has the root tagged last with an annotated tag whose subject carries the freeze message and whose body is one TOML document, the `[cgitsync_release]` table followed by the tables of the State of `project_tree(registry)` (the tree without its private repositories), written as a `.gts` writes them (`parse_release` also reads the 6.0.1 layout, the State as one string inside the table), lists releases from the ledger and the root's tags (fetching only `<project>-*` tags, nothing else), and loads one in place (a repository the tree lacks is cloned by `Installer.clone_recorded`, the pinned clone path; every recorded repository is then detached at its commit, through `BranchOperation.refresh_repo_after_checkout`; a tracked change refuses) or through `bootstrap` into a new workspace. A tree left detached, by a load or by `checkout <tag>`, leaves it by `checkout <branch>` or by `branch create <name>` then `checkout <name>`; `BranchOperation.refuse_unnamed_commits` makes `checkout` refuse, by name and before anything moves, to leave a commit made while detached that no branch, remote-tracking branch or tag names (`GitRunner.unnamed_head_commits`). `omniscience_commands.py` (`OmniscienceCommands`): `omniscience mount` (declare the shared repository in the `.cgs`, clone this project's branch or the index branch; refused in a USER tree) and `omniscience record` (build, from the committed memory, the record a State would register; writes nothing). Everything that writes to the register is a collaborator of its own, each a class, none forcing: `RegisterReader` (`omniscience_reader.py`, reads the register's branches from the mount's Git objects, never the worktree), `RegisterAppender` (`omniscience_appender.py`, the one fast-forward-only append with its retry), `GlobalCheckpoints` (`omniscience_checkpoints.py`, accepted records and the `_global` chain), `IntegrityControl` (`omniscience_control.py`, `omniscience register`) and `OmniscienceObserver` (`omniscience_observer.py`, `omniscience observe`). |
 | `config_document.py` / `config_document_io.py` | 0, 1 | Format-neutral `ConfigDocument` base (pure) and its file-I/O mixin (Ring 1), shared by `CgsDocument`/`GtsDocument`. |
 | `master.py` | 1 | Workspace-local Git identity (`MasterConfig`) for ComplexGitSync's own automated commits; defaults to local git config, overridable/persisted per `CGSHOME` via `.cgitsync/master.toml` — not part of the `.cgs`/`.gts` project spec. |
 | `json_render.py` | 0 | `JsonRender`: the shape of every machine-readable answer (`status --json`, `verify check --json`, and the error object a JSON-capable command prints when it fails), plus `SCHEMA_VERSION` and the serialiser. Defined once for all commands, never in `cli/`. Kept apart from `status_render.py` because a table column may be reworded and a JSON field may not — something is parsing it. Additive only: fields may be added, never repurposed or removed. |
-| `cli/` | 4 | Argument/prompt collection only, including `exit_codes.py`; delegates all semantics downstream. `_shared.py` holds cross-command helpers; `minimalist.py`, `expert.py`, `configuration.py`, and `environment.py` own command groups; `memory_prompt.py` owns `memory setup` and the terminal-only offer after a recording command; `memory_asof.py` owns `memory as-of`; `branch_command.py` and `fetch_command.py` handle `branch` and `fetch`, registered from `expert.py`; `help_text.py` holds every help sentence and example, and `help_format.py` lays the help out and owns `cgitsync help [--all]` — help text is never added to a command module; `suggest.py` offers typo hints without rewriting arguments; `__init__.py` assembles the parser. `omniscience_command.py` registers the `omniscience` group (`mount`, `record`). |
+| `cli/` | 4 | Argument/prompt collection only, including `exit_codes.py`; delegates all semantics downstream. `_shared.py` holds cross-command helpers; `minimalist.py`, `expert.py`, `configuration.py`, and `environment.py` own command groups; `memory_prompt.py` owns `memory setup` and the terminal-only offer after a recording command; `memory_asof.py` owns `memory as-of`; `branch_command.py` and `fetch_command.py` handle `branch` and `fetch`, registered from `expert.py`; `help_text.py` holds every help sentence and example, and `help_format.py` lays the help out and owns `cgitsync help [--all]` — help text is never added to a command module; `suggest.py` offers typo hints without rewriting arguments; `__init__.py` assembles the parser. `omniscience_command.py` registers the `omniscience` group (`mount`, `record`, `register`, `observe`). |
 
 `__init__.py` and `__main__.py` are out of scope for this audit (public
 re-exports and the module entry-point shim respectively) — they carry no
@@ -544,7 +546,7 @@ ring, never a higher one.
 | 3 — ORCHESTRATION | `orchestre/` package (`client.py`: `ComplexGitSyncClient`; the collaborators it delegates to; `orchestre.py`: `Orchestre`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operating_space.py`, `operations/`, `autofix/`, `registry.py`, `toolchain.py`, `tree_env.py` |
 | 1 — FILESYSTEM | `omniscience_repository.py`, `paths.py`, `commit_message.py` (reads `pyproject.toml`; the commit-message rule), `project_version.py` (reads `pixi.toml`; the project's version), `ticket_gate.py` (reads `DevTickets/archive/` and self-history; the pair rule's gate), `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.agent/.local/.dev/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `environment`, `agent_contract`, `self_history`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
-| 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `environment_spec.py`, `ledger_entry.py`, `integrity.py`, `gts_integrity.py`, `global_integrity.py`, `inclusion_proof.py`, `omniscience_record.py`, `global_index.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
+| 0 — PURE / OFFLINE | `errors.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `environment_spec.py`, `ledger_entry.py`, `integrity.py`, `gts_integrity.py`, `global_integrity.py`, `inclusion_proof.py`, `omniscience_record.py`, `omniscience_observation.py`, `omniscience_completeness.py`, `global_index.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The five import rules (machine-checked)
 
@@ -1472,8 +1474,10 @@ One private repository, `github:flipoyo/omniscience`, mounted at
 writable to contribute; `omniscience mount`). It holds one branch per project
 branch (`<project>` for `main`, `<project>_<branch>`: the private/local rule)
 holding **records**, and one reserved branch, `_global`, holding the **index**.
-A project named `_global` must be refused when registering (OmniscienceAppend's duty; nothing in this milestone enforces it). This milestone defines the
-formats and computes them; writing to the register is OmniscienceAppend's.
+A project named `_global`, or any branch that would be filed on `_global`, is
+refused when registering and its records are never accepted. OmniscienceRegister
+defined the formats and computed them; OmniscienceAppend writes to the register
+(*Appending to the register*, below).
 
 ### The record
 
@@ -1574,7 +1578,96 @@ commitment) and the publication evidence.
 
 The first accepted registration of an `os_id` records its contributor; a later
 one from a contributor without push right on that project's branch is refused
-by OmniscienceAppend. This milestone records only the `contributor` claim.
+by the provider, which refuses the push. `cgitsync` records only the
+`contributor` claim and does not rank two contributors of one project.
+
+### Appending to the register (OmniscienceAppend)
+
+*Added 2026-10-21 (owner's answers: signing recommended and not required; a
+deletion is confirmed only by the owner's signed note; observations only when
+typed; a missing repository is a warning that becomes a permanent failure when
+repeated for long).* Everything that writes to the register is an **append**:
+a commit on top of the remote's tip, pushed fast-forward only. Nothing is
+forced, rebased, merged, amended or deleted, here or by any command.
+
+- **`omniscience register [--state S]`** (`orchestre/omniscience_control.py`,
+  `IntegrityControl`; DEV trees only, refused by name in a USER tree before
+  anything is touched; needs the mount writable and clean). It builds the
+  record of `omniscience record`, refuses one that does not validate, appends
+  it to the project's branch, then extends the checkpoint. **Validation**: the
+  `os_id` is the id of the project's name; `H_STATE` and `H_GITTREE` are what
+  the State on disk recomputes to; `memory_commit` is held by the memory's
+  remote. Push right is the provider's to answer.
+- **One append primitive** (`orchestre/omniscience_appender.py`). The commit is
+  made on a detached `HEAD` on the branch's tip, so a failed attempt moves no
+  branch of the mount and a crash between commit and push leaves only an
+  unreferenced commit. A push refused because another contributor appended is
+  retried from their tip, the writer asked again what to write (after their
+  append the answer may be nothing, or a checkpoint that now covers their
+  record too); six attempts, then the caller is told to try again. A push
+  refused for any other reason is raised unchanged. A failed commit resets the
+  scratch worktree, so nothing stays staged.
+- **Idempotence**: a record is the file `register/<record_hash>.toml`; if the
+  tip holds it, nothing is written. The same registration twice, or after a
+  crash, is one record.
+- **Proposed and accepted** (`orchestre/omniscience_checkpoints.py`,
+  `GlobalCheckpoints`). A file added with plain `git` is *proposed*. It is
+  *accepted* only if it parses, is named by its own hash, is filed on the branch
+  its project and branch name, carries the `os_id` of its project, is not for a
+  reserved name, and its memory commit can be fetched from the memory
+  repository it names. A record that cannot be checked from here (its memory
+  cannot be read) is unaccepted and tried again at the next checkpoint. The
+  rest stay where they are, are printed as unaccepted with the reason, and never
+  enter `H_GLOBAL`. Acceptance is sticky: a record an earlier checkpoint
+  covered is only required to still be present.
+- **Checkpoints** are `checkpoints/<hash>.toml` on `_global`, each naming its
+  parent. A new one is appended only when the accepted set grew; it is derived
+  from the whole register each time, so a lost race re-derives it. The chain is
+  **reported, never repaired** when: the remote's `_global` no longer contains
+  the tip this tree last found sound (`rewritten`, compared with the tip kept
+  in the mount's own `.git/omniscience-seen-global`, because a plain `fetch`
+  moves the remote-tracking ref); a checkpoint is not named by its hash or names
+  a parent that is absent; the chain has two heads; or a record an earlier
+  checkpoint covers is gone. Each gives `status` `rewritten` or `refused`, a
+  `problem`, and no new checkpoint.
+- **Observations** (`omniscience observe [project]`,
+  `orchestre/omniscience_observer.py`, `omniscience_observation.py`): one file
+  `observations/<hash>.toml` on the project's branch per finding, named by the
+  hash of everything it says (tag `CGS:OBSERVATION:v1`). They are evidence
+  beside the registrations, **not leaves**: no observation enters `H_GLOBAL`,
+  removes a leaf or rewrites a record, so adding one is not a schema change.
+  Targets: the memory and each published repository of every record of the
+  project. A probe is `ls-remote`, then a fetch of the commit; what Git printed
+  is sorted by `ObservationStatus.of_git_failure`, and the unrecognised is
+  `UNKNOWN`, never guessed. Statuses: `AVAILABLE`, `ACCESS_DENIED`,
+  `UNREACHABLE`, `NOT_FOUND` (the host says it is not there; a private
+  repository can answer that without access), `COMMIT_MISSING`, `REF_MISSING`
+  (the ref is gone, the commit is still served), `CLOSED` (the remote answered,
+  the ref is gone and the ledger's relocations declare the close; a failed
+  fetch never gives it), `UNKNOWN`, `DELETION_CONFIRMED`. The last is never
+  probed: it is the owner's note (`--confirm-deleted REPOSITORY --reason`), only
+  for a target the host still says is `NOT_FOUND`, in a commit signed with
+  `--gpg-sign`; if Git cannot sign it, nothing is recorded. Only `https://`,
+  `ssh://` and `git@` addresses and `provider:owner/repo` identifiers are
+  handed to Git, never a local path a record names, and a record's published
+  rows are refused unless each has a repository, a ref and a hex commit, none
+  starting with `-` (they are outside the hash, so anyone can write them).
+  A hand-written observation is read as written: its signature is not
+  verified on read, so "signed" holds for what `observe` writes. A mount
+  killed between writing and committing is refused as having uncommitted
+  changes; discard them and run again.
+- **Completeness** (`omniscience_completeness.py`, `CompletenessReport`): per
+  target the latest finding; the verdict is `ok`, `warning` or `failure`.
+  `NOT_FOUND` is a warning, and becomes a permanent failure once there are at
+  least `PERMANENT_AFTER_COUNT` (2) consecutive `NOT_FOUND` findings whose first
+  and last are at least `PERMANENT_AFTER` (7 days) apart. Any other finding in
+  between, `AVAILABLE` included, starts the count again. `ACCESS_DENIED` and
+  `UNREACHABLE` never escalate. These two numbers are this module's choice, not
+  the owner's; changing them is a change here first. `observe` exits 1 on a
+  permanent failure.
+- **Not built here**: `omniscience verify` (reporting signatures), a
+  `register` of several States at once, and the query side
+  (OmniscienceQuery).
 
 ## The hash-chained ledger: schema, storage and threat model
 
