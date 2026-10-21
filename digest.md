@@ -140,6 +140,7 @@ graph LR
 - `autofix` reads a tip commit only when the log holds no failing command, judges only the repository's own `user.email`'s commits, and writes nothing. — `AdditionalSpecs.md` §Responsibility boundaries
 - `project_version.py` is the only reader of a project's version; the release tag and the commit prefix both use it. — `AdditionalSpecs.md` §Responsibility boundaries
 - `parse_repo_id()` in `cgs_format.py` is the only repo-identifier parser in the codebase. — `AdditionalSpecs.md` §Responsibility boundaries
+- `GitTree.project_name` is the only source of a project's name, set once and changed only by `_rename_project`; `OperatingSpace` alone computes `os_id` and `H_GITTREE` from the tree, every document must agree with it, and it runs every git operation on a READY tree. — `AdditionalSpecs.md` §Responsibility boundaries
 - `git_branch.py` is the only implementation of the `.cgs` branch fallback chain and the privacy rule. — `AdditionalSpecs.md` §Responsibility boundaries
 - `git_runner.py` is the sole module allowed `import subprocess`. — `AdditionalSpecs.md` §Responsibility boundaries
 - `universal_clock.py` is the sole reader of the real wall clock, PID, or entropy source; every other module takes an injected `ClockProtocol`. — `AdditionalSpecs.md` §Responsibility boundaries
