@@ -1633,6 +1633,17 @@ by the order the file lists them. A `push` writes into the logs of the
 States whose commits it publishes, which is why the order has to be stated
 rather than assumed — an entry can write into more than one file.
 
+**The push witness.** Right after each repository's push, `push` asks the
+remote what it holds at the pushed ref (`ls-remote`) and records the answer
+on the publication row: `remote_commit` (empty when the remote holds no such
+ref) and `observed_at`. Both are absent on rows written before, and on a
+row whose remote could not be asked; an absent field is neither serialised
+nor hashed, so every older row and digest verifies byte for byte and no
+State hash changes. `memory verify --published` re-asks read-only and
+answers `attested`, `moved` or `unreachable` per witnessed row; `moved` is
+reported and never repaired. A USER tree records the witness for its project
+repositories too.
+
 Nothing here records a path or a user name. A commit made outside
 `cgitsync` gets no row at all: the memory speaks for what it watched.
 
