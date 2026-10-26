@@ -337,6 +337,32 @@ first install it is usually absent). A typed `default_branch` on such an entry
 that is neither the computed name nor the project's own default is a
 `ConfigValidationError`.
 
+**Whose memory: the Project or its twin.** *Added 2026-10-26 (EnvConnect).*
+The install frontier also decides who a tree's `.memory` belongs to, so a
+Project and the standalone twin ComplexGitSync keeps of it never share a
+memory branch:
+
+| | `initialise` — nested | `bootstrap` — standalone |
+|---|---|---|
+| `.memory` belongs to | the Project | ComplexGitSync: the Project's **twin** |
+| Its branch | `private_local_branch(<project>, <branch>)`: `<Project>`, `<Project>_<branch>` | `ComplexGitSync_<Project>` |
+
+The owner's rule names `.memory`. Whether the configuration repositories
+(`.claude`, `.localSpec`, `.dev`) follow it is still open (EnvConnect D8).
+The recommendation is no, since they describe how to work, which is the
+same for both. *Not yet implemented: 6.10.0
+names both `<Project>` (EnvConnect C8).*
+
+**`_` prevails over `-`.** *Added 2026-10-26 (EnvConnect).* `_` is the
+only structural separator in a branch name, and `-` belongs inside names.
+A project or branch name may contain `-` (`memory-dev`, `CaWaQS-Viz`) and
+never `_`, so `ComplexGitSync_P_X` reads one way only: twin of `P`, branch
+`X`. The one reading left ambiguous, `ComplexGitSync_<name>`, is prevented
+at creation: a memory branch whose name already exists is never created
+again, and a project or branch name containing `_` is refused by name.
+Existing names are never renamed. A collision-proof scheme is deferred to
+industrialisation. *Not yet implemented (EnvConnect C8).*
+
 **A State is a `.gts`.** Nothing writes a `.cgs` into `state/` or
 `.cgitsync/.cgs/`. `memory reboot` still exports one into the mount's `.cgs/`,
 on purpose; leftovers already pushed stay, and `verify` ignores them.
