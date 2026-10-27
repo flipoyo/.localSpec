@@ -1685,7 +1685,12 @@ forced, rebased, merged, amended or deleted, here or by any command.
   append the answer may be nothing, or a checkpoint that now covers their
   record too); six attempts, then the caller is told to try again. A push
   refused for any other reason is raised unchanged. A failed commit resets the
-  scratch worktree, so nothing stays staged.
+  scratch worktree, so nothing stays staged. A file the tip already holds
+  with **other** content is refused before anything is written
+  (`RegisterAppender._refuse_rewrites`, Omniscience §10 item 8, 2026-10-27).
+  Every register file is named by its content, so that is a collision or a
+  register edited by hand, and it is never overwritten. The same bytes again
+  are no change.
 - **Idempotence**: a record is the file `register/<record_hash>.toml`; if the
   tip holds it, nothing is written. The same registration twice, or after a
   crash, is one record.
