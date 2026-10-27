@@ -613,16 +613,28 @@ interfaces between rings. In the owner's model:
 - `ComplexGitSyncClient` is the gate of GitTree;
 - `WorkingGitTree` is the Operating Space;
 - `.cgs` is the API of USER (ring 3 ↔ 4), `.gts` the API of DEV (ring 2 ↔ 3),
-  and `OperatingSpace` the API of OPX (ring 1 ↔ 2).
+  and `OperatingSpace` the API of OPX (ring 1 ↔ 2);
+- *(short ticket `gitRepo`)* `GitRepo` is the dependency, "a specific Graph
+  for GX4G", that provides Graph and GitRepo. `cgitsync` mounts it as a
+  GitTree, protected through the Merkle tree that is never exposed.
+  Omniscience synthesises it with hash256(MerkleRoot), and gx4g holds the
+  register and the provider API. The SrcLayout ticket splits `src/` into
+  `GitRepo/`, `Merkle/`, `Tree/` and `OperatingSpace/`, and `GitRepo/`
+  imports nothing back.
 
 The Minimalism ticket maps every class, method and command against that
-model. Three rules bind every change from now on:
+model. Four rules bind every change from now on:
 - **A call to a Git host's API is gx4g's privilege**, read or write.
   `cgitsync` adds none. The existing ones are the `repo create` that
   `provider.creation_plan` builds (which `memory setup` reuses) and
   `TreeObserver`'s sign-in probe. They are listed for ProviderMigration and
   leave once gx4g offers each. Git itself (clone, fetch, push) stays
   `cgitsync`'s: that is executing.
+- **A write to the Omniscience register is gx4g's** *(`gitRepo`)*. gx4g holds
+  the register, and `cgitsync` produces what is written (a State's record,
+  a dead-branch finding). It adds no write path, and its existing writer
+  (`omniscience mount`, `register`, `observe`; *Appending to the register*)
+  stays only until ProviderMigration.
 - **No command or public client method is added without a row in
   Minimalism's map** that says which ring interface it lands on.
 - **The Merkle tree is never materialised.** The State hashes are computed by
