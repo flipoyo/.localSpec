@@ -605,6 +605,32 @@ identifiers. Every new command follows `DevSpecs.md`'s *CLI Grammar*
 (subcommands are plain words, `--` is only an option), which
 `tests/unit/test_cli_grammar.py` checks on the real parser.
 
+**The minimal surface (owner, short ticket `minimalism`, 2026-10-27).** The
+CLI is attack surface, and it is kept to the minimum that sits at the
+interfaces between rings. In the owner's model:
+- gx4g is the universal API gate, the outer ring;
+- `cgitsync` is the tree operator, an executor;
+- `ComplexGitSyncClient` is the gate of GitTree;
+- `WorkingGitTree` is the Operating Space;
+- `.cgs` is the API of USER (ring 3 ↔ 4), `.gts` the API of DEV (ring 2 ↔ 3),
+  and `OperatingSpace` the API of OPX (ring 1 ↔ 2).
+
+The Minimalism ticket maps every class, method and command against that
+model. Three rules bind every change from now on:
+- **A call to a Git host's API is gx4g's privilege**, read or write.
+  `cgitsync` adds none. The existing ones are the `repo create` that
+  `provider.creation_plan` builds (which `memory setup` reuses) and
+  `TreeObserver`'s sign-in probe. They are listed for ProviderMigration and
+  leave once gx4g offers each. Git itself (clone, fetch, push) stays
+  `cgitsync`'s: that is executing.
+- **No command or public client method is added without a row in
+  Minimalism's map** that says which ring interface it lands on.
+- **The Merkle tree is never materialised.** The State hashes are computed by
+  one class, `MerkleRoot` (the MerkleRoot ticket), which hands out roots and
+  proof objects and never an inner node. Until it lands, the hashing modules
+  of *What a State's name is computed from* are the only code that builds a
+  node.
+
 ## Ring model and import rules
 
 Added by `.agent/.local/.dev/DevTickets/archive/20260828_Isolation_DevPlanTicket.md` (P6) once the
