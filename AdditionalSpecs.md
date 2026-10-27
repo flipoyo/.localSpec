@@ -515,6 +515,7 @@ human-readable summary.
 | `autofix/` | 2 | Diagnoses and repairs a git situation, starting from the error `cgitsync` already produced (`cgitsync autofix`, `ComplexGitSyncClient.autofix`). **Its purpose is easing the merge procedure, and it rewrites nothing**: it repairs only by adding a commit, never by amending, rebasing or force-pushing (`AdditionalSpecs.md`, *The hard prohibitions*). When a merge error comes from a bad commit message, it names the commit and the rule it breaks and proposes ways to extract the message intact (`git show -s --format=%B <sha>`), and does nothing else. One `repair_*.py` module per repair purpose, each with its own class implementing `base.Repair` (`matches`/`repair`) — growth is one new module and one line in `repair_from_cli.FromCliRepair._REGISTRY`, never a branch inside an existing class, so the package does not become a melting pot as incidents accumulate. `repair_from_cli.py` is the dispatcher `cgitsync autofix` calls: `find_last_error` reads the most recent `.cgitsync/logs/*.log`'s failing command, so a caller never has to retype what just failed. `repair_divergent_user.py` is the first repair — a private repository whose branch diverged because two machines each wrote to it independently, where the content has a sequencing invariant a plain merge cannot see (`.memory`'s hash-chained `lgr/`, per `base.CHAIN_SHAPED_REPOS`); it re-sequences both sides' new entries in `recorded_at` order and verifies the result before ever committing, refusing outright rather than guessing if the two sides are not disjoint. `repair_merge_conflict.py` is the second, and the one that only ever *diagnoses*: a tree-wide merge that refused, re-checked against Git (`can_merge_cleanly`, read-only) rather than trusted from the log line, then reported with the repositories, the paths and the `merge --resolve` that opens them. It resolves nothing on purpose — which side of a content conflict is right is a person's call — and that is still the whole gain, because the answer it replaces was "no failing command found in the run log". `repair_commit_message.py` is the third, and the first with a second source of trouble: `Situation` carries a `commit`, a `commit_message` and the tree's `CommitMessagePolicy` beside `source_error`, and `FromCliRepair.inspect_tip_commits` fills them when the log holds no failing command, reading the tip commit of each writable repository through `GitRunner.tip_commit`. It judges only a commit authored under the repository's own `user.email`, reports a message that breaks `CommitMessagePolicy` or shows suspected shell damage (two spaces in a row, a space before punctuation that is followed by whitespace, so a dotted name like `.cgs` is not flagged; every writable repository is judged, private mounts included, against the root's project prefix), gives the commands that extract the message intact, and writes nothing. A peer of `operations.py`, not part of `memory/`: it orchestrates `git_runner.py` for the Git half and `memory/` for the chain half, and — like every module here — never imports `subprocess` itself. |
 | `settings.py` | 1 | `Settings`: where workspaces live (`$CGSPATH`, else `$HOME/.cgs`; `home_directory` is the one place `~` is decided: `$HOME` first on every platform, a Git Bash `/c/Users/x` read as `C:/Users/x`, `Path.home()` only when `HOME` is unset, and `paths.py` asks it rather than keep a copy; WindowsCompatibility D3), the default workspace a command falls back to when discovery finds nothing — created once, recorded in `$HOME/.cgs/default`, holding an empty but valid `.gts` that never claims to be `READY` — the other workspaces the CLI offers as a hint, and the `STANDALONE`/`NESTED` use case, derived from whether the running installation sits inside the resolved CGSHOME. Answers all of it before a workspace is open, which `master.py` cannot. `UseCase` is obeyed by `initialise`, which refuses `STANDALONE` and names `bootstrap`, and read once by a standalone install to file its memory as a twin's (EnvConnect C8); never re-read for that afterwards. |
 | `paths.py`, `state_store.py`, `discovery.py`, `status_render.py`, `snapshot_resolver.py` | 0, 1 | Path/CGSHOME resolution (`PathResolver` — the one owner of the `$HOME`/`$CGSTREE` markers; `registry.py` no longer keeps a copy), state-directory allocation, nested-config/`.gitmodules` discovery, pure status-table rendering (including the `SCOPE` column's user-facing wording: `project` / `private/local` / `private/distant` for project / private+writable / private read-only), and default-`.gts`-snapshot resolution — each extracted from `orchestre.py`/`cli/` during the isolation work (`.agent/.local/.dev/DevTickets/archive/20260828_Isolation_DevPlanTicket.md`). `snapshot_resolver.py`'s `describe_*` functions also carry *which input* chose the workspace (`--search-dir` > `$CGSHOME` > current directory) so `cli/` can print it and warn when the resolved CGSHOME does not contain the current directory; the module itself never prints. |
+| `operations/partial_failure.py` | 2 | `TreeSweep`: the one loop every `PARTIAL_REPORT_REQUIRED` write (`push`, `tag`, `release freeze`) runs through, stopping at the first `GitSyncError`; and `TreePartialFailure`, the `GitSyncError` it raises, carrying what completed, what failed and what was never tried, keyed by `repo_id`, and the command to run again. Runs no Git itself. See *How a tree-wide write fails*. |
 | `workspace_lock.py` | 1 | `WorkspaceLock`: the one advisory lock per workspace (StateLocking). A file `.cgitsync/.lock` made with `O_CREAT \| O_EXCL`, holding a process id, a start moment and a command and nothing that names a person or a machine, taken for the whole of one writing command and removed at its end; re-entrant within a process. A second taker is refused with `WorkspaceBusyError`, naming the workspace, the holder and the age; a lock whose process is gone is stale and refuses too, and only `clear` (`cgitsync unlock`) removes it. Reads the clock and PID only through `ClockProtocol` (`os.kill(pid, 0)` asks about *another* process, which the clock seam does not cover). Runs no Git. See *The workspace lock*. |
 | `universal_clock.py` | 1 | The sole reader of the real wall clock, high-resolution counter, PID and entropy source anywhere in `src/`. Defines `ClockProtocol` — the injectable interface every dated fact this project writes goes through — and `SystemClock`, the one real implementation. Every other module accepts a `clock: ClockProtocol` rather than reading `datetime`/`time`/`os`/`secrets` itself, checked unconditionally by `pixi run check-ceilings` the same way `subprocess` confinement is. `memory/ledger_entry.py` (Ring 0) keeps a structurally identical `ClockProtocol` of its own rather than importing this (Ring 1) module's — Ring 0 must be self-contained — and Python's structural typing makes the two interchangeable at every call site regardless. |
 | `memory/` | 1 | Everything a workspace remembers, including `repository.py`: what it takes for a memory to *be* a repository — the `.cgs` entry mounting it at `.cgitsync`, which branch of the shared `.memory` repository this project uses, the message its own commit carries — while still running no Git itself. A State records exactly one machine path, the tree's own root; everything else is written against the tree as `$CGSTREE/...`, because a memory gets pushed. The rest of the package: States (`states.py`), content-addressed Environment records (`environment.py`), the hash-chained ledger (`ledger_entry.py`, `ledger_store.py`; an entry's additive `relocations` record what a branch kept on `ancestors`), commit/publish evidence (`commit_log.py`), verification (`integrity.py`), and the legacy register reader (`store.py`). Every command that writes a State appends an entry carrying its toolchain and Environment reference. **Class-based throughout** (ClassFirstPackage): `LedgerStore` is the one door to the ledger, `PendingMemory` reads folded and pending as one, `MemoryRepository`, `CommitLog`, `EnvironmentStore`, `MemoryStates` (the State files and their name grammar), `ChainVerifier`, and the records — `LedgerEntry`, `SelfHistoryRecord`, `AgentContractRecord` — write and read themselves; `conformity.py` holds the score a self-history record carries and `conformity_scale.py` the scale it is read against (maxima 33/33/34, total 100, always rendered with its maxima); `as_of.py` selects the ledger entry recorded at or before a moment, in chain order (`memory as-of`). **Nothing here runs Git.** |
@@ -1361,6 +1362,84 @@ scheduler, every network operation is a command someone typed. It works
 offline. It does not merge chains: a local memory is a strict chain, and a
 divergence between two machines is re-sequenced by `autofix`
 (`repair_divergent_user`), never merged silently.
+
+## How a tree-wide write fails (Robustness)
+
+*Landed 2026-10-27 (Robustness, D1–D5).* CGS cannot roll back a push a remote
+has accepted, so the guarantee is not atomicity across remotes. It is five
+promises, in order:
+
+| Moment | Guarantee |
+|---|---|
+| before mutation | everything detectable without mutating is checked for the whole tree (`Preflight`) |
+| during mutation | the only copy of work is never destroyed; nothing is ever forced |
+| after partial mutation | the command fails and says what completed, what failed and what was never tried |
+| on retry | it converges, is a no-op, or refuses explicitly |
+| after a crash | a persistent memory inconsistency is named by an existing `Finding`; a live Git divergence is read from the tree and never invents a finding (RobustnessCrash) |
+
+**The report.** `push`, `tag` and `release freeze` run their per-repository
+loop through one class, `TreeSweep` (`operations/partial_failure.py`), which
+stops at the first `GitSyncError` and raises `TreePartialFailure`, a
+`GitSyncError` (so it exits 1 and a caller that only knows `GitSyncError`
+still works). It carries, keyed by `repo_id`, because a name is not an
+identity:
+- `completed`: `(repo_id, RepoOutcome)`, in visit order;
+- `failed`: the one `(repo_id, RepoOutcome(failed=True))`, where it stopped;
+- `not_attempted`: every `repo_id` this run never touched;
+- the cause, and the command to run again.
+
+The CLI prints it on stderr, and the lines are stable so a process that reads
+them (gx4g) can: `<command> stopped part-way: <cause>`, then
+`completed: <name (path)>, …`, `failed: <name (path)>`,
+`not attempted: <name (path)>, …`, then the retry sentence. No State and no
+ledger entry is written for a failed sweep, so the ledger never records an
+attempt; the tree Git now holds is real and the next successful command
+records it. `RepoOutcome` itself is not widened.
+
+**A tag is judged by what it points at, not by existing** (D5). `Preflight`
+refuses a tag that points at another commit than the repository's `HEAD`,
+naming both. A tag already at `HEAD` is an earlier run of the same operation,
+cut short: the sweep keeps it (`acted=False`, `already tagged`) and pushes it
+again, which is a no-op. A tag that only the remote holds, on another commit,
+is rejected by the push and becomes the `failed` outcome; it is never forced.
+So `tag` retried after a fixed failure converges, and retried after success
+changes nothing.
+
+**`release freeze` resumes by its root tag** (owner, 2026-10-27). The root's
+annotated tag is made last, so it says the release is complete.
+`ReleaseCommands._refuse_taken` refuses before anything moves when the root
+holds the tag (a finished release is never recorded twice), or when a
+repository's tag points elsewhere, or when a repository holding the tag still
+has work to commit (the commit would move `HEAD` off it). Any other tag at its
+`HEAD` is resumed. The State and the ledger's `release` row are written only
+after the whole sweep, so an interrupted release leaves neither.
+
+**The operation matrix** (read from the source at `cgitsync-7.3.0`; each row is
+a failpoint candidate, `tests/support/failpoints.py` names the ones the suite
+uses). *Class* is what the operation owes:
+`PARTIAL_REPORT_REQUIRED` (mutates repository after repository and can stop
+half-way), `PREMUTATION_REFUSAL_SUFFICIENT` (decides everything in preflight),
+`SINGLE_MUTATION`, or `CRASH_ONLY` (its only partial outcome is a killed
+process).
+
+| Operation | Ordered mutating calls | Class |
+|---|---|---|
+| `push` | preflight; every repo's branch decided; per repo leaf-first `push`; State and ledger entry (one, after the loop) | `PARTIAL_REPORT_REQUIRED`, **done** |
+| `tag` | preflight (incl. tag meaning); per repo `create_tag`, `push` of the tag; State | `PARTIAL_REPORT_REQUIRED`, **done** |
+| `release freeze` (`freeze_release_tree`) | `add`, `commit`, `pull`, `push` (tree-wide); per repo `stage_all`, `commit`, `create_tag`, branch `push`, tag `push`; the root last: `create_annotated_tag`, `push`; State and ledger `release` row | `PARTIAL_REPORT_REQUIRED`, **done** |
+| `pull --force` | preflight; `restart` per repo | `PARTIAL_REPORT_REQUIRED`, not built: the sweep restarts clones, and a partial result is the tree itself (RobustnessCrash) |
+| `checkout` | refuse unnamed commits; propagate target ref; create the branch where missing; per repo `checkout` and refresh | `PARTIAL_REPORT_REQUIRED`, not built (follow-up) |
+| `merge`, `merge --into` | preflight; per repo status; per repo merge or keep-the-memory | `PARTIAL_REPORT_REQUIRED`, not built (follow-up); a conflict is already a refusal before any merge |
+| `branch close`, `branch delete` | refuse a corrupt ledger; per repo keep on `ancestors` then rename or delete; State and ledger entry | `PARTIAL_REPORT_REQUIRED`, not built (follow-up); the keep-before-rename order means no commit is lost |
+| `memory push` | `_fold_memory_pending` (moves `lgr`, `state`, `env`, commit logs into the mount); `stage_all`; `commit`; `push` | `SINGLE_MUTATION` (one repository); a half-fold is RobustnessCrash |
+| `memory reboot` | `push_ref_as(archived)`; `delete_remote_branch(current)`; `rename_branch`; `create_orphan_branch`; clear; State; fold; commit; push | `CRASH_ONLY`; no resume yet (RobustnessCrash D7) |
+
+**What a failure test may claim.** A fault in the suite is injected from
+`tests/support/` only: nothing in `src/` can fail on request. `raise` mode
+raises at the nth call of a named method in the same process; `kill` mode runs
+the command in a child that calls `os._exit(137)`. A `raise` test never claims
+to cover a crash window. A killed command leaves its workspace lock behind
+(StateLocking), which the next writing command names as stale.
 
 ## The workspace lock (StateLocking)
 
