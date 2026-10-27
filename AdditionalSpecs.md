@@ -498,16 +498,14 @@ human-readable summary.
 | `git_tree_branch.py` | 2 | The tree's branch *state*, where `git_branch.py` owns the *rule*: which branch the tree is on (the root's — printed by `status` as `cgitsync_branch`), which branch each repository targets when the tree moves, which branch it is actually on, and where those two disagree. Also owns `tree_project_name`. It restates no rule — every answer comes from `git_branch.py` — and it is the only place that reads the root's branch to speak for the tree. An instance caches what Git said, so build a new one after a checkout or a pull. `declare_targets()` gives a not-yet-cloned private/local repository its computed branch at load. `memory` is the tree's own `.cgitsync/.memory` entry, and `settle_memory_twin()` reads back from the branch it is on whether the tree is a twin (`WorkingGitTree.memory_twin`). `project_branches()` lists the project's own branches — the root's, local and on origin — with the repositories that hold or lack each (`branch --list`). |
 | `operating_space.py` | 2 | `OperatingSpace`: a `WorkingGitTree` in action, the tree being the only reference. It reads the project's name from `GitTree.project_name`, computes `os_id = SHA256(UTF8(NFC(project_name)))`, and computes `H_GITTREE` (`gittree_root`) from the tree with the same `RegistryTranslator.repo_state_dict` and `GtsDocument.repo_leaf` a `.gts` is written and hashed with, so tree and document cannot disagree; `inclusion_proof(repo_id)` proves one repository is in that root from the same leaves. It runs every git operation on a READY tree (checkout, branch, branch list/close, pull of private repositories, add, rm, commit, merge in its three forms, push, tag, release), refusing any other tree through `Preflight.assert_ready`; clone and pull, which make a tree READY, stay on `GitTree.git`. It holds no lifecycle and reimplements none of the tree's machinery. A rejected name (empty, edge whitespace, control character) is never repaired: `os_id` is `None`, `problem` names the rule, `validate` warns. A root repository whose provider name differs from the project's is warned about at load. Neither the id nor the rules are in `integrity_schema = 1`; `tests/unit/test_operating_space.py` freezes the id and `tests/integration/test_operating_space_integrity.py` checks that every document agrees with the tree. |
 | `git_tree.py` | 1 | Tree structures (`GitTree`/`WorkingGitTree`), traversal, lifecycle state; `GitTree.project_name`, the one source of the project's name, read-only, set once when the tree is built (the root entry names it) and changed only by the internal `_rename_project`; `GitTree.git` keeps only clone and pull, the operations that make a tree READY; `to_cgs()` only delegates to `cgs_format.py`. Also maintains `.gitignore` across the tree (`sync_gitignore`) — filesystem-only, no Git/subprocess. Owns privacy state: `propagate_privacy` makes a parent's `private`/`writable` cover everything nested inside it. `WorkingGitTree.profile` is the only answer to USER or DEV: DEV when any repository is effectively private (`AdditionalSpecs.md`, *The tree profile*); `require_dev(command)` refuses a command in a USER tree. |
-| `gts_integrity.py` | 0 | The three-level hash that names a State (`integrity_schema = 1`): `repo_hash` per repository, an RFC 9162 (formerly RFC 6962) Merkle root over them (`merkle_root`), and the State hash on top (`snapshot_hash`). Pure, on plain dicts; domain-tagged SHA-256. Pinned by golden vectors that CI runs on Linux, macOS and Windows. A released schema is immutable: any change is a new schema. See *What a State's name is computed from*. |
-| `global_integrity.py` | 0 | `GlobalIntegrity(GtsIntegrity)`: the hashes of the Omniscience register (`GLOBAL_SCHEMA = 1`): `H_OS_STATE`, the record hash, the global leaf, `H_GLOBAL`, the checkpoint name. Tags of their own, the tree shape and empty root inherited. Pinned by golden vectors. See *The Omniscience register*. |
+| `merkle/merkle_root.py` | 0 | `MerkleRoot`: the one class every hash goes through (MerkleRoot, owner 2026-10-27): the State's three levels (`integrity_schema = 1`: `repo_leaf_hash`, `gittree_root`, `state_hash`), the Omniscience register's hashes (`GLOBAL_SCHEMA = 1`: `os_state_hash`, `record_hash`, `leaf_digest`, `global_root`, `checkpoint_hash`, `observation_hash`), the content hashes of a ledger entry, a commit log, an Environment, an agent contract and a self-history record (`digest`, `prefixed`), a file's (`content_digest`, `stream_digest`) and the ledger chain's `GENESIS_PREV`; and the two proofs, `InclusionProof` and `GlobalInclusionProof`, which say *verified* or *invalid* and keep their audit path private (an audit path is an inner node, never shown). Pure, domain-tagged SHA-256, and **imports nothing of the package**, not even `GitRepo` (answer A): it takes plain values, so it can become a repository of its own. Which fields make a repository's identity is the adapter's (`GtsDocument.repo_leaf`, `GtsDocument.checked`), pinned by a field-set test. Pinned by golden vectors that CI runs on Linux, macOS and Windows; a released schema is immutable. Replaces `gts_integrity.py`, `global_integrity.py` and `inclusion_proof.py`. See *What a State's name is computed from*. |
 | `omniscience_record.py` | 0 | `OmniscienceRecord`: one registration, what of it is committed (the preimage) and what is a claim, addressing or evidence; `H_OS_STATE`, the record hash that names its file, its global leaf, and its TOML table. Pure: it does not check that `os_id` is the id of `project`; `OperatingSpace` does. |
 | `omniscience_observation.py` | 0 | `Observation`, `ObservationStatus`: one finding about one registered repository, how Git's words about a failed read are sorted into a status, and the observation's name (`CGS:OBSERVATION:v1`). Evidence beside the register, never a leaf. See *Appending to the register*. |
 | `omniscience_completeness.py` | 0 | `CompletenessReport`: the latest finding per target and the verdict; `NOT_FOUND` is a warning, a permanent failure only when repeated for 7 days (`PERMANENT_AFTER`, `PERMANENT_AFTER_COUNT`). |
 | `global_index.py` | 0 | `GlobalIndex`: the accepted records as ordered unique leaves, `H_GLOBAL`, and the checkpoint body and name. Reading and writing the `_global` branch is `GlobalCheckpoints`'. |
 | `omniscience_repository.py` | 1 | `OmniscienceRepository`: the `.cgs` entry that mounts the shared private `omniscience` repository at `.omniscience` (writable only for a contributor), a project branch's branch of it, and the reserved `_global` branch. Runs no Git. |
-| `inclusion_proof.py` | 0 | `InclusionProof`: one repository's RFC 9162 audit path to `H_GITTREE` under schema 1, and its check against a trusted root and size; `GlobalInclusionProof`: the same path from one registration's leaf to `H_GLOBAL` under `GLOBAL_SCHEMA = 1`, rooted and combined with `GlobalIntegrity`'s tags, dispatching on the global schema so the two never verify as each other. Pure; every digest from `GtsIntegrity` or `GlobalIntegrity`, none of its own. See *Proving one repository is in a tree* and *Asking the register*. |
 | `omniscience_answer.py` | 0 | `Answer`, `OmniscienceStatus` (`verified`, `invalid`, `unavailable`, `unauthorized`, `not_registered`), `MemoryDetail` (`remote_unavailable`, `commit_unreachable`, `invalid_proof`, `ledger_corrupt`) and `Stop`: what every query answers with, as one flat table. See *Asking the register*. |
-| `gts_document.py` | 0 | `.gts` runtime state-snapshot parsing/validation; the one builder of each repository's canonical leaf, which it hands to `gts_integrity.py`. The State hash **names the State** (`.cgitsync/state/<hash>.gts`), so it holds only what the workspace *is*: tree-relative paths, refs, commits, who each repository is. No absolute path, no `source_cgs_path`, no toolchain version — those say where a tree was materialised or what observed it, and hashing them gave one tree two names on two machines. `document.integrity_schema` says which hash contract a document was written under. A stamped document without it predates schema 1, and one declaring a higher schema came from a newer build; both are refused by name (`UnsupportedSnapshotFormatError`) before any hash is computed — never recomputed under today's rules and reported as a false mismatch. See `.agent/.local/.localSpec/AdditionalSpecs.md`, *What a State's name is computed from*. |
+| `gts_document.py` | 0 | `.gts` runtime state-snapshot parsing/validation; the one builder of each repository's canonical leaf, which it hands to `MerkleRoot` (`merkle/merkle_root.py`). The State hash **names the State** (`.cgitsync/state/<hash>.gts`), so it holds only what the workspace *is*: tree-relative paths, refs, commits, who each repository is. No absolute path, no `source_cgs_path`, no toolchain version — those say where a tree was materialised or what observed it, and hashing them gave one tree two names on two machines. `document.integrity_schema` says which hash contract a document was written under. A stamped document without it predates schema 1, and one declaring a higher schema came from a newer build; both are refused by name (`UnsupportedSnapshotFormatError`) before any hash is computed — never recomputed under today's rules and reported as a false mismatch. See `.agent/.local/.localSpec/AdditionalSpecs.md`, *What a State's name is computed from*. |
 | `git_runner.py` | 2 | Git subprocess wrapper — the sole `import subprocess` module, and the sole owner of how Git's output is decoded (`errors="replace"` at both wrappers; `_query_bytes` for callers that must search raw bytes) and of the environment Git runs in: `_non_interactive_git_env()` stops Git prompting for credentials *and* pins its message locale to English, because this project reads Git's prose and a translated message costs a non-English user the `--force-protocol` hint. Every question goes through `_query`/`_query_bytes`, so neither policy can be bypassed. `merge`/`fetch`/`mergetool` are operations; `can_merge_cleanly`/`branch_known`/`configured_merge_tool` are read-only questions that never touch a worktree, which is what lets a preflight ask about every repo before acting on any. `can_merge_cleanly` returns the conflicting paths, not a verdict, and counts a binary conflict — which prints no marker and is named on stderr — as a conflict. Read-only questions `is_repository_root`, `remote_head_branch`, `remote_holds_commit`; `checkout_commit` pins a clone. `checkout` and `checkout_commit` are also the one place a worktree file is removed for a checkout: when Git refuses over untracked files and every one it names holds the same content as Git would store it (the same blob id by `hash-object --path` and `rev-parse`, so a CRLF copy counts), they are set aside and the checkout retried, and a failed retry puts every one back; any other refusal is Git's, unchanged (improve-tuto: `bootstrap`'s root `.gitignore`, which a protected `main` never receives). |
 | `clone_guard.py` | 2 | `CloneGuard`: whether a directory `initialise` is about to delete and re-clone holds work that exists nowhere else: a dirty worktree, or commits no remote has. Read-only and worktree-free, so `orchestre.py` can ask about every pending repository before deleting any — a refusal leaves the whole tree on disk. Asks "which commits does no remote hold?", not "is this branch ahead of its upstream", so a detached `HEAD` on a pinned submodule commit does not block. Says nothing about whether a mount point is owned outright. |
 | `operations/` | 2 | A package, one class per operation family — `Preflight`, `BranchOperation`, `RestartOperation`, `CommitOperation`, `RemovalOperation`, `MergeOperation`, `MemoryMergeOperation`, `PushOperation`, `FetchOperation` and the `RepoOutcome` every write returns — each operation a static method; `operations/__init__.py` re-exports every name it always exported (`merge_tree = MergeOperation.merge_tree`), so no caller changed. Leaf/parent-first Git operations over a `WorkingGitTree` + `GitRunner`. Preflight checks only the repositories the operation's `RepoScope` selects, and measures a private repo against its own declared branch. `MemoryMergeOperation` (`operations/memory_merge.py`) is the one place that decides what a tree-wide `merge`, `merge --into`, `merge --resolve` and `pull --private` do to the memory and to a repository with no commit in common: the memory is **kept**, never merged file by file (its own side stays whole, the source becomes a second parent), and unrelated histories are refused by name (`UnrelatedHistoryMerge`); `memory merge` is the same operation with a chosen side. `merge_tree` checks the whole scope before merging any of it, so a conflict anywhere leaves nothing merged; `merge_tree_one_at_a_time` (`merge --resolve`) gives that up on purpose, stopping at the first conflict so a merge tool has a conflicted worktree to open. `merge_status` is the single place a repository's fate is decided, so the dry run and the merge cannot disagree. `add_tree`/`commit_tree`/`push_tree`/`remove_paths` return one `RepoOutcome` per repository visited — what changed, or why nothing did — so "nothing happened" is reportable rather than silent. `remove_paths` is the one scoped operation given its paths instead of sweeping for them, so its scope is a *filter*: a path owned by a repository outside the scope is refused by name, and nothing is removed anywhere. `close_branch` renames a branch to `git_branch.closed_branch_name`'s name, tree-wide leaf-first, never deletes, and refuses before touching any repository when the branch is the project's own default or any repository in scope is currently checked out on it (`assert_closeable`). `AncestorOperation` (`ancestors.py`) says what deleting a branch would lose, keeps it on `ancestors` with a keep-tree merge that only adds a commit, says whether a recorded relocation resolves, and deletes a closed branch only once nothing it holds can be lost. |
@@ -590,7 +588,7 @@ privacy rule — it was six private copies across five modules before that
 module existed. And for a project's identity: `GitTree.project_name` is the
 *only* source of its name (never a repository's own `project_name`, never a
 document's field read on its own), and `OperatingSpace` is the *only* place
-`os_id` and a tree's `H_GITTREE` are computed and the only home of a git
+`os_id` and a tree's `H_GITTREE` are asked for (`MerkleRoot` computes them) and the only home of a git
 operation on a READY tree. Keep parsing/validation offline-safe; only explicit runtime
 Git operations may touch the network.
 
@@ -649,14 +647,18 @@ model. Four rules bind every change from now on:
   Minimalism's map** that says which ring interface it lands on.
 - **The Merkle tree is never materialised, and every hash is its door's**
   *(Minimalism D3, D4, owner, 2026-10-27)*. Every hash is computed by one class,
-  `MerkleRoot` (the MerkleRoot ticket): the State hashes, the ledger chain and the
-  content hashes of the commit log, the Environment and the records. It hands out
-  roots and verdicts, never an inner node, and an audit path counts as a node:
-  `InclusionProof.siblings` is never shown. Hashes are immaterial frontiers held to
+  `MerkleRoot` (`merkle/merkle_root.py`, landed 8.0.1): the State hashes, the ledger
+  chain and the content hashes of the commit log, the Environment, the agent contract
+  and the self-history. It hands out roots and verdicts, never an inner node, and an
+  audit path counts as a node: an `InclusionProof` keeps its path private (it is not a
+  dataclass, has `__slots__` and no `__dict__`, so `asdict` refuses it) and
+  `omniscience proof` no longer prints one. Hashes are immaterial frontiers held to
   the test **LEFT = RIGHT** bit for bit (the hash computed from the structure in
   memory equals the one recomputed from its materialised form: `.gts`, disk,
-  remote). Until MerkleRoot lands, the hashing modules of *What a State's name is
-  computed from* are the only code that builds a node.
+  remote), in `tests/unit/test_merkle_root.py`. The `merkle/` folder imports nothing
+  of the package. Two local hashes stay outside it because they name and prove
+  nothing recorded: a tie-break among candidate paths (`git_tree`) and a cache key
+  (`orchestre/runtime_state_store`); a test names them, so a third fails.
 
 ## Ring model and import rules
 
@@ -678,7 +680,7 @@ ring, never a higher one.
 | 3 — ORCHESTRATION | `orchestre/` package (`client.py`: `ComplexGitSyncClient`; the collaborators it delegates to; `orchestre.py`: `Orchestre`) |
 | 2 — GIT PROCESS | `git_runner.py` (sole `subprocess` importer), `clone_guard.py`, `git_tree_branch.py`, `operating_space.py`, `operations/`, `autofix/`, `registry.py`, `toolchain.py`, `tree_env.py` |
 | 1 — FILESYSTEM | `omniscience_repository.py`, `paths.py`, `commit_message.py` (reads `pyproject.toml`; the commit-message rule), `project_version.py` (reads `pixi.toml`; the project's version), `ticket_gate.py` (reads `DevTickets/archive/` and self-history; the pair rule's gate), `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.agent/.local/.dev/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `memory/` (`states`, `environment`, `agent_contract`, `self_history`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `settings.py`, `snapshot_resolver.py`, `discovery.py`, `master.py`, `git_tree.py` (`.gitignore` writes) |
-| 0 — PURE / OFFLINE | `errors.py`, `omniscience_answer.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `environment_spec.py`, `ledger_entry.py`, `integrity.py`, `gts_integrity.py`, `global_integrity.py`, `inclusion_proof.py`, `omniscience_record.py`, `omniscience_observation.py`, `omniscience_completeness.py`, `global_index.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
+| 0 — PURE / OFFLINE | `errors.py`, `omniscience_answer.py`, `git_repo.py`, `git_branch.py`, `provider.py`, `environment_spec.py`, `ledger_entry.py`, `integrity.py`, `merkle/` (`merkle_root.py`), `omniscience_record.py`, `omniscience_observation.py`, `omniscience_completeness.py`, `global_index.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `config_document.py`/`cgs_format.py`/`gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The five import rules (machine-checked)
 
@@ -1579,7 +1581,7 @@ name, which is why nothing counts occurrences in a file name any more.
 
 The name is built in three levels, so a mismatch can say *which*
 repository changed instead of only "this State is wrong"
-(`gts_integrity.py`; `document.integrity_schema = 1`):
+(`merkle/merkle_root.py`; `document.integrity_schema = 1`):
 
 ```
 H_REPO    = SHA256( b"CGS:REPO:v1\x00"  || canonical_json(repo_leaf) )        -> repo_state[i].repo_hash
@@ -1652,19 +1654,18 @@ and the golden vectors' generator cite RFC 6962; they mean the same tree.
 
 ### Proving one repository is in a tree
 
-An **inclusion proof** (`inclusion_proof.py`, `InclusionProof`) shows that one
+An **inclusion proof** (`merkle/merkle_root.py`, `InclusionProof`) shows that one
 repository's leaf is in a GitTree without showing the other leaves, which may
 be private. It is the RFC 9162 audit path: the leaf's index in
 `relative_path` order, the tree size, the sibling subtree roots from the
 leaf up, as hex, the root it was made against and `schema = 1`. Every digest
-in it comes from `GtsIntegrity` (`repo_leaf_hash`, `node_hash`, and
-`merkle_root` over a sub-range cut where `merkle_root` cuts), so no schema-1
+in it comes from `MerkleRoot` (`repo_leaf_hash`, the inner-node hash, and
+the root over a sub-range cut where the root cuts), so no schema-1
 digest moves and there is no second hash implementation. It is checked
 (RFC 9162 §2.1.3.2) against a trusted root **and** that root's tree size: the
 path alone does not fix the size (leaf 3 walks the same path in a tree of 5
 and of 6), so the size is trusted with the root, as a `.gts` or a register
-record carries both. `verify` answers `False` for a proof whose fields were altered or are not hex; it does not raise on a proof read back with `from_dict`. A proof is
-stored as a TOML table of integers and hex strings (`to_dict`/`from_dict`).
+record carries both. `verify` answers `False` for a proof whose fields were altered or are not hex; it never raises. **The path is private** (owner, 2026-10-27, Minimalism D3): it is an inner node of the tree, so a proof has no accessor for it, no `to_dict` or `from_dict`, and `summary()` shows only the schema, the leaf's index, the tree size and the root. A caller learns *verified* or *invalid*.
 Only the GitTree level is proved: `H_GITTREE` to `H_STATE` is one hash,
 carried by the record that holds the proof (InclusionProofs D1, D2, owner,
 2026-10-21). `OperatingSpace.inclusion_proof(repo_id)` makes one from the
@@ -1786,12 +1787,12 @@ id = "sha256:<64 hex>"                   # the digest the ledger already uses fo
   built only from the **committed** memory: the State folded into the mount,
   the mount clean and its `HEAD` on its remote (`omniscience record`).
 
-### The hashes (`global_integrity.py`, `GLOBAL_SCHEMA = 1`)
+### The hashes (`merkle/merkle_root.py`, `GLOBAL_SCHEMA = 1`)
 
 Every tag differs from schema 1's, so a global digest is never a State, tree or
 repository digest. The tree shape (RFC 9162 §2.1.1, split at the largest power of
 two below N) and the empty root (SHA-256 of the empty string) are the ones
-`GtsIntegrity` already uses; its inner node uses the global tag.
+schema 1 uses, in the same class; its inner node uses the global tag.
 
 ```
 H_OS_STATE  = SHA256( b"CGS:OSSTATE:v1\x00"    || canonical_json({os_id, project_branch, state_id,
@@ -1818,10 +1819,9 @@ commitment) and the publication evidence.
   record hash; whether a second is *accepted* is OmniscienceAppend's.
 - **The empty index** has the empty root.
 - **`H_GLOBAL`** is the root over the ordered leaves.
-- **Proofs**: an inclusion proof is `InclusionProof`'s table (schema,
-  leaf index, tree size, siblings, root). Its verifier is schema 1's; a global
-  proof dispatches on a global schema and is built in OmniscienceQuery, with
-  this section's tags.
+- **Proofs**: a global proof is a `GlobalInclusionProof`: it dispatches on the
+  global schema, uses this section's tags, and shows its schema, leaf index,
+  tree size and root, never its path (MerkleRoot, owner, 2026-10-27).
 - **Checkpoints**, in `checkpoints/<hash>.toml` on `_global`: a body of
   `schema`, `parent` (the previous checkpoint's name, empty for the first),
   `global_root` and the sorted `records` hashes it covers. A checkpoint's name
@@ -1955,7 +1955,7 @@ own: the provider decides who may read, and refusing is `unauthorized`.
   name. A file no checkpoint accepts is *proposed* and listed with its reason.
   `--checkpoint` takes any unambiguous prefix, so earlier registrations can be
   proved under the checkpoint that first covered them.
-- **The proof** is `GlobalInclusionProof` over the ordered leaf digests of the
+- **The proof** is a `GlobalInclusionProof` (path private) over the ordered leaf digests of the
   accepted records, checked against the checkpoint's stated root and size. Order
   in `history` is causal (the checkpoint that first covered the record), then
   the contributor's claimed time, then the record hash.
