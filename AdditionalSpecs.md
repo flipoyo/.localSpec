@@ -594,14 +594,15 @@ document's field read on its own), and `OperatingSpace` is the *only* place
 operation on a READY tree. Keep parsing/validation offline-safe; only explicit runtime
 Git operations may touch the network.
 
-**The CLI mirrors the Python API.** End users only use the CLI, so every
-capability must exist in both layers: implement it as a
-`ComplexGitSyncClient` method carrying all the semantics, then wire a thin
-`_handle_*` → `_execute_*` pair in the owning `cli/<group>.py` module (per
-the Minimalist/Expert/Configuration grouping `cgitsync --help` and the user guide show) that collects arguments,
-calls that one method, and prints. A client method with no CLI surface is
-unreachable for users; a CLI command with logic of its own breaks the
-mirror. `cli/` must never touch `subprocess`/Git or parse repository
+**The CLI mirrors the Python API, one way** (owner, 2026-10-27, Minimalism D2).
+Every CLI command has a `ComplexGitSyncClient` method carrying all its semantics:
+implement the method, then wire a thin `_handle_*` → `_execute_*` pair in the
+owning `cli/<group>.py` module (per the Minimalist/Expert/Configuration grouping
+`cgitsync --help` and the user guide show) that collects arguments, calls that one
+method, and prints. A command with logic of its own, or with no client method,
+breaks the mirror. The reverse is not required: a client method may have no command,
+and is then the surface of a Python caller or of gx4g, not of an end user (the CLI is
+attack surface, and is kept to the minimum). `cli/` must never touch `subprocess`/Git or parse repository
 identifiers. Every new command follows `DevSpecs.md`'s *CLI Grammar*
 (subcommands are plain words, `--` is only an option), which
 `tests/unit/test_cli_grammar.py` checks on the real parser.
@@ -614,7 +615,9 @@ interfaces between rings. In the owner's model:
 - `ComplexGitSyncClient` is the gate of GitTree;
 - `WorkingGitTree` is the Operating Space;
 - `.cgs` is the API of USER (ring 3 ↔ 4), `.gts` the API of DEV (ring 2 ↔ 3),
-  and `OperatingSpace` the API of OPX (ring 1 ↔ 2);
+  and `OperatingSpace` the API of OPX, the operating system (owner, 2026-10-27): the
+  interface between the file tree (ring 1) and the Git actions (ring 2). The code
+  consumes it from ring 3 today, a deviation SrcLayout and CliReduction correct;
 - *(short ticket `gitRepo`)* `GitRepo` is the dependency, "a specific Graph
   for GX4G", that provides Graph and GitRepo. `cgitsync` mounts it as a
   GitTree, protected through the Merkle tree that is never exposed.
@@ -631,18 +634,29 @@ model. Four rules bind every change from now on:
   `TreeObserver`'s sign-in probe. They are listed for ProviderMigration and
   leave once gx4g offers each. Git itself (clone, fetch, push) stays
   `cgitsync`'s: that is executing.
-- **A write to the Omniscience register is gx4g's** *(`gitRepo`)*. gx4g holds
-  the register, and `cgitsync` produces what is written (a State's record,
-  a dead-branch finding). It adds no write path, and its existing writer
-  (`omniscience mount`, `register`, `observe`; *Appending to the register*)
-  stays only until ProviderMigration.
+- **Omniscience is gx4g's, all of it** *(`gitRepo`; Minimalism D7, owner,
+  2026-10-27)*. *The gate owns only Omniscience; the other registers stay in the
+  protected project.* gx4g holds the register: it writes it and answers every read.
+  `cgitsync` produces what is written (a State's record, a dead-branch finding), adds
+  no write path and no read, and its existing `omniscience` commands other than
+  `record` (*Appending to the register*, *Asking the register*) stay only until
+  ProviderMigration.
+- **`cgitsync` runs with no gx4g, and keeps its own registers.** The ledger, the
+  memory and the self-history are the project's, local first. A command stays when
+  `cgitsync` needs it to run standalone (`memory *`, `branch create`, `release *`),
+  and only what gx4g owns leaves (Minimalism D1, *the autonomous rule*).
 - **No command or public client method is added without a row in
   Minimalism's map** that says which ring interface it lands on.
-- **The Merkle tree is never materialised.** The State hashes are computed by
-  one class, `MerkleRoot` (the MerkleRoot ticket), which hands out roots and
-  proof objects and never an inner node. Until it lands, the hashing modules
-  of *What a State's name is computed from* are the only code that builds a
-  node.
+- **The Merkle tree is never materialised, and every hash is its door's**
+  *(Minimalism D3, D4, owner, 2026-10-27)*. Every hash is computed by one class,
+  `MerkleRoot` (the MerkleRoot ticket): the State hashes, the ledger chain and the
+  content hashes of the commit log, the Environment and the records. It hands out
+  roots and verdicts, never an inner node, and an audit path counts as a node:
+  `InclusionProof.siblings` is never shown. Hashes are immaterial frontiers held to
+  the test **LEFT = RIGHT** bit for bit (the hash computed from the structure in
+  memory equals the one recomputed from its materialised form: `.gts`, disk,
+  remote). Until MerkleRoot lands, the hashing modules of *What a State's name is
+  computed from* are the only code that builds a node.
 
 ## Ring model and import rules
 
