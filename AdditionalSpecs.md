@@ -1255,6 +1255,14 @@ and commits it there (*folded*); `PendingMemory` reads both as one. Only the
 fold ever writes into `.memory`'s worktree, which is why `merge` and `checkout`
 can treat it like any other private/local repository.
 
+These two words are the vocabulary, and `.cgitsync` stays the directory's name
+(WorkingAreaRename D1, 2026-10-27: renaming it to `.working` would migrate
+every workspace for a name users rarely type, and *folded* and *pending* say
+which half is which better than `.working` does). `memory status` prints
+`folded=` and `pending=` entry counts, and answers `pending_entries`; any new
+prose, output or error text that means one half says *folded* or *pending*, and
+never the bare directory name.
+
 **Local first, for everyone.** A memory is always a local repository before it
 is anything else. A `.cgs` that declares no memory gets one made locally
 (`orchestre/default_memory.py`), which is never pushed; a memory the `.cgs`
