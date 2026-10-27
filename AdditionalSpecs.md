@@ -1907,7 +1907,8 @@ its content:
   `GITTREE_ROOT_MISMATCH`), and a State on disk that no entry records
   (`ORPHAN_STATE`).
 - **The commit logs**: rows that no longer digest to what the entry that
-  wrote them recorded — edited, added or removed (`COMMIT_LOG_MISMATCH`) —
+  wrote them recorded — edited, added or removed (`COMMIT_LOG_MISMATCH`), or
+  all deleted by the pre-6.8.1 fold (`COMMIT_LOG_LOST`, a recorded loss) —
   and commit messages kept under a State that is gone
   (`ORPHAN_COMMIT_LOG`). The second is reported and never deleted: removing
   a record because the thing beside it went missing is how a record stops
@@ -2065,7 +2066,7 @@ snapshot — the two rules that serve workspaces written before the chain
 existed. Deciding from a filesystem timestamp is what the register used to
 do to pick a parent, and it is what the chain exists to stop.
 
-### The five answers `verify` owes
+### The six answers `verify` owes
 
 A verification pass ends in exactly one of these, never a blur of two:
 
@@ -2076,6 +2077,7 @@ A verification pass ends in exactly one of these, never a blur of two:
 | **legacy** | History exists only in the single-file `.lgr` format, which carries no chain: readable, not verifiable | `1` |
 | **corrupt** | A chain was read and it does not hold | `1` |
 | **time-inconsistent** | The chain holds — every link checked out — and its own timestamps move backwards somewhere | `1` |
+| **incomplete** | The chain holds, and the only loss is commit messages the pre-6.8.1 fold deleted (`COMMIT_LOG_LOST`, CommitLogLoss, owner 2026-10-27) | `0` |
 
 `Finding` enumerates what "does not hold" can mean: `BROKEN_LINK`,
 `BAD_ENTRY_HASH`, `SEQ_GAP`, `SEQ_DUPLICATE` and `HEAD_STALE` for the chain
@@ -2084,7 +2086,18 @@ and its cache, plus `MISSING_STATE`, `ORPHAN_STATE`,
 for the store-level pass that becomes
 possible once a State is named by its content, `UNRESOLVED_RELOCATION` (a
 recorded move whose asset is not at its new address), and `TIME_REGRESSION`
-below.
+below. `COMMIT_LOG_LOST` is the one finding that says something is *missing*
+without anything being wrong with what is there: an entry whose
+`toolchain.cgitsync` is older than 6.8.1 (`ChainVerifier.COMMIT_LOG_FOLD_FIXED_IN`),
+which records a commit log, and of which **no** row is left. That fold deleted
+the pending commit logs; 6.8.1 fixed it and said the rows are not recovered.
+The version is inside the entry's hash, so it cannot be lowered to excuse a
+loss. A partial loss, a changed row, or a loss on a 6.8.1-or-later entry
+stays `COMMIT_LOG_MISMATCH`. `INCOMPLETE` is below `CORRUPT` and
+`TIME_INCONSISTENT` in `resolve_state`'s precedence. Omniscience accepts it
+as a chain that holds (CommitLogLoss D2), which is trivially true: its memory
+read checks the hash chain only and never reads commit logs, so a recorded
+loss never reaches its answers (owner, 2026-10-27).
 
 #### `time-inconsistent`, and why it is not `corrupt`
 
