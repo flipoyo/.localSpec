@@ -418,6 +418,39 @@ refused.
 `.cgitsync/.cgs/`. `memory reboot` still exports one into the mount's `.cgs/`,
 on purpose; leftovers already pushed stay, and `verify` ignores them.
 
+## One clone per repository, one `.agent` per tree (NestedAgentMaster)
+
+DevSpecs puts every conforming project's agentics at the same paths (`.agent/.distant/{ticket,dev-sync,documentation}`,
+`.agent/.local/.dev`). A project that nests another's developer spec therefore mounts the shared repositories twice, at
+two absolute paths, and its State used to refuse itself (`duplicate relative_path`, gx4g's DEV bootstrap, 2026-10-27).
+
+**The master's mount wins** (owner, D3). A tree holds one state of a repository, so it mounts it once: when a nested spec's
+`[[repos]]` names a repository that the tree mounts **nearer the trunk** (distance from the root, `mount_alias.depth`), that
+nested entry is not registered. `tree/mount_alias.py` records it as an alias of the nearer mount (`WorkingRepo.aliases`,
+tree-relative) and links it with a **relative symlink** (D2), so the nested project's agents keep the paths its own spec
+names. The nested spec's branch does not count: the trunk's state is the tree's. At one distance neither wins and both stay,
+as before. Discovery handles the shallowest entries first, so a nearer mount is always known. A nested spec placing a
+*different* repository at a path the tree already uses is refused by name (`refuse_clash`) before anything is cloned.
+
+**A mount nobody above has stays its own** and sits where its spec puts it, on the PROJECT's branch
+(`.agent/.local/.claude`, `.localSpec`, `.cgitsync/.memory`, `docs`). The relation follows the tree, never the command
+(D4): ComplexGitSync is the slave wherever it sits under a PROJECT, whether opened by `initialise` or `bootstrap`; "standalone"
+means only a tree whose root is ComplexGitSync, which has no nearer mount and is its own master. Like the twin's memory it is
+a fact of the tree's structure, decided where the tree is built, never re-derived from the copy that runs.
+
+**The State's key (integrity schema 2, D1).** `relative_path` is from the parent, so two nested specs can share one. A
+State whose tree has a shared `relative_path` or an alias is written under **schema 2**: every leaf carries a `tree_path`
+(POSIX, from the tree's root, `.` for the root), leaves are ordered, de-duplicated and proved on it, and a leaf with aliases
+lists them. Every other tree stays on schema 1, so no State written before is rehashed, no `gittree_root` moves and every
+registered record still verifies. A schema-2 reader reads both; an older build refuses a schema-2 State by name.
+
+**Who leads inside a Parent (§7 of the ticket, Q1–Q6).** The PROJECT's orchestrator leads under `initialise`, and the Parent's
+agent works as its worker, reading the PROJECT's tickets (the master's `.dev`) and the same shared specs. Inside the Parent's
+own source its own `CLAUDE.md` checklist binds (lint, ceilings, `bump-build`, its own release); the PROJECT's rules apply where
+the two meet: the commit message and the shared release. What a level may do is computed from the State, read-only, through
+the outputs that exist (`status --json`, the `.gts`: private, writable, branch, fallback, `nested_config`, aliases), never
+declared by the level. This is this project's rule for now; lifting it into `DevSpec` as a pattern is a separate upstream ticket.
+
 ## The tree profile
 
 *Added 2026-09-30 (UserDevProfile).* A loaded tree is **USER** or **DEV**,

@@ -50,3 +50,12 @@ working inside `src/ComplexGitSync/`. (`audit.md` is a different
 file — findings, legacy references, and open decisions/risks, not
 architecture rules.) The template's other handoff rules (one concern per
 commit, up-front decomposition of multi-role tasks) apply here unchanged.
+
+## In a nested tree (NestedAgentMaster §7)
+
+Under a PROJECT that nests ComplexGitSync (`initialise`, or `bootstrap` of a spec that nests it), the PROJECT's orchestrator
+leads and this project's agents work as its workers. They read the PROJECT's tickets and the shared specs the tree mounts once,
+and keep their own skills and `AdditionalSpecs.md`. Inside `src/ComplexGitSync/` this project's own checklist binds (lint,
+ceilings, `bump-build`, its own release); the PROJECT's rules apply where the two meet: the commit message and the shared
+release. Standalone, with ComplexGitSync as the root of its tree, these agents are their own master. Details:
+`AdditionalSpecs.md` §One clone per repository, one `.agent` per tree.
