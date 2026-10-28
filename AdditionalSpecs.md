@@ -1485,6 +1485,27 @@ the command in a child that calls `os._exit(137)`. A `raise` test never claims
 to cover a crash window. A killed command leaves its workspace lock behind
 (StateLocking), which the next writing command names as stale.
 
+## Dead branches (BranchProtection M5)
+
+`tree/branch_findings.py` (`BranchWatch`, `BranchFinding`) finds a project branch that ended outside
+`cgitsync` or is ending badly, and `status`, `branch list` and their `--json` hand it over. It writes
+nothing: the Omniscience register is gx4g's, so gx4g records the finding (short ticket `gitRepo`).
+
+| Kind | Severity | What Git and the ledger say |
+|---|---|---|
+| `vanished` | error | The commit logs record a push of the root branch; it is absent from origin (as of the last fetch) and from `closed/`; the ledger holds no relocation of it and no `branch delete` entry names it (a safe branch is deleted with nothing to keep, so it leaves no relocation). A branch closed by plain Git is this, with that fact in its evidence |
+| `half-closed` | warning | `closed/B` in some repositories that follow the project, live `B` in others |
+| `split` | warning | Live `B` in some, in none of the others (a branch each repository would be on under it, per `GitTreeBranches.target`) |
+| `orphaned-private` | warning | A private/local branch `<P>_B` (or a twin's `ComplexGitSync_<P>_B`) survives with no project branch `B` |
+| `closed` | info | `closed/B` in the repositories, none live: the healthy end |
+
+**No answer is not dead.** A root with no remote-tracking branch has never been fetched, so it is judged
+by nothing; a fetch that fails leaves the old refs, so nothing becomes `vanished` by it. The tag, the
+default branch, `ancestors` and `<name>.archived-<date>` (`memory reboot`) are never judged. A finding is
+content-addressed: its `name` is the hash of everything it says, and it is **not** hashed into `H_GLOBAL`.
+No provider is called, and no command is added: it is read through `branch list`, `status` and the client
+(`branch_findings()`, `branch_list_json()`).
+
 ## The workspace lock (StateLocking)
 
 *Landed 2026-10-27 (StateLocking D1-D4, owner).* Two `cgitsync` commands writing
