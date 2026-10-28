@@ -71,10 +71,10 @@ The authoritative execution results are reported with the Phase 6 change set.
   should prefer `fallback_branch` over the declared name.
 - **A private/local repository's branch is computed two different ways,
   and only the privacy-blind one runs before the first clone.**
-  `resolve_declared_ref` (`registry.py`'s GT-LOAD, `discovery.py`'s
+  `resolve_declared_ref` (`tree/registry.py`'s GT-LOAD, `tree/discovery.py`'s
   GT-DISCOVER) has no `private`/`writable` parameter and cannot apply
   `private_local_branch`; `resolve_propagated_ref`
-  (`git_tree_branch.py`, every branch move after the tree exists) does.
+  (`tree/git_tree_branch.py`, every branch move after the tree exists) does.
   The two agree only if a `.cgs` author hand-types
   `private_local_branch(project_name, project_branch)` into the entry's
   `default_branch` field — which goes stale silently (`examples/molonari.cgs`
