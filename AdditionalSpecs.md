@@ -418,37 +418,47 @@ refused.
 `.cgitsync/.cgs/`. `memory reboot` still exports one into the mount's `.cgs/`,
 on purpose; leftovers already pushed stay, and `verify` ignores them.
 
-## One clone per repository, one `.agent` per tree (NestedAgentMaster)
+## A `.cgs` asks, the `.gts` may refuse (IntegrityMount)
 
-DevSpecs puts every conforming project's agentics at the same paths (`.agent/.distant/{ticket,dev-sync,documentation}`,
-`.agent/.local/.dev`). A project that nests another's developer spec therefore mounts the shared repositories twice, at
-two absolute paths, and its State used to refuse itself (`duplicate relative_path`, gx4g's DEV bootstrap, 2026-10-27).
+cgitsync's one mission is the GitTree's integrity, and the GitTree (the `.gts`) is the one reference.
+A `.cgs`, and each nested `.cgs`, is a **request** for mounts; the `.gts` is the operable result, and it
+may refuse a request (owner, 2026-10-28). It never changes shape to make a request fit: one State schema
+(1), one leaf per clone, keyed by `relative_path`.
 
-**The master's mount wins** (owner, D3). A tree holds one state of a repository, so it mounts it once: when a nested spec's
-`[[repos]]` names a repository that the tree mounts **nearer the trunk** (distance from the root, `mount_alias.depth`), that
-nested entry is not registered. `tree/mount_alias.py` records it as an alias of the nearer mount (`WorkingRepo.aliases`,
-tree-relative) and links it with a **relative symlink** (D2), so the nested project's agents keep the paths its own spec
-names. The nested spec's branch does not count: the trunk's state is the tree's. At one distance neither wins and both stay,
-as before. Discovery handles the shallowest entries first, so a nearer mount is always known. A nested spec placing a
-*different* repository at a path the tree already uses is refused by name (`refuse_clash`) before anything is cloned.
+**Integrity is one repository on one branch, once, under one key.** A nested request is denied, before
+anything is cloned for it, when it would make the tree hold:
 
-**A mount nobody above has stays its own** and sits where its spec puts it, on the PROJECT's branch
-(`.agent/.local/.claude`, `.localSpec`, `.cgitsync/.memory`, `docs`). The relation follows the tree, never the command
-(D4): ComplexGitSync is the slave wherever it sits under a PROJECT, whether opened by `initialise` or `bootstrap`; "standalone"
-means only a tree whose root is ComplexGitSync, which has no nearer mount and is its own master. Like the twin's memory it is
-a fact of the tree's structure, decided where the tree is built, never re-derived from the copy that runs.
+1. a **different repository at a path the tree already uses** (`MountGuard.clash`, ring 1, applied by discovery);
+2. a repository the tree already holds **on the same branch**, at another path (`MountDenial.deny`, ring 2);
+3. two leaves on **one `relative_path`**, the schema-1 key, even on distinct branches (`MountDenial.deny`).
 
-**The State's key (integrity schema 2, D1).** `relative_path` is from the parent, so two nested specs can share one. A
-State whose tree has a shared `relative_path` or an alias is written under **schema 2**: every leaf carries a `tree_path`
-(POSIX, from the tree's root, `.` for the root), leaves are ordered, de-duplicated and proved on it, and a leaf with aliases
-lists them. Every other tree stays on schema 1, so no State written before is rehashed, no `gittree_root` moves and every
-registered record still verifies. A schema-2 reader reads both; an older build refuses a schema-2 State by name.
+Denials 2 and 3 compare the branch `GitTreeBranches.target` gives, so they run in `tree/mount_denial.py` (ring 2),
+which the client calls right after discovery (`DiscoveryCommands.discover_nested_configs`), once privacy has
+propagated. The request **farther from the trunk** loses; at one distance, the one discovered later (discovery
+handles the shallowest pending entries first). A mount already in the tree is never displaced: when a holder is
+cloned late (missing on an earlier pass), its request meets a deeper mount kept before, and it is the later
+request that is denied. A denied request never enters the registry: nothing is cloned and
+nothing is written on disk for it. The client prints `denied: <repo_id>: <why>` and writes a
+`mount_denied` event to the run log; the `.gts` never mentions it, so `status` does not list it.
 
-**Who leads inside a Parent (§7 of the ticket, Q1–Q6).** The PROJECT's orchestrator leads under `initialise`, and the Parent's
+**A nested Parent's private repository has a branch of its own.** The same repository on two distinct
+branches is two states, so the Project's private repository and a nested Parent's must not meet on one
+branch. A private/local repository declared by a nested Parent's spec (ComplexGitSync under gx4g) is on
+**`<Parent>_<Project>`** (`<Parent>_<Project>_<X>` on project branch `X`): `MountGuard.owner` names the
+Parent, read from the tree and never from the entry's own `source_cgs_path` (promotion overwrites it): an entry the
+root's spec declared has none; otherwise its parent declared it when that parent holds a nested spec in its own
+directory or shares its spec, and the Parent is that parent if it is a project repository, or the parent's own Parent
+if it is private (a nested memory's `.self-history` follows its memory; this tree's stays on `ComplexGitSync`), and `git_branch.private_local_branch(..., owner=)` composes the name,
+the twin's memory being the same rule with ComplexGitSync as owner. `GitTreeBranches.target`, `merge`
+(`MountGuard.base`) and the dead-branch findings read it there. A tree opened before this rule keeps its
+private repositories on the old branch until the new one is created: the existing fallback applies, nothing
+is renamed for it.
+
+**Who leads inside a Parent (NestedAgentMaster §7, Q1–Q6, kept by IntegrityMount D6).** The PROJECT's orchestrator leads under `initialise`, and the Parent's
 agent works as its worker, reading the PROJECT's tickets (the master's `.dev`) and the same shared specs. Inside the Parent's
 own source its own `CLAUDE.md` checklist binds (lint, ceilings, `bump-build`, its own release); the PROJECT's rules apply where
 the two meet: the commit message and the shared release. What a level may do is computed from the State, read-only, through
-the outputs that exist (`status --json`, the `.gts`: private, writable, branch, fallback, `nested_config`, aliases), never
+the outputs that exist (`status --json`, the `.gts`: private, writable, branch, fallback, `nested_config`), never
 declared by the level. This is this project's rule for now; lifting it into `DevSpec` as a pattern is a separate upstream ticket.
 
 ## The tree profile
@@ -571,6 +581,8 @@ human-readable summary.
 | `git_repo/clone_guard.py` | 2 | `CloneGuard`: whether a directory `initialise` is about to delete and re-clone holds work that exists nowhere else: a dirty worktree, or commits no remote has. Read-only and worktree-free, so `orchestre.py` can ask about every pending repository before deleting any — a refusal leaves the whole tree on disk. Asks "which commits does no remote hold?", not "is this branch ahead of its upstream", so a detached `HEAD` on a pinned submodule commit does not block. Says nothing about whether a mount point is owned outright. |
 | `tree/operations/` | 2 | A package, one class per operation family — `Preflight`, `BranchOperation`, `RestartOperation`, `CommitOperation`, `RemovalOperation`, `MergeOperation`, `MemoryMergeOperation`, `PushOperation`, `FetchOperation` and the `RepoOutcome` every write returns — each operation a static method; `tree/operations/__init__.py` re-exports every name it always exported (`merge_tree = MergeOperation.merge_tree`), so no caller changed. Leaf/parent-first Git operations over a `WorkingGitTree` + `GitRunner`. Preflight checks only the repositories the operation's `RepoScope` selects, and measures a private repo against its own declared branch. `MemoryMergeOperation` (`tree/operations/memory_merge.py`) is the one place that decides what a tree-wide `merge`, `merge --into`, `merge --resolve` and `pull --private` do to the memory and to a repository with no commit in common: the memory is **kept**, never merged file by file (its own side stays whole, the source becomes a second parent), and unrelated histories are refused by name (`UnrelatedHistoryMerge`); `memory merge` is the same operation with a chosen side. `merge_tree` checks the whole scope before merging any of it, so a conflict anywhere leaves nothing merged; `merge_tree_one_at_a_time` (`merge --resolve`) gives that up on purpose, stopping at the first conflict so a merge tool has a conflicted worktree to open. `merge_status` is the single place a repository's fate is decided, so the dry run and the merge cannot disagree. `add_tree`/`commit_tree`/`push_tree`/`remove_paths` return one `RepoOutcome` per repository visited — what changed, or why nothing did — so "nothing happened" is reportable rather than silent. `remove_paths` is the one scoped operation given its paths instead of sweeping for them, so its scope is a *filter*: a path owned by a repository outside the scope is refused by name, and nothing is removed anywhere. `close_branch` renames a branch to `git_branch.closed_branch_name`'s name, tree-wide leaf-first, never deletes, and refuses before touching any repository when the branch is the project's own default or any repository in scope is currently checked out on it (`assert_closeable`). `AncestorOperation` (`ancestors.py`) says what deleting a branch would lose, keeps it on `ancestors` with a keep-tree merge that only adds a commit, says whether a recorded relocation resolves, and deletes a closed branch only once nothing it holds can be lost. |
 | `tree/registry.py` | 2 | `RegistryTranslator`: translates `.cgs`/`.gts` documents to/from `WorkingGitTree`. **The `.gts` prevails over the `.cgs`** — a snapshot is the attested state, and a hand-edited `.cgs` must never be able to widen write access behind it. |
+| `tree/mount_guard.py` | 1 | `MountGuard`: which repository a mount names, its distance from the trunk, denial 1 (a different repository at a used path, applied by discovery), and the nested Parent a private repository belongs to (`owner`, `base`). Reads the registry only (IntegrityMount). |
+| `tree/mount_denial.py` | 2 | `MountDenial.deny`: denials 2 and 3 (a repository already held on the same branch; a `relative_path` already used), over what one discovery added, before any clone. Writes nothing; the client says each denial and logs `mount_denied`. |
 | `tree/autofix/` | 2 | Diagnoses and repairs a git situation, starting from the error `cgitsync` already produced (`cgitsync autofix`, `ComplexGitSyncClient.autofix`). **Its purpose is easing the merge procedure, and it rewrites nothing**: it repairs only by adding a commit, never by amending, rebasing or force-pushing (`AdditionalSpecs.md`, *The hard prohibitions*). When a merge error comes from a bad commit message, it names the commit and the rule it breaks and proposes ways to extract the message intact (`git show -s --format=%B <sha>`), and does nothing else. One `repair_*.py` module per repair purpose, each with its own class implementing `base.Repair` (`matches`/`repair`) — growth is one new module and one line in `repair_from_cli.FromCliRepair._REGISTRY`, never a branch inside an existing class, so the package does not become a melting pot as incidents accumulate. `repair_from_cli.py` is the dispatcher `cgitsync autofix` calls: `find_last_error` reads the most recent `.cgitsync/logs/*.log`'s failing command, so a caller never has to retype what just failed. `repair_divergent_user.py` is the first repair — a private repository whose branch diverged because two machines each wrote to it independently, where the content has a sequencing invariant a plain merge cannot see (`.memory`'s hash-chained `lgr/`, per `base.CHAIN_SHAPED_REPOS`); it re-sequences both sides' new entries in `recorded_at` order and verifies the result before ever committing, refusing outright rather than guessing if the two sides are not disjoint. `repair_merge_conflict.py` is the second, and the one that only ever *diagnoses*: a tree-wide merge that refused, re-checked against Git (`can_merge_cleanly`, read-only) rather than trusted from the log line, then reported with the repositories, the paths and the `merge --resolve` that opens them. It resolves nothing on purpose — which side of a content conflict is right is a person's call — and that is still the whole gain, because the answer it replaces was "no failing command found in the run log". `repair_commit_message.py` is the third, and the first with a second source of trouble: `Situation` carries a `commit`, a `commit_message` and the tree's `CommitMessagePolicy` beside `source_error`, and `FromCliRepair.inspect_tip_commits` fills them when the log holds no failing command, reading the tip commit of each writable repository through `GitRunner.tip_commit`. It judges only a commit authored under the repository's own `user.email`, reports a message that breaks `CommitMessagePolicy` or shows suspected shell damage (two spaces in a row, a space before punctuation that is followed by whitespace, so a dotted name like `.cgs` is not flagged; every writable repository is judged, private mounts included, against the root's project prefix), gives the commands that extract the message intact, and writes nothing. A peer of `operations.py`, not part of `tree/memory/`: it orchestrates `git_repo/git_runner.py` for the Git half and `tree/memory/` for the chain half, and — like every module here — never imports `subprocess` itself. |
 | `tree/settings.py` | 1 | `Settings`: where workspaces live (`$CGSPATH`, else `$HOME/.cgs`; `home_directory` is the one place `~` is decided: `$HOME` first on every platform, a Git Bash `/c/Users/x` read as `C:/Users/x`, `Path.home()` only when `HOME` is unset, and `tree/paths.py` asks it rather than keep a copy; WindowsCompatibility D3), the default workspace a command falls back to when discovery finds nothing — created once, recorded in `$HOME/.cgs/default`, holding an empty but valid `.gts` that never claims to be `READY` — the other workspaces the CLI offers as a hint, and the `STANDALONE`/`NESTED` use case, derived from whether the running installation sits inside the resolved CGSHOME. Answers all of it before a workspace is open, which `tree/master.py` cannot. `UseCase` is obeyed by `initialise`, which refuses `STANDALONE` and names `bootstrap`, and read once by a standalone install to file its memory as a twin's (EnvConnect C8); never re-read for that afterwards. |
 | `tree/paths.py`, `state_store.py`, `tree/discovery.py`, `status_render.py`, `tree/snapshot_resolver.py` | 0, 1 | Path/CGSHOME resolution (`PathResolver` — the one owner of the `$HOME`/`$CGSTREE` markers; `tree/registry.py` no longer keeps a copy), state-directory allocation, nested-config/`.gitmodules` discovery, pure status-table rendering (including the `SCOPE` column's user-facing wording: `project` / `private/local` / `private/distant` for project / private+writable / private read-only), and default-`.gts`-snapshot resolution — each extracted from `orchestre.py`/`cli/` during the isolation work (`.agent/.local/.dev/DevTickets/archive/20260828_Isolation_DevPlanTicket.md`). `tree/snapshot_resolver.py`'s `describe_*` functions also carry *which input* chose the workspace (`--search-dir` > `$CGSHOME` > current directory) so `cli/` can print it and warn when the resolved CGSHOME does not contain the current directory; the module itself never prints. |
@@ -739,8 +751,8 @@ ring, never a higher one.
 |---|---|
 | 4 — ADAPTER | `cli/` package (`_shared.py`, `minimalist.py`, `expert.py`, `configuration.py`, `environment.py`, `suggest.py`, `__init__.py` assembling them) |
 | 3 — ORCHESTRATION | `orchestre/` package (`client.py`: `ComplexGitSyncClient`; the collaborators it delegates to; `orchestre.py`: `Orchestre`) |
-| 2 — GIT PROCESS | `git_repo/git_runner.py` (sole `subprocess` importer), `git_repo/clone_guard.py`, `tree/git_tree_branch.py`, `operating_space/operating_space.py`, `tree/operations/`, `tree/autofix/`, `tree/registry.py`, `tree/toolchain.py`, `tree/tree_env.py` |
-| 1 — FILESYSTEM | `omniscience/omniscience_repository.py`, `tree/paths.py`, `tree/commit_message.py` (reads `pyproject.toml`; the commit-message rule), `tree/project_version.py` (reads `pixi.toml`; the project's version), `tree/ticket_gate.py` (reads `DevTickets/archive/` and self-history; the pair rule's gate), `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.agent/.local/.dev/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `tree/memory/` (`states`, `environment`, `agent_contract`, `self_history`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `tree/settings.py`, `tree/snapshot_resolver.py`, `tree/discovery.py`, `tree/master.py`, `tree/git_tree.py` (`.gitignore` writes) |
+| 2 — GIT PROCESS | `git_repo/git_runner.py` (sole `subprocess` importer), `tree/mount_denial.py`, `git_repo/clone_guard.py`, `tree/git_tree_branch.py`, `operating_space/operating_space.py`, `tree/operations/`, `tree/autofix/`, `tree/registry.py`, `tree/toolchain.py`, `tree/tree_env.py` |
+| 1 — FILESYSTEM | `omniscience/omniscience_repository.py`, `tree/mount_guard.py`, `tree/paths.py`, `tree/commit_message.py` (reads `pyproject.toml`; the commit-message rule), `tree/project_version.py` (reads `pixi.toml`; the project's version), `tree/ticket_gate.py` (reads `DevTickets/archive/` and self-history; the pair rule's gate), `universal_clock.py` (sole reader of the real wall clock/PID/entropy source — see `.agent/.local/.dev/DevTickets/archive/20260920_UniversalClock_DevPlanTicket.md`), `tree/memory/` (`states`, `environment`, `agent_contract`, `self_history`, `ledger_entry`, `ledger_store`, `commit_log`, `integrity`, `store`, `repository`), `tree/settings.py`, `tree/snapshot_resolver.py`, `tree/discovery.py`, `tree/master.py`, `tree/git_tree.py` (`.gitignore` writes) |
 | 0 — PURE / OFFLINE | `errors.py`, `omniscience/omniscience_answer.py`, `git_repo/git_repo.py`, `git_repo/git_branch.py`, `git_repo/provider.py`, `tree/environment_spec.py`, `ledger_entry.py`, `integrity.py`, `merkle/` (`merkle_root.py`), `omniscience/omniscience_record.py`, `omniscience/omniscience_observation.py`, `omniscience/omniscience_completeness.py`, `omniscience/global_index.py`, `json_render.py`, `status_render.py`, plus the Ring-0 core of `tree/config_document.py`/`tree/cgs_format.py`/`tree/gts_document.py` (each also carries a Ring-1 I/O adapter for real call-site compatibility — see those modules' own docstrings) |
 
 ### The five import rules (machine-checked)
@@ -787,7 +799,7 @@ Directional targets, for context: ≤500 LOC hard / ≤350 target per module,
 separately and absolutely via `ruff`'s `C90` selector (`pyproject.toml`,
 max 12) — a handful of pre-existing functions carry a documented
 `# noqa: C901` (search the codebase for "Pre-existing complexity debt");
-new code has no such exemption.
+new code has no such exemption. On 2026-10-28 the owner approved IntegrityMount's raise, so that no line is joined to fit: `orchestre/discovery_commands.py` 671 → 678, `orchestre/tree_commands.py` 1071 → 1075, `tree/discovery.py` 231 → 236, `tree/git_tree_branch.py` 411 → 413, `tree/operations/merge.py` 513 → 514.
 
 ### Docstring contracts
 
