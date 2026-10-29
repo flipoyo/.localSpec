@@ -1575,7 +1575,7 @@ methods are outside that set and still go direct.
 - **Sigma in the register.** `OmniscienceRecord.sigma`, the number of parts a `*G`'s level exposes, is shown in the
   record's `[record]` table and committed only when present, like `published_state_id`: a record without it keeps
   its hash and `GLOBAL_SCHEMA` stays 1. `omniscience register` is not restricted to PoE graphs yet; that refusal
-  comes with ProviderMigration (BeforeBeta §3b).
+  comes with ProviderMigration (BeforeCGS-BETA §3b).
 - `Op` calls no provider and writes nothing to the register itself.
 
 ## The workspace lock (StateLocking)
