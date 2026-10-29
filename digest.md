@@ -107,6 +107,7 @@ graph LR
 ## Implementing a ticket
 
 - Implementing a ticket takes a worker agent and an independent orchestrator agent; the owner saying `implement <ticket>` is the explicit request to launch the orchestrator with the Agent tool, in the foreground, and needs no further permission. — `CLAUDE.md` §When the owner says implement
+- `implement "CORR: @agent-dev"` resolves, in the current Operating Space, every file whose first line is `CORR:` or `CORRection:` followed by `@agent-dev` (or `@dev-agent`): each as written, header and note removed so the file is valid again, a resolution touching `src/` following the `implement` orders, each listed in the report. — CLAUDE.md §When the owner says `implement "CORR: @agent-dev"`
 - A ticket's Decisions for the owner are asked before the first edit; a recommendation is never taken as the answer. — `AgentConduct.md` §4.1
 - The worker never runs `bump-version`, writes a self-history record, or scores its own work; the orchestrator does, and re-quotes after every fix. — `AgentConduct.md` §4.1
 - A planning ticket archived on or after 2026-10-09 needs an orchestrator's self-history record naming it, unless it opens with the owner's `> **Dropped — ` banner: `pixi run check-tickets` fails without one, and `cgitsync commit` refuses to add it. — `AdditionalSpecs.md` §Responsibility boundaries
