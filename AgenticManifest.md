@@ -7,7 +7,7 @@
 ## Abstract — read this first
 
 **What this document is.** The one written list of the repositories mounted
-under `.agent/` by `examples/complexgitsync4dev.cgs`, what each is for, and
+under `.agent/` by `examples/complexgitsync-dev.cgs`, what each is for, and
 which Markdown files in them are specs the spec tree must reach.
 
 **Why it exists.** `scripts/spec_tree.py` used to hold a hand-written list of
@@ -30,7 +30,7 @@ is added to a mount, change this file in the same change.
 
 ```mermaid
 graph TD
-    CGS["complexgitsync4dev.cgs<br/>mounts under .agent/"] -->|same set, checked| M["AgenticManifest.md<br/>YOU ARE HERE"]
+    CGS["complexgitsync-dev.cgs<br/>mounts under .agent/"] -->|same set, checked| M["AgenticManifest.md<br/>YOU ARE HERE"]
     M -->|lists the spec files of| SPEC["scripts/spec_tree.py"]
     SPEC -->|reachable from| ROOT["CLAUDE.md"]
     SPEC -->|cited or exempt in| DIG["digest.md"]

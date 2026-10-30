@@ -128,7 +128,7 @@ graph LR
 
 ## Architecture — single-implementation rules
 
-- Every mount under `.agent/` that `examples/complexgitsync4dev.cgs` declares is named in `AgenticManifest.md`, and every spec file in it is listed there; `pixi run check-spectree` fails when they disagree. — `AgenticManifest.md`
+- Every mount under `.agent/` that `examples/complexgitsync-dev.cgs` declares is named in `AgenticManifest.md`, and every spec file in it is listed there; `pixi run check-spectree` fails when they disagree. — `AgenticManifest.md`
 - A memory the `.cgs` does not declare is created locally by ComplexGitSync and never pushed, even with a remote added by hand; only `memory adopt` opts in. — `AdditionalSpecs.md` §Architectural Overview
 - `initialise` is the nested install and `bootstrap` the standalone one; each refuses the other's job by name before touching the disk. — `AdditionalSpecs.md` §The install frontier
 - `initialise` takes a `.cgs` only: a `.gts` is refused by name, naming `bootstrap <.gts>` and `release load <State hash>`; a State named by its hash is loaded only when its content still hashes to that name, and a tag never falls back to a checkout. — `AdditionalSpecs.md` §The install frontier
