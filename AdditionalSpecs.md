@@ -801,7 +801,7 @@ Directional targets, for context: ≤500 LOC hard / ≤350 target per module,
 separately and absolutely via `ruff`'s `C90` selector (`pyproject.toml`,
 max 12) — a handful of pre-existing functions carry a documented
 `# noqa: C901` (search the codebase for "Pre-existing complexity debt");
-new code has no such exemption. On 2026-10-28 the owner approved IntegrityMount's raise, so that no line is joined to fit: `orchestre/discovery_commands.py` 671 → 678, `orchestre/tree_commands.py` 1071 → 1075, `tree/discovery.py` 231 → 236, `tree/git_tree_branch.py` 411 → 413, `tree/operations/merge.py` 513 → 514. On 2026-10-29 the owner approved OpBoundary's raise: `cli/_shared.py` 611 → 612, `omniscience/omniscience_record.py` 183 → 188. On 2026-10-29 the owner approved BeforeCGS-BETA's raise: `git_repo/git_branch.py` 444 → 445.
+new code has no such exemption. On 2026-10-28 the owner approved IntegrityMount's raise, so that no line is joined to fit: `orchestre/discovery_commands.py` 671 → 678, `orchestre/tree_commands.py` 1071 → 1075, `tree/discovery.py` 231 → 236, `tree/git_tree_branch.py` 411 → 413, `tree/operations/merge.py` 513 → 514. On 2026-10-29 the owner approved OpBoundary's raise: `cli/_shared.py` 611 → 612, `omniscience/omniscience_record.py` 183 → 188. On 2026-10-29 the owner approved LinkAtCGS's raise: `git_repo/git_branch.py` 444 → 445.
 
 ### Docstring contracts
 
@@ -969,9 +969,9 @@ report concrete bugs.
 
 ## Format ownership
 
-**A `.cgs` named `yyyy-xxx.cgs`** (`tree/named_cgs.py`, BeforeCGS-BETA §7): when `xxx` is exactly three characters and `yyyy`
+**A `.cgs` named `yyyy-xxx.cgs`** (`tree/named_cgs.py`, LinkAtCGS §7): when `xxx` is exactly three characters and `yyyy`
 (any length, cut at the last `-`) is the file's own `project.name`, its project line must be `project = { name = "yyyy",
-default_branch = "xxx", fallback_branch = "CGS-BETA" }`, or `CgsDocument.from_toml` refuses the file by name before anything is
+default_branch = "xxx", fallback_branch = "CGS-ALPHA" }`, or `CgsDocument.from_toml` refuses the file by name before anything is
 cloned. `project.fallback_branch` is the default every repository's `fallback_branch` takes (`git_branch.apply_declared_defaults`);
 the clone chain is the target, that fallback, then `main`. No other file is concerned, a `memory reboot` export `<project>-v<N>.cgs` included (`v10` to `v99` name a version).
 
@@ -1582,17 +1582,17 @@ methods are outside that set and still go direct.
 - **Sigma in the register.** `OmniscienceRecord.sigma`, the number of parts a `*G`'s level exposes, is shown in the
   record's `[record]` table and committed only when present, like `published_state_id`: a record without it keeps
   its hash and `GLOBAL_SCHEMA` stays 1. `omniscience register` is not restricted to PoE graphs yet; that refusal
-  comes with ProviderMigration (BeforeCGS-BETA §3b).
+  comes with ProviderMigration (LinkAtCGS §3b).
 - `Op` calls no provider and writes nothing to the register itself.
 - **The levels have a code** (`orchestre/op_levels.py`): `OPX`, `DEV`, `USR`, `PUB`, three letters, case-sensitive (`USR` is
   `USER`'s). They inherit: `OPX` ⊃ `DEV` ⊃ `USR` ⊃ `PUB`. `.cgs` is the only way in: `LevelCommand.of(project, code)` is the
   command a level calls for (`cgitsync bootstrap yyyy-opx.cgs`, `bootstrap yyyy-dev.cgs`, `initialise ../install.cgs`; none for
-  `PUB`), emitted and never run by `Op`, since a node may be another machine. The code comes from the caller (CGS-BETA through a
+  `PUB`), emitted and never run by `Op`, since a node may be another machine. The code comes from the caller (a
   GX4G node), never from `Op`.
 - **GitRepo-ALPHA == GitRepo-BETA** (`Leaves`): `Op.is_poe(beta=)` adds `leaves` to `OP*` at the levels that expose nodes: per
   leaf, `equal`, `different`, `absent-beta`, `absent-alpha`, or `unverified` without a BETA side. Leaves are compared by their
   schema-1 hash (`repo_hash`), and only the verdict leaves. The BETA side is a registered State (`Leaves.of_state`); reading
-  it from `.omniscience` is the BETA tool's, to come (BeforeCGS-BETA FD1).
+  it from `.omniscience` is the BETA tool's, to come (LinkAtCGS FD1).
 
 ## The workspace lock (StateLocking)
 
