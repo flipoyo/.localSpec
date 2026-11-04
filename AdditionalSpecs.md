@@ -378,7 +378,19 @@ case therefore decides only once, when an install first installs the memory
 (`Installer._mark_twin`, from `clone_cgs` and the `.gts` bootstrap); afterwards
 the branch the memory is on is the record
 (`GitTreeBranches.settle_memory_twin`, at every `.cgs` and `.gts` load), and
-`WorkingGitTree.memory_twin` holds it for the run. Nothing else is stored. A
+`WorkingGitTree.memory_twin` holds it for the run. Nothing else is stored. The
+one exception is a memory left on its fallback base (`main`, because the twin's
+branch did not exist yet): that branch says nothing about whose memory it is, so
+the target the State recorded answers instead (MemoryMount, 2026-11-04), and
+`memory branch` creates the twin's branch the State expects. A private
+repository waiting that way — on its fallback base, clean, level with its
+upstream, its own branch known neither here nor on origin — does not stop a
+`commit` or a `push`: the preflight warns (`Preflight._waits_for_branch`),
+since neither would write anything to the base. One holding a change is still
+refused, and so is every other operation (`merge`, `pull --private`, `tag`,
+`release freeze`). `.omniscience` is the usual case before its first `omniscience
+register`, which appends to the derived branch by name and then checks it out,
+so the register never writes onto `main` either. A
 `.gts` recorded in a nested tree loses its memory pin in a standalone
 bootstrap: the memory is cloned on the twin's branch, not on the Project's
 commit. `git_branch.private_local_branch(..., twin=True)` stays the one place
