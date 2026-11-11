@@ -72,7 +72,7 @@ graph LR
 
 - Every agentic topic has one shared pattern and at most one local fill-in; a fill-in opens with a `*Fills in:*` line naming its pattern and states only the project's choices, names and exceptions — it never restates the pattern. — `SpecTree.md` §2
 - A rule goes in the digest, and a mount or spec file in the manifest, in the same change that adds it; `pixi run check-spectree` fails on drift. — `SpecTree.md` §3–§5
-- The user install (`install.cgs`, at the public repository's root) mounts no private repository; the developer install (`<project-name>4dev.cgs`) adds every agentic mount and the project's memory. — `DevSpecs.md` §Two installs
+- The user install (`install.cgs`, at the public repository's root) mounts no private repository; the developer install (`<project-name>4dev.cgs`, or the file its fill-in names, never one named for a level) adds every agentic mount and the project's memory. — `DevSpecs.md` §Two installs
 - An open ticket is cited by name, never by path, because finishing it renames it. — `TICKETLIFECYCLE.md` §2.2
 - `pixi run check-ceilings` fails on a dead `.agent/` path cited in `src/`, `scripts/` or (for `DevTickets/`) `tests/`, on an open ticket cited by path, and on a broken link inside an open ticket; a mount that is not checked out is skipped. — `AdditionalSpecs.md` §Spec tree
 
