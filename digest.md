@@ -68,8 +68,9 @@ graph LR
 - `pixi run lint` and `pixi run test` must both pass, with the QGIS-free guard. — `htas-dev.md` step 1
 - `cgitsync status`, run from the tree's own root, must show `errors=0`. — `htas-dev.md` step 3
 - CI never writes a version; a bump is a release decision made by the orchestrator or the owner. — `Versioning.md` (dev-sync)
-- The version is SemVer in `pixi.toml`; never hand-edit a version field, run `pixi run bump-version`. — `Versioning.md` (.dev)
-- Every change under `src/` runs `bump-build`, followed by `bump-version` at `patch` at least, in the same change. — `Versioning.md` (.dev) §Who bumps what
+- HTAS is laid out as ComplexGitSync is: `pixi.toml` (Pixi, tasks, the version `cgitsync` reads) beside `pyproject.toml` (the build, the console script); no `[tool.pixi.*]` in `pyproject.toml`. — `Versioning.md` (.dev)
+- The version is SemVer, read from `pixi.toml`; every copy of it is a `bump-version` target, written all or none; never hand-edit a version field. — `Versioning.md` (.dev) §Where the version lives
+- Every change under `src/` runs `pixi run bump-build` (the worker), then `cgitsync version bump <level>` (it runs `pixi run bump-version`), `patch` at least, run by the orchestrator under `implement`. — `Versioning.md` (.dev) §Who bumps what
 - Until SemVerPixi lands, do not bump by hand and do not push to `main` without the owner: the old workflow still fires there. — `Versioning.md` (.dev) §Status
 - When a responsibility moves between layers, `AdditionalSpecs.md` §2 is updated in the same change. — `htas-dev.md` step 6
 
@@ -77,7 +78,7 @@ graph LR
 
 - `implement <ticket>` is the explicit request to launch the orchestrator with the Agent tool, in the foreground, and needs no further permission. — `CLAUDE.md` §When the owner says implement
 - A ticket's Decisions for the owner are asked with `AskUserQuestion` before the first edit; a recommendation is never the answer. — `AgentConduct.md` §4.1
-- The worker never runs `bump-version`, writes a self-history record or scores its own work; the orchestrator does, and re-quotes after every fix. — `AgentConduct.md` §4.1
+- The worker never runs `cgitsync version bump` or `bump-version`, writes a self-history record or scores its own work; the orchestrator does, and re-quotes after every fix. — `AgentConduct.md` §4.1
 - A planning ticket's filename prefix (`HT-BETA_`) and its `*Branch:*` line must agree. — `TICKETLIFECYCLE.md` §2.3
 - A short ticket is stamped and moved to `archive/.closedUserTicket/` in the change that satisfies it, and never edited afterwards. — `TICKETLIFECYCLE.md` §6
 - Archiving a planning ticket writes the history ticket in `archive/` and an immutable copy in `archive/.deepArchive/`, in one change. — `TICKETLIFECYCLE.md` §4.1

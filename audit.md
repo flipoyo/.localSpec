@@ -44,7 +44,8 @@ graph LR
 | 4 | The README describes `ht/persistence.py` (pickle mixin) and `accessors.py`; neither exists any more (`accessors.py` became `services/public/twin_io.py`) | `README.md`, *Repository Structure* and the conceptual diagram | none yet |
 | 5 | An L3 module imports from L2: `services/private/raw_data_export.py:20` imports `ht.developer.api_types` (indented, to check it is under `TYPE_CHECKING`) | `services/private/raw_data_export.py` | none yet |
 | 6 | The README names no agent: there is no *LLM assistance* section, which AgentConduct §3 expects when an agent contributes | `README.md` | owner's decision |
-| 7 | No `check-spectree` task: the agreement of `AgenticManifest.md` with `.config/htas-dev-beta.cgs`, and of `digest.md` with its sources, is kept by hand | `pyproject.toml` `[tool.pixi.tasks]` | none yet |
+| 7 | No `check-spectree` task: the agreement of `AgenticManifest.md` with `.config/htas-dev-beta.cgs`, and of `digest.md` with its sources, is kept by hand | the Pixi tasks | none yet |
+| 8 | There is no `pixi.toml`: Pixi is configured inside `pyproject.toml`, so `cgitsync version diagnose` reports HTAS `not versioned` | `pyproject.toml` `[tool.pixi.*]` | SemVerPixi |
 
 ## Closed
 
