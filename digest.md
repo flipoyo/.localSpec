@@ -71,7 +71,6 @@ graph LR
 - HTAS is laid out as ComplexGitSync is: `pixi.toml` (Pixi, tasks, the version `cgitsync` reads) beside `pyproject.toml` (the build, the console script); no `[tool.pixi.*]` in `pyproject.toml`. — `Versioning.md` (.dev)
 - The version is SemVer, read from `pixi.toml`; every copy of it is a `bump-version` target, written all or none; never hand-edit a version field. — `Versioning.md` (.dev) §Where the version lives
 - Every change under `src/` runs `pixi run bump-build` (the worker), then `cgitsync version bump <level>` (it runs `pixi run bump-version`), `patch` at least, run by the orchestrator under `implement`. — `Versioning.md` (.dev) §Who bumps what
-- Until SemVerPixi lands, do not bump by hand and do not push to `main` without the owner: the old workflow still fires there. — `Versioning.md` (.dev) §Status
 - When a responsibility moves between layers, `AdditionalSpecs.md` §2 is updated in the same change. — `htas-dev.md` step 6
 
 ## Implementing a ticket
