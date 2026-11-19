@@ -60,9 +60,10 @@ observation or an extraction point directly (`docs/canonical_monolith.md`,
 
 | Layer | Package | Responsibility |
 |---|---|---|
+| **L0 · cli · adapter** | `cli/` | The `htas` command line (`pixi run htas <command> [<subcommand>]`): collects arguments and prints, nothing else. Every command calls one `HydrologicalTwinClient` method; `cli.COMMANDS` is the one registry; `htas.toml` is the project file. See `DevTickets` HtasCli. |
 | **L1 · client · macro** | `ht/client/` | `HydrologicalTwinClient`: one coarse method per dialog operation; `operations_client.py` chains fetch → transform → render; `api_types.py` the user-facing Result dataclasses. A pure orchestrator: no computation of its own. |
 | **L2 · developer · micro** | `ht/developer/` | `HydrologicalTwin`: the facade and its eight macro-verbs; `api_types.py` the Request / Response dataclasses; `dispatch.py` and `handlers.py`, transitional internals to be folded into the micro-verbs or into L3 (`docs/TODO.md`). |
-| **L3 · services · elementaries** | `services/public/`, `services/private/` | Elementary operations with no global state: I/O (`twin_io.py`), temporal aggregation, budgets, masks, vector operators, geodata assembly, rendering; `io_types.py` the leaf read DTOs. |
+| **L3 · services · elementaries** | `services/public/`, `services/private/` | Elementary operations with no global state: I/O (`twin_io.py`), the QGIS-free layer provider (`file_geo_provider.py`), temporal aggregation, budgets, masks, vector operators, geodata assembly, rendering; `io_types.py` the leaf read DTOs. |
 | domain | `domain/` | State and entities, no orchestration: `Compartment`, `Mesh`, `Observations`, `Extraction`, `TimeFrame`. |
 | config | `config/` | `Config`, `ConfigGeometry`, `ConfigProject`, constants, `FactoryClass`. |
 | tools | `tools/` | Generic utilities only (`spatial_utils`: CRS checks, nearest-row queries). |
@@ -76,6 +77,11 @@ observation or an extraction point directly (`docs/canonical_monolith.md`,
   directly (for instance the fetch of a simulation matrix). It is not
   prioritised to remove, and a change must not add new ones without saying
   so in its report.
+- **L0 (`cli/`)** imports only `ht.client`, `config` and, for the injected
+  layer provider, `services.public.FileGeoProvider`; never `ht.developer`
+  internals, never `qgis`/`PyQt`. It holds no computation and no default a
+  lower layer does not hold: a capability missing in Python is added below,
+  never in `cli/`. A command never exists without its client method.
 - `domain/` never imports `services/` or `ht/`; `config/` and `tools/`
   import nothing from the other packages.
 
