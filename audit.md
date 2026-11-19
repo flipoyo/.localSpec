@@ -39,10 +39,11 @@ graph LR
 | # | Finding | Where | Tracked by |
 |---|---|---|---|
 | 3 | `docs/TODO.md` still holds an unresolved merge conflict (`<<<<<<< HEAD` … `>>>>>>> 388d82e`) | `docs/TODO.md:71-148` | none yet |
-| 4 | The README describes `ht/persistence.py` (pickle mixin) and `accessors.py`; neither exists any more (`accessors.py` became `services/public/twin_io.py`) | `README.md`, *Repository Structure* and the conceptual diagram | none yet |
+| 4 | The README describes `ht/persistence.py` (pickle mixin) and `accessors.py`; neither exists any more (`accessors.py` became `services/public/twin_io.py`) | `README.md`, *Repository Structure* and the conceptual diagram | HtasCli M4 |
 | 5 | An L3 module imports from L2: `services/private/raw_data_export.py:20` imports `ht.developer.api_types` (indented, to check it is under `TYPE_CHECKING`) | `services/private/raw_data_export.py` | none yet |
 | 6 | The README names no agent: there is no *LLM assistance* section, which AgentConduct §3 expects when an agent contributes | `README.md` | owner's decision |
 | 7 | No `check-spectree` task: the agreement of `AgenticManifest.md` with `.config/htas-dev-beta.cgs`, and of `digest.md` with its sources, is kept by hand | the Pixi tasks | none yet |
+| 9 | CaWaQS-ViZ installs HTAS with `pip install --user` from its submodule (`INSTALL.md`); since SemVerPixi `requires-python >= 3.11`, so a QGIS with an older Python cannot install it | `pyproject.toml`, CaWaQS-ViZ `INSTALL.md` | HtasCli D6 |
 
 ## Closed
 
