@@ -64,3 +64,7 @@ of [htas-dev.md](../.dev/htas-dev.md), and adds one line:
   7) names for the diff, and whether it was updated in the same change. A
   document the map names and the diff leaves stale is a blocking defect,
   even when `test_docs_sync.py` passes.
+- **Version synced.** The version in `pixi.toml` after the bump, the guide
+  rebuilt by `bump-version`, `test_version_mirrors` passing, and
+  `pixi run check-build-version <base>..HEAD` passing. A mirror the bump
+  left behind is a blocking defect.

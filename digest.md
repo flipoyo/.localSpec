@@ -75,6 +75,7 @@ graph LR
 - CI never writes a version; a bump is a release decision made by the orchestrator or the owner. — `Versioning.md` (dev-sync)
 - HTAS is laid out as ComplexGitSync is: `pixi.toml` (Pixi, tasks, the version `cgitsync` reads) beside `pyproject.toml` (the build, the console script); no `[tool.pixi.*]` in `pyproject.toml`. — `Versioning.md` (.dev)
 - The version is SemVer, read from `pixi.toml`; every copy of it is a `bump-version` target, written all or none; never hand-edit a version field. — `Versioning.md` (.dev) §Where the version lives
+- A literal HTAS version outside the `bump-version` targets (`TARGETS` in `bump_version.py`) fails `test_version_mirrors`; `bump-version` then rebuilds the user guide, and `pixi run check-build-version` fails a commit that moves `__build__` without the version. — `Versioning.md` (.dev)
 - Every change under `src/` runs `pixi run bump-build` (the worker), then `cgitsync version bump <level>` (it runs `pixi run bump-version`), `patch` at least, run by the orchestrator under `implement`. — `Versioning.md` (.dev) §Who bumps what
 - When a responsibility moves between layers, `AdditionalSpecs.md` §2 is updated in the same change. — `htas-dev.md` step 6
 
