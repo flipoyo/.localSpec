@@ -34,7 +34,7 @@ graph LR
 
 ---
 
-## Open findings (2026-11-19, seeding of the HT-BETA spec tree; 10–15 added 2026-11-20 by DocsOnTheFly M1)
+## Open findings (2026-11-19, seeding of the HT-BETA spec tree; 10–14 added 2026-11-20 by DocsOnTheFly M1)
 
 | # | Finding | Where | Tracked by |
 |---|---|---|---|
@@ -48,7 +48,6 @@ graph LR
 | 12 | `pixi run lint` reports 37 ruff errors in `src/` and `tests/` that predate DocsOnTheFly (17 auto-fixable) | `src/`, `tests/` | none yet |
 | 13 | Without CI, the smoke test on the CaWaQS test case runs only when the agent has fetched the fixture (`CWAQS_FIXTURE_ROOT`); a change can pass the gate with it skipped | `tests/integration/test_cwv_gis_smoke.py` | DocsOnTheFly D3 (a synthetic case on the test-case repository) |
 | 14 | `docs/TODO.md` is the one Markdown document `test_docs_sync.py` skips: as a backlog it names removed code (`accessors.py`, `extract_area`), and it still holds finding #3's conflict | `tests/unit/test_docs_sync.py` (`BACKLOG`) | none yet |
-| 15 | `cli/project.py` `build_client` builds the client with `{"project_name": ...}` only, but every client operation reads `twin.metadata["start_year"]` and `["end_year"]` (`operations_client.py`). Latent: `htas describe` reads neither; the first CLI command that runs an operation would raise `KeyError` | `cli/project.py` | HtasCli M2 |
 
 ## Closed
 
@@ -58,3 +57,4 @@ graph LR
 | 2 | The user guide's version is hand-synced and has drifted: `\def\version{000.alpha.18}` against `000.alpha.40` | SemVerPixi |
 | 8 | There is no `pixi.toml`: Pixi is configured inside `pyproject.toml`, so `cgitsync version diagnose` reports HTAS `not versioned` | SemVerPixi |
 | 4 | The README described `ht/persistence.py` (pickle mixin), `accessors.py` and `operations.py`, which no longer exist | DocsOnTheFly M1: the README is rewritten for users, the layout moves to `docs/developer_guide.md`, and `test_docs_sync.py` fails on any path a document names that is not in the repository |
+| 15 | `cli/project.py` `build_client` left the simulated years out of the client's metadata, which every client operation reads | HtasCli M2: `build_client` sets `start_year` and `end_year` |

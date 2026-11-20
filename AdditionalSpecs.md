@@ -81,7 +81,8 @@ observation or an extraction point directly (`docs/canonical_monolith.md`,
   layer provider, `services.public.FileGeoProvider`; never `ht.developer`
   internals, never `qgis`/`PyQt`. It holds no computation and no default a
   lower layer does not hold: a capability missing in Python is added below,
-  never in `cli/`. A command never exists without its client method.
+  never in `cli/`. A command never exists without its client method, and
+  every client operation has a command (`tests/unit/test_cli_operations.py`).
 - `domain/` never imports `services/` or `ht/`; `config/` and `tools/`
   import nothing from the other packages.
 

@@ -42,7 +42,7 @@ graph LR
 - Every exported symbol appears in its module's `__all__` and is documented. — `DevSpecs.md` §Object-Oriented Design
 - Every public operation acts on a `Compartment`, never on a mesh, an observation or an extraction point directly. — `AdditionalSpecs.md` §1
 - Imports point strictly downward, L1 `ht/client` → L2 `ht/developer` → L3 `services` → `domain` → `config`/`tools`; a lower layer never imports a higher one, except for an annotation under `TYPE_CHECKING`. — `AdditionalSpecs.md` §3
-- `cli/` (L0) only collects arguments and prints: each command calls one `HydrologicalTwinClient` method, no command lacks its method, and a missing capability is added below `cli/`, never in it; `cli.COMMANDS` is the one registry. — `AdditionalSpecs.md` §2–§3
+- `cli/` (L0) only collects arguments and prints: each command calls one `HydrologicalTwinClient` method, no command lacks its method, no client operation lacks its command, and a missing capability is added below `cli/`, never in it; `cli.COMMANDS` is the one registry. — `AdditionalSpecs.md` §2–§3
 - L1 is a pure orchestrator: it computes nothing itself. — `AdditionalSpecs.md` §2
 - No module under `src/` imports `qgis`, `qgis.PyQt`, `PyQt5` or `PyQt`; `tests/unit/test_qgis_free.py` enforces it. — `AdditionalSpecs.md` §5
 - No module passes 2000 lines; one that would is split, with the owner's agreement, in the change that would make it pass. — `AdditionalSpecs.md` §6
