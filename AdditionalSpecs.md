@@ -29,7 +29,7 @@ report and ask the owner which one is right.
 ```mermaid
 graph TD
     C["consumer<br/>CaWaQS-ViZ"] --> L1["L1 · ht/client/<br/>HydrologicalTwinClient<br/>macro, pure orchestrator"]
-    L1 --> L2["L2 · ht/developer/<br/>HydrologicalTwin facade<br/>8 macro-verbs"]
+    L1 --> L2["L2 · ht/developer/<br/>HydrologicalTwin facade<br/>9 macro-verbs"]
     L2 --> L3["L3 · services/<br/>elementary operations"]
     L3 --> D["domain/<br/>Compartment aggregate"]
     L2 --> D
@@ -62,7 +62,7 @@ observation or an extraction point directly (`docs/canonical_monolith.md`,
 |---|---|---|
 | **L0 · cli · adapter** | `cli/` | The `htas` command line (`pixi run htas <command> [<subcommand>]`): collects arguments and prints, nothing else. Every command calls one `HydrologicalTwinClient` method; `cli.COMMANDS` is the one registry; `htas.toml` is the project file. See `DevTickets` HtasCli. |
 | **L1 · client · macro** | `ht/client/` | `HydrologicalTwinClient`: one coarse method per dialog operation; `operations_client.py` chains fetch → transform → render; `api_types.py` the user-facing Result dataclasses. A pure orchestrator: no computation of its own. |
-| **L2 · developer · micro** | `ht/developer/` | `HydrologicalTwin`: the facade and its eight macro-verbs; `api_types.py` the Request / Response dataclasses; `dispatch.py` and `handlers.py`, transitional internals to be folded into the micro-verbs or into L3 (`docs/TODO.md`). |
+| **L2 · developer · micro** | `ht/developer/` | `HydrologicalTwin`: the facade and its nine macro-verbs (the keys of `MINIMUM_STATE`); `api_types.py` the Request / Response dataclasses; `dispatch.py` and `handlers.py`, transitional internals to be folded into the micro-verbs or into L3 (`docs/TODO.md`). |
 | **L3 · services · elementaries** | `services/public/`, `services/private/` | Elementary operations with no global state: I/O (`twin_io.py`), the QGIS-free layer provider (`file_geo_provider.py`), temporal aggregation, budgets, masks, vector operators, geodata assembly, rendering; `io_types.py` the leaf read DTOs. |
 | domain | `domain/` | State and entities, no orchestration: `Compartment`, `Mesh`, `Observations`, `Extraction`, `TimeFrame`. |
 | config | `config/` | `Config`, `ConfigGeometry`, `ConfigProject`, constants, `FactoryClass`. |
@@ -91,19 +91,20 @@ What SemVer is measured against ([Versioning.md](../.dev/Versioning.md)):
 
 - `from HydrologicalTwinAlphaSeries import HydrologicalTwin` (and `Config`,
   `ConfigGeometry`, `ConfigProject`), the package's `__all__`.
-- The eight macro-verbs of `HydrologicalTwin`: `configure`, `load`,
-  `describe`, `fetch`, `mask`, `transform`, `render`, `export`, and the
-  Request / Response dataclasses they take and return.
+- The nine macro-verbs of `HydrologicalTwin`: `configure`, `load`,
+  `describe`, `fetch`, `mask`, `transform`, `assemble`, `render`, `export`,
+  their kinds, and the Request / Response dataclasses they take and return.
 - The methods of `HydrologicalTwinClient` and its Result dataclasses.
+- The `htas` commands, their options, exit codes and `--json` output.
 
 Everything else (`dispatch`, `handlers`, `services/private/`) is internal:
 a refactor there is not a break.
 
 ## 5. QGIS-free
 
-No module under `src/` imports `qgis`, `qgis.PyQt`, `PyQt5` or `PyQt`. CI
-enforces it with a `grep` before the tests (`ci.yml`, *Enforce QGIS-free
-backend*). The QGIS application layer, CaWaQS-ViZ, consumes this package;
+No module under `src/` imports `qgis`, `qgis.PyQt`, `PyQt5` or `PyQt`.
+`tests/unit/test_qgis_free.py` enforces it, inside `pixi run test`; there
+is no CI (owner, 2026-11-20, DocsOnTheFly). The QGIS application layer, CaWaQS-ViZ, consumes this package;
 never the other way round.
 
 ## 6. Module shape

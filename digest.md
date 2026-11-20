@@ -44,7 +44,7 @@ graph LR
 - Imports point strictly downward, L1 `ht/client` → L2 `ht/developer` → L3 `services` → `domain` → `config`/`tools`; a lower layer never imports a higher one, except for an annotation under `TYPE_CHECKING`. — `AdditionalSpecs.md` §3
 - `cli/` (L0) only collects arguments and prints: each command calls one `HydrologicalTwinClient` method, no command lacks its method, and a missing capability is added below `cli/`, never in it; `cli.COMMANDS` is the one registry. — `AdditionalSpecs.md` §2–§3
 - L1 is a pure orchestrator: it computes nothing itself. — `AdditionalSpecs.md` §2
-- No module under `src/` imports `qgis`, `qgis.PyQt`, `PyQt5` or `PyQt`. — `AdditionalSpecs.md` §5
+- No module under `src/` imports `qgis`, `qgis.PyQt`, `PyQt5` or `PyQt`; `tests/unit/test_qgis_free.py` enforces it. — `AdditionalSpecs.md` §5
 - No module passes 2000 lines; one that would is split, with the owner's agreement, in the change that would make it pass. — `AdditionalSpecs.md` §6
 - Python work goes through `pixi`, never bare `pip`, `python -m pip` or `venv`, in code, docs or CI. — `DevSpecs.md` §Python Environment and Package Management
 
@@ -66,7 +66,10 @@ graph LR
 
 ## Before a task is finished
 
-- `pixi run lint` and `pixi run test` must both pass, with the QGIS-free guard. — `htas-dev.md` step 1
+- `pixi run lint` and `pixi run test` must both pass, with the QGIS-free guard and the drift tests; lint shows no new error. — `htas-dev.md` step 1
+- There is no CI: the local gate, run before every commit and push, replaces it. — `htas-dev.md` §Commands
+- Every change updates, in the same change, each document the doc-impact map names for it. — `htas-dev.md` step 7
+- `src/` is the reference: a document never names a path, module, class, method, keyword, verb, `kind`, task or command that `src/` lacks. — `htas-dev.md` step 7
 - `cgitsync status`, run from the tree's own root, must show `errors=0`. — `htas-dev.md` step 3
 - CI never writes a version; a bump is a release decision made by the orchestrator or the owner. — `Versioning.md` (dev-sync)
 - HTAS is laid out as ComplexGitSync is: `pixi.toml` (Pixi, tasks, the version `cgitsync` reads) beside `pyproject.toml` (the build, the console script); no `[tool.pixi.*]` in `pyproject.toml`. — `Versioning.md` (.dev)
@@ -79,6 +82,7 @@ graph LR
 - `implement <ticket>` is the explicit request to launch the orchestrator with the Agent tool, in the foreground, and needs no further permission. — `CLAUDE.md` §When the owner says implement
 - A ticket's Decisions for the owner are asked with `AskUserQuestion` before the first edit; a recommendation is never the answer. — `AgentConduct.md` §4.1
 - The worker never runs `cgitsync version bump` or `bump-version`, writes a self-history record or scores its own work; the orchestrator does, and re-quotes after every fix. — `AgentConduct.md` §4.1
+- The orchestrator's quote carries a *Docs touched* line; a document the doc-impact map names and the diff leaves stale is a blocking defect. — `AGENT.md` (.localSpec) §The orchestrator's quote
 - A planning ticket's filename prefix (`HT-BETA_`) and its `*Branch:*` line must agree. — `TICKETLIFECYCLE.md` §2.3
 - A short ticket is stamped and moved to `archive/.closedUserTicket/` in the change that satisfies it, and never edited afterwards. — `TICKETLIFECYCLE.md` §6
 - Archiving a planning ticket writes the history ticket in `archive/` and an immutable copy in `archive/.deepArchive/`, in one change. — `TICKETLIFECYCLE.md` §4.1
@@ -87,6 +91,8 @@ graph LR
 ## Documents
 
 - Every Markdown document opens with an abstract carrying a mermaid graph; the one exception is the root `README.md`, the user's front page. — `DOCSTYLE.md` §1, `CLAUDE.md` §Document conventions
+- The root `README.md` is user-facing only, at most 250 lines, on ComplexGitSync's model, with no method or command table. — `htas-dev.md` step 7
+- A White Book chapter that describes the HydrologicalTwin target opens with `\htastarget`; only there may it use the target's vocabulary. — `htas-dev.md` §The doc-impact map
 - There is one authoritative file per purpose. — `DOCSTYLE.md` §7
 - Documents and finishing reports are plain English. — `DOCSTYLE.md` §5
 - Documents never carry dated "recent improvements" blocks that rot. — `DOCSTYLE.md` §6
