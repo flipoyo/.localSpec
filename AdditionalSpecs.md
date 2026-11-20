@@ -62,7 +62,7 @@ observation or an extraction point directly (`docs/canonical_monolith.md`,
 |---|---|---|
 | **L0 · cli · adapter** | `cli/` | The `htas` command line (`pixi run htas <command> [<subcommand>]`): collects arguments and prints, nothing else. Every command calls one `HydrologicalTwinClient` method; `cli.COMMANDS` is the one registry; `htas.toml` is the project file. See `DevTickets` HtasCli. |
 | **L1 · client · macro** | `ht/client/` | `HydrologicalTwinClient`: one coarse method per dialog operation; `operations_client.py` chains fetch → transform → render; `api_types.py` the user-facing Result dataclasses. A pure orchestrator: no computation of its own. |
-| **L2 · developer · micro** | `ht/developer/` | `HydrologicalTwin`: the facade and its nine macro-verbs (the keys of `MINIMUM_STATE`); `api_types.py` the Request / Response dataclasses; `dispatch.py` and `handlers.py`, transitional internals to be folded into the micro-verbs or into L3 (`docs/TODO.md`). |
+| **L2 · developer · micro** | `ht/developer/` | `HydrologicalTwin`: the facade and its nine macro-verbs (the keys of `MINIMUM_STATE`); `api_types.py` the Request / Response dataclasses; `kinds.py` the registry of the dispatching verbs, their kinds and request types, which `describe` and `htas-dev` read; `dispatch.py` and `handlers.py`, transitional internals to be folded into the micro-verbs or into L3 (`docs/TODO.md`). |
 | **L3 · services · elementaries** | `services/public/`, `services/private/` | Elementary operations with no global state: I/O (`twin_io.py`), the QGIS-free layer provider (`file_geo_provider.py`), temporal aggregation, budgets, masks, vector operators, geodata assembly, rendering; `io_types.py` the leaf read DTOs. |
 | domain | `domain/` | State and entities, no orchestration: `Compartment`, `Mesh`, `Observations`, `Extraction`, `TimeFrame`. |
 | config | `config/` | `Config`, `ConfigGeometry`, `ConfigProject`, constants, `FactoryClass`. |
@@ -79,10 +79,16 @@ observation or an extraction point directly (`docs/canonical_monolith.md`,
   so in its report.
 - **L0 (`cli/`)** imports only `ht.client`, `config` and, for the injected
   layer provider, `services.public.FileGeoProvider`; never `ht.developer`
-  internals, never `qgis`/`PyQt`. It holds no computation and no default a
+  internals, never `qgis`/`PyQt`. The one exception is the second console
+  script, `htas-dev` (`cli/dev.py`, with `project.build_twin`): it calls the
+  public `HydrologicalTwin` verbs and reads `KINDS` and `REQUESTS`
+  (`ht.developer`), and nothing else of L2. It holds no computation and no default a
   lower layer does not hold: a capability missing in Python is added below,
   never in `cli/`. A command never exists without its client method, and
-  every client operation has a command (`tests/unit/test_cli_operations.py`).
+  every client operation has a command (`tests/unit/test_cli_operations.py`),
+  and every kind of `KINDS` has an `htas-dev` subcommand
+  (`tests/unit/test_cli_dev.py`; the registry equals the ladders of
+  `dispatch.py`: `test_kinds_registry.py`).
 - `domain/` never imports `services/` or `ht/`; `config/` and `tools/`
   import nothing from the other packages.
 
