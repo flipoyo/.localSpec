@@ -69,6 +69,7 @@ graph LR
 - `pixi run lint` and `pixi run test` must both pass, with the QGIS-free guard and the drift tests; lint shows no new error. — `htas-dev.md` step 1
 - There is no CI: the local gate, run before every commit and push, replaces it. — `htas-dev.md` §Commands
 - Every change updates, in the same change, each document the doc-impact map names for it. — `htas-dev.md` step 7
+- The user guide names every `htas` command and option and every `htas-dev` verb and kind; `test_user_guide_cli.py` fails otherwise. — `htas-dev.md` §The doc-impact map
 - `src/` is the reference: a document never names a path, module, class, method, keyword, verb, `kind`, task or command that `src/` lacks. — `htas-dev.md` step 7
 - `cgitsync status`, run from the tree's own root, must show `errors=0`. — `htas-dev.md` step 3
 - CI never writes a version; a bump is a release decision made by the orchestrator or the owner. — `Versioning.md` (dev-sync)

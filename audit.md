@@ -34,7 +34,7 @@ graph LR
 
 ---
 
-## Open findings (2026-11-19, seeding of the HT-BETA spec tree; 11–14 added 2026-11-20 by DocsOnTheFly M1)
+## Open findings (2026-11-19, seeding of the HT-BETA spec tree; 11–14 added 2026-11-20 by DocsOnTheFly M1, 16 by HtasCli M4)
 
 | # | Finding | Where | Tracked by |
 |---|---|---|---|
@@ -47,6 +47,7 @@ graph LR
 | 12 | `pixi run lint` reports 37 ruff errors in `src/` and `tests/` that predate DocsOnTheFly (17 auto-fixable) | `src/`, `tests/` | none yet |
 | 13 | Without CI, the smoke test on the CaWaQS test case runs only when the agent has fetched the fixture (`CWAQS_FIXTURE_ROOT`); a change can pass the gate with it skipped | `tests/integration/test_cwv_gis_smoke.py` | DocsOnTheFly D3 (a synthetic case on the test-case repository) |
 | 14 | `docs/TODO.md` is the one Markdown document `test_docs_sync.py` skips: as a backlog it names removed code (`accessors.py`, `extract_area`), and it still holds finding #3's conflict | `tests/unit/test_docs_sync.py` (`BACKLOG`) | none yet |
+| 16 | The tests that run the commands on the CaWaQS test case, `tests/integration/test_cli_fixture.py` (`describe`, `budget barplot`), are written but have never run: no fixture on the machine that wrote them. `htas-dev fetch`, `mask`, `render` and real `assemble`, and `--output` of a GeoPackage, have never run on a real twin either | `tests/integration/test_cli_fixture.py`, `cli/dev.py` | the owner runs them where `CWAQS_FIXTURE_ROOT` exists (`tests/README.md`) |
 
 ## Closed
 
