@@ -414,13 +414,15 @@ a DEV tree, a private, writable repository that fell back because its branch
 for this project is missing, and whose nested `.cgs` is missing *for that
 reason* (`discovery_state` `MISSING` on the fallback branch), is reported, not
 raised: `_assert_nested_discovery_complete` records it in
-`ComplexGitSyncClient.missing_private_branches` and the install ends `READY`.
+`ComplexGitSyncClient.missing_branches` (logged as `branch_missing`, with its `scope`) and the install ends `READY`.
 Every other writable private repository the DEV install left on a fallback
 branch is reported the same way, nested config or not, since committing to it
 there would write to the fallback branch.
 The CLI names it, warns that it must not be committed to on the fallback
-branch, and prints, and in a terminal offers to run, the command that creates
-it; for the memory that is `memory branch --project-branch <branch>`, which
+branch, and prints the command that creates it: the tree-wide
+`branch create <X> && checkout <X>` for every repository but the memory,
+and, in a terminal, offers to run the memory's own,
+`memory branch --project-branch <branch>`, which
 also writes `config-memory.cgs` and adopts `.self-history` on the new branch,
 checking every precondition of that set-up first so a refusal creates nothing.
 A nested `.cgs` missing on the branch a repository really targets is still
@@ -480,9 +482,11 @@ out the root and a tag. A branch the Project's own `.cgs` types on a repository'
 branch the Project asked for when its own `.cgs` redeclares it (`discovery.py`). The branch is only known once the Parent's
 `.cgs` is read, so a Parent cloned by this run is cloned again on its own branch (`Installer._reaim_parents`); one already on
 disk is never moved. **No fallback is silent:** the clone chain is the target, `fallback_branch`, then `main`, with no link for
-`X`; every repository that landed on it is in `missing_private_branches` with `cgitsync branch create <X> && cgitsync checkout
-<X>` (root on `X` or not), which starts `<project>_X` at the tip of `X`, so no work is left behind. `status` reports a
-repository on any other branch as off its target with the same command, and `commit` and `push` refuse it as a branch
+`X`; every repository that landed on it is in `missing_branches` with `cgitsync branch create <X> && cgitsync checkout
+<X>` (root on `X` or not), which starts `<project>_X` at the tip of `X`, so no work is left behind. The run log records each
+as `branch_missing` (`scope` `project` or `private/local`, `root` for the root waiting on its level; `private_branch_missing`
+before BranchMissingEventName), and the install ends with one block grouped by command, adding `&& cgitsync push` in a DEV
+tree. `status` reports a repository on any other branch as off its target and names the same command once, and `commit` and `push` refuse it as a branch
 misalignment (a USER tree never commits, so it is told with one `info:` line). The `SCOPE` column stays `project` for such a
 repository, and the legend says only the root is on the project's branch. Nothing is renamed or pushed, the `.gts` keeps
 schema 1, and a bare branch a repository holds from before is never touched.
