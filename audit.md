@@ -1,92 +1,78 @@
-# Architecture and Consistency Audit
+# Audit — findings on CaWaQS's build, versions and checks
 
 *Created: 2026-05-14*
 
-This file tracks audit findings for the `.cgs` format, CLI authoring,
-provider identity, and runtime boundary: intentional legacy references that
-are not bugs, the acceptance checks that back this project's format/provider
-guarantees, and open decisions or risks as they arise. The static
-architecture reference this file used to carry (the Ring model, module
-responsibility table, format ownership, and provider contract) moved to
-`AdditionalSpecs.md`'s "Architectural Overview" section — see
-that file, or `docs/DevGuide/architecture.md`, for how the system is built.
-Historical regrouping plans are kept under `.agent/.local/.dev/DevTickets/archive/`, and are
-explicitly marked as archives.
+*Rewritten for CaWaQS: 2026-11-25 (BuildSemVerAgenticC §3.4)*
 
-## Intentional legacy references
+## Abstract — read this first
 
-- `examples/normalized_template.cgs` is a developer-facing canonical expansion,
-  paired with the minimal `examples/template.cgs`.
-- Explicit/verbose `.cgs` data in tests verifies advanced overrides and backward
-  compatibility; it is not the recommended authoring style.
-- Files explicitly marked as historical under `.agent/.local/.dev/DevTickets/`, and the archived
-  `.agent/.local/.dev/DevTickets/archive/20260519_CorPlan.md` diagram, may retain old terminology
-  to document migrations.
-- `.gts`, `.lgr`, synchronization, freeze, and kernel semantics remain outside
-  this format/provider audit and were not redesigned.
+**What this document is.** A live log of audit findings: what was found
+wrong or missing in CaWaQS's build, version numbers, install scripts and
+checks, whether it is fixed, and what is still open. It states no rule; the
+rules are in [AdditionalSpecs.md](AdditionalSpecs.md).
 
-## Acceptance checks
+**Why it exists.** The seeded audit described ComplexGitSync's `.cgs`
+format. CaWaQS has its own, and a finding must not be kept only in a ticket
+that gets archived.
 
-Repository tests cover repository-ID parsing, canonical normalization, invalid
-provider and identifier rejection, Codeberg equivalence between file and CLI
-authoring, SSH/HTTPS remote generation for all providers, explicit custom URLs,
-offline `create-cgs`, minimal serialization, and semantic tree round trips.
-The authoritative execution results are reported with the Phase 6 change set.
+**What you will find.** Findings with a status (*fixed* with the release
+that fixed it, or *open*), then the trials still pending.
 
-## Open decisions / risks
+**Who it is for.** The owner and the orchestrator, when they decide what a
+release must fix.
 
-- `ledger_entry.py`/`integrity.py`/`ledger_store.py` implement the
-  hash-chained ledger's mechanics, but `SyncLedger`'s actual write path
-  (backing `cgitsync verify`) is not yet wired to them — tracked here until
-  that wiring lands, rather than left implicit in the module table it used
-  to live next to.
-- **Tree-wide branch propagation defeats per-repository branch pinning.**
-  `operations.restart_tree` (behind `pull`/`pull-force`) reads the root
-  repository's current branch and propagates it to every repository in the
-  tree before pulling. The AgenticMounts layout pins `.localSpec` and
-  `.claude` to a branch named after the project (`default_branch` per
-  repository entry, honoured correctly by `initialise`/`bootstrap`), so a
-  `pull` on such a tree would move those two mounts off their pinned branch
-  onto the root's. Not yet decided: whether `restart_tree` should respect a
-  repository's declared `default_branch` instead of the global one, or
-  whether the global-branch model is the intended contract and the pinning
-  is what should give. Surfaced while implementing
-  `.agent/.local/.dev/DevTickets/archive/20260905_agenticMountStep2-DevPlanTicket.md`, and
-  **confirmed by an incident on 2026-09-05**: a `cgitsync checkout` run to
-  review a branch created that branch in all six mounts, four of them shared
-  with other projects, and the following `pull` failed outright. Nothing was
-  pushed and the repair was one `git branch -d` per mount. Now tracked as its
-  own priority ticket, `.agent/.local/.dev/DevTickets/archive/20260906_BranchPinning_DevPlanTicket.md`.
-- **An attached tree root never records its resolved branch.** When
-  `initialise` attaches the existing checkout as the root rather than cloning
-  it, nothing sets `resolved_ref_name`, so any code falling back through
-  `resolved_ref_name or target_ref_name` reaches the branch the `.cgs`
-  *declares* rather than the one actually resolved. The two differ whenever a
-  clone fell back — the runtime log records exactly that for `docs`:
-  `target_ref_name: autoTest, resolved_ref_name: main`. This was defect B in
-  `.agent/.local/.dev/DevTickets/archive/20260906_DetachedHeadPreflight_DevPlanTicket.md`; the ticket fixed the
-  symptom (the preflight no longer guesses a branch for a detached HEAD) and
-  deferred this cause by decision D3. Not yet decided: whether attaching a
-  root should record its checked-out branch, or whether the fallback chain
-  should prefer `fallback_branch` over the declared name.
-- **A private/local repository's branch is computed two different ways,
-  and only the privacy-blind one runs before the first clone.**
-  `resolve_declared_ref` (`tree/registry.py`'s GT-LOAD, `tree/discovery.py`'s
-  GT-DISCOVER) has no `private`/`writable` parameter and cannot apply
-  `private_local_branch`; `resolve_propagated_ref`
-  (`tree/git_tree_branch.py`, every branch move after the tree exists) does.
-  The two agree only if a `.cgs` author hand-types
-  `private_local_branch(project_name, project_branch)` into the entry's
-  `default_branch` field — which goes stale silently (`examples/molonari.cgs`
-  still carries `"lMOLO"`, `molonari-light.cgs`'s project name, instead of
-  `"MOLONARI"`) and has to name a branch that exists on the remote before
-  the very first `initialise`, when a private/local branch is meant to be
-  created lazily. Reproduced against this tree's own remote: `cgitsync
-  initialise examples/molonari-light.cgs` fails with `No cloneable branch
-  found for ComplexGitSync: expected one of ['lMOLO', 'lMOLO']` — the
-  duplicate is the declared/fallback pair collapsing onto one hand-typed
-  string. Tracked as
-  [InstallFrontier](../.dev/DevTickets/archive/20260930_InstallFrontier_DevPlanTicket.md) (merged from PrivateLocalBranchAtClone).
-- No other open finding is outstanding as of this rewrite. This section is
-  a live log, not a fixed list — add a bullet here as soon as a real
-  decision or risk surfaces, and remove it once resolved.
+**What you need to do with it.** Add a bullet as soon as a real finding
+surfaces, and mark it fixed, with the release, when it is. Remove nothing
+that is still open.
+
+```mermaid
+graph LR
+    F["a finding"] -->|"surfaces"| A["audit.md<br/>YOU ARE HERE"]
+    A -->|"a ticket fixes it"| X["fixed, with its release"]
+    A -->|"not yet"| O["open"]
+
+    classDef here fill:#1565C0,color:#fff,stroke:#111,stroke-width:2px;
+    class A here;
+```
+
+---
+
+## Findings
+
+- **`make version` called a missing `update_version.sh`.** *Fixed in 4.2.0*
+  (BuildSemVerAgenticC, D3): it prints `cawaqs <SemVer> (branch, commit)`
+  from `pixi.toml` and git, and `pixi run version` runs it.
+- **`main_cawaqs.c` said `VERSION ID : 3.x`.** *Fixed in 4.2.0*: it says
+  `see pixi.toml`.
+- **The build number `4.01` was a float in C**, printed with 111 `%4.2f`,
+  and a SemVer string would have been undefined behaviour there, since
+  `LP_printf`/`LP_error` carry no `format` attribute. *Fixed in 4.2.0*: the
+  print calls take `%s`, and `libprint` 1.25 accepts a string.
+- **`.gitlab-ci.yml` builds with the destructive `make_Cawaqs.sh`** (it
+  clones and deletes the libraries). *Open, fixed in 4.3.0* (D6): the CI
+  moves to `make_Cawaqs_from_branches.sh -p cawaqs -b <branch>`.
+- **The format check is commented out** in `.gitlab-ci.yml`
+  (`check-format`, `clang-format -n -Werror`). *Open.*
+- **No `-std` and no warning flag** is set in any `Makefile`, so a mismatch
+  such as `%f` with a `char *` is never reported. *Open.*
+- **Two regression cases only** (`HYDRO_COUPLED.COMM`, `HYDRO_REPSUR.COMM`
+  from `gtest/testcases`) run in CI. *Open.*
+- **`scripts/check_version.sh` maps six codes to `V_AQ`** (`rive`, `seb`,
+  `tube`, `mb`, `hyd`, `ap`), because the tests are written `["$1" = …]`
+  with no space after `[`. *Open, fixed in 4.3.0* (`scripts` 1.0.0).
+- **Other libraries' copies of a `V_xx` lag** (for example `libwet`
+  `V_LP=1.22`). Harmless: the build rewrites them in the `Makefile_tmp` it
+  compiles. `pixi run check-version` lists them as information only.
+- **`libts/src/param_ts.h` defines `VERSION_TS` twice**, with the same
+  value. *Open, harmless*; `bump-build libts` moves both.
+- **`cgitsync version diagnose` reports the 18 libraries as not versioned**
+  and cawaqs as *task needed*, because it reads only the top-level
+  `[tasks]`. *Open*, a generic request is filed in
+  `DevTickets/dependency/CGS/`; nothing in CaWaQS waits for it.
+
+## Trials pending
+
+- **`-std=gnu99 -Wall` trial (D1): trial pending.** Adopt it only if every
+  library and cawaqs build unchanged, with no source edit, and the
+  `Makefile`s stay as simple. Otherwise leave the flags alone and record
+  why here, with the warning count.
