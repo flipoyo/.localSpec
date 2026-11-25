@@ -70,9 +70,18 @@ graph LR
   `[tasks]`. *Open*, a generic request is filed in
   `DevTickets/dependency/CGS/`; nothing in CaWaQS waits for it.
 
-## Trials pending
+## Trials
 
-- **`-std=gnu99 -Wall` trial (D1): trial pending.** Adopt it only if every
-  library and cawaqs build unchanged, with no source edit, and the
-  `Makefile`s stay as simple. Otherwise leave the flags alone and record
-  why here, with the warning count.
+- **`-std=gnu99 -Wall` trial (D1), 2026-11-25: not adopted.** Tried in a
+  scratch copy, as one flag added to every `OPTW` line (15 `Makefile`s).
+  Every library and cawaqs build unchanged, with no source edit, and
+  `src/cawaqs4.3.0` is produced. But the build then prints **901
+  warnings** instead of 2, and the step "`pixi run build` with no new
+  warning" could no longer be checked. Left as it is, for a later ticket.
+  The 901:
+  - 690 `-Wunused-variable`, 175 `-Wunused-but-set-variable` (noise);
+  - 15 `-Wreturn-type`, 3 `-Wuninitialized`, 9 `-Wmaybe-uninitialized`
+    (worth reading: possible real defects);
+  - 4 `-Wcomment`, 1 `-Wunused-value`, 1 `-Wunused-function`.
+  - Most in `manage_link_aquifer.c` (91), `manage_mat_ttc.c` (55),
+    `hydraulics.c` (51), `manage_mat.c` (49), `input.y` (49).
