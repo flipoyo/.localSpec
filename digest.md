@@ -116,6 +116,7 @@ graph LR
 - A planning ticket's filename branch prefix and its own `*Branch:*` line must agree. — `TICKETLIFECYCLE.md` §2.3
 - A short ticket is stamped and moved to `archive/.closedUserTicket/` in the same change that satisfies it, and never edited afterwards. — `TICKETLIFECYCLE.md` §6
 - Archiving a planning ticket writes two copies in one change: the history ticket in `archive/`, whose only allowed edit is a corrected link, and an immutable deep-archived copy in `archive/.deepArchive/`, never edited at all. — `TICKETLIFECYCLE.md` §4.1
+- A ticket a `DevTickets/Roadmap/` plan lists carries its role (`ORX`, `DEV1`, `DEV2`) in its filename, is read against that roadmap before it is implemented, and its archiving recolors the roadmap's graph (done, ready, waiting) and sets its status in the same change. — `TICKETLIFECYCLE.md` §2.4, §8
 - One concern per commit across agents: a `DELETE`/`MOVE`/`CHANGE` by one role is never bundled with another role's change. — `.agent/.distant/dev-sync/AGENT.md` §Handoff rules
 
 ## Documents
