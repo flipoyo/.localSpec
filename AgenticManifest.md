@@ -7,7 +7,7 @@
 ## Abstract — read this first
 
 **What this document is.** The one written list of the repositories mounted
-under `.agent/` by `examples/cgitsync-alpha.cgs`, what each is for, and
+under `.agent/` by `.config/cgitsync-alpha.cgs`, what each is for, and
 which Markdown files in them are specs the spec tree must reach.
 
 **Why it exists.** `scripts/spec_tree.py` used to hold a hand-written list of
